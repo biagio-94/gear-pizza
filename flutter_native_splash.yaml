@@ -8,10 +8,10 @@ flutter_native_splash:
   color: "#000000"        # → sostituisci con il colore che preferisci
 
   # Logo centrale
-  image: "assets/icon/hyperfit_logo.png"
+  image: "assets/icon/gearPizzaIcon.png"
 
   # Configurazione specifica per Android 12+ (Material You)
   android_12:
     # Colore dinamico di sfondo per Android 12+
     color: "#000000"      # → il tuo blu personalizzato
-    image: "assets/icon/hyperfit_logo.png"
+    image: "assets/icon/gearPizzaIcon.png"

@@ -1,6 +1,4 @@
 import 'package:dio/dio.dart';
-import 'package:gearpizza/common/model/gestione_notifiche_request.dart';
-import 'package:gearpizza/common/model/notifiche_elenco_item.dart';
 import 'package:gearpizza/common/services/api_service.dart';
 import 'package:gearpizza/common/services/api_service_exception.dart';
 import 'package:gearpizza/common/utils/exception_handler.dart';
@@ -17,18 +15,19 @@ class NotificationRepository {
     required bool notifyPermission,
   }) async {
     try {
-      final request = GestioneNotificheRequest(
-        (b) => b
-          ..notifiche = notifyPermission
-          ..tokenFirebase = fcmToken.isNotEmpty ? fcmToken : "",
-      );
-      final serializedRequest = standardSerializers.serializeWith(
-          GestioneNotificheRequest.serializer, request);
-      final response = await _apiService.post(
-        NotificationEndpoint.updateFCMtoken,
-        data: serializedRequest,
-      );
-      return response.data ?? false;
+      // final request = GestioneNotificheRequest(
+      //   (b) => b
+      //     ..notifiche = notifyPermission
+      //     ..tokenFirebase = fcmToken.isNotEmpty ? fcmToken : "",
+      // );
+      // final serializedRequest = standardSerializers.serializeWith(
+      //     GestioneNotificheRequest.serializer, request);
+      // final response = await _apiService.post(
+      //   NotificationEndpoint.updateFCMtoken,
+      //   data: serializedRequest,
+      // );
+      // return response.data ?? false;
+      return false;
     } on DioException catch (e) {
       throw mapDioExceptionToCustomException(e);
     } catch (e) {
@@ -48,18 +47,19 @@ class NotificationRepository {
       if (response.statusCode == 200) {
         final serializedData = response.data as List;
 
-        final deserializedData = serializedData
-            .map((item) =>
-                standardSerializers.deserializeWith<NotificheElencoItem>(
-                  NotificheElencoItem.serializer,
-                  item as Map<String, dynamic>,
-                ))
-            .whereType<NotificheElencoItem>()
-            .toList();
+        // final deserializedData = serializedData
+        //     .map((item) =>
+        //         standardSerializers.deserializeWith<NotificheElencoItem>(
+        //           NotificheElencoItem.serializer,
+        //           item as Map<String, dynamic>,
+        //         ))
+        //     .whereType<NotificheElencoItem>()
+        //     .toList();
 
-        return deserializedData
-            .map((item) => AppNotification.convertToAppNotification(item))
-            .toList();
+        // return deserializedData
+        //     .map((item) => AppNotification.convertToAppNotification(item))
+        //     .toList();
+        return [];
       } else {
         throw GenericException("Errore durante il recupero delle notifiche");
       }

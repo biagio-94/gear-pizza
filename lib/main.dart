@@ -9,7 +9,6 @@ import 'package:get_it/get_it.dart';
 import 'package:gearpizza/common/bloc/exception_bloc.dart';
 import 'package:gearpizza/common/bloc/loading_bloc.dart';
 import 'package:gearpizza/common/bloc/theme_bloc.dart';
-import 'package:gearpizza/common/services/api_service.dart';
 import 'package:gearpizza/common/services/secure_storage_service.dart';
 import 'package:gearpizza/common/styles/themes.dart';
 import 'package:gearpizza/common/utils/get_device_id.dart';
@@ -18,15 +17,7 @@ import 'package:gearpizza/features/auth/bloc/auth_bloc.dart';
 import 'package:gearpizza/features/auth/bloc/auth_event.dart';
 import 'package:gearpizza/features/auth/bloc/auth_state.dart';
 import 'package:gearpizza/features/auth/services/auth_service.dart';
-import 'package:gearpizza/features/onboarding/bloc/onboarding_bloc.dart';
-import 'package:gearpizza/features/onboarding/bloc/onboarding_event.dart';
-import 'package:gearpizza/features/onboarding/service/onboarding_service.dart';
-import 'package:gearpizza/features/documents/bloc/documents_bloc.dart';
-import 'package:gearpizza/features/documents/repositories/document_repository.dart';
-import 'package:gearpizza/features/documents/services/document_service.dart';
 import 'package:gearpizza/features/notifications/bloc/notification_bloc.dart';
-import 'package:gearpizza/features/profile/bloc/profile_bloc.dart';
-import 'package:gearpizza/features/profile/repositories/profile_repository.dart';
 import 'package:gearpizza/router/router.dart';
 import 'package:gearpizza/src/generated/l10n/app_localizations.dart';
 
@@ -79,31 +70,6 @@ class MyApp extends StatelessWidget {
         ),
         BlocProvider(
           create: (context) => GetIt.instance<NotificationBloc>(),
-        ),
-        BlocProvider(
-          create: (context) {
-            return DocumentsBloc(
-              DocumentService(
-                DocumentRepository(GetIt.instance<ApiService>()),
-              ),
-            );
-          },
-        ),
-        BlocProvider<OnboardingBloc>(
-          create: (context) {
-            final authState = context.read<AuthBloc>().state;
-            final userId = (authState is AuthAuthenticated)
-                ? authState.user.firebaseUid
-                : '';
-
-            return OnboardingBloc(
-              firebaseUid: userId!,
-              service: getIt<OnboardingService>(),
-            )..add(LoadQuestions());
-          },
-        ),
-        BlocProvider(
-          create: (context) => ProfileBloc(getIt<ProfileRepository>()),
         ),
       ],
       child: Builder(

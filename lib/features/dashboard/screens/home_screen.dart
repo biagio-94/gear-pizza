@@ -1,15 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:gearpizza/common/components/custom_button.dart';
-import 'package:gearpizza/common/styles/colors_schemes.dart';
-import 'package:gearpizza/common/styles/font_sizes.dart';
 import 'package:gearpizza/common/styles/text_styles.dart';
-import 'package:gearpizza/features/auth/models/auth_gear_pizza_user.dart';
-import 'package:gearpizza/features/documents/bloc/documents_bloc.dart';
-import 'package:gearpizza/features/documents/bloc/documents_event.dart';
 
 class Client {
   final String id;
@@ -46,16 +39,6 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() {
       // per mock non cambia nulla
     });
-  }
-
-  void _goCompleteDocs() {
-    context.read<DocumentsBloc>().add(
-          InitializeDocumentsEvent(
-            uuid: GetIt.instance<AuthGeaPizzaUser>().supaUser.userId,
-            step: 1,
-          ),
-        );
-    context.go('/uploadDoc');
   }
 
   @override
@@ -121,11 +104,6 @@ class _HomeScreenState extends State<HomeScreen> {
                   },
                 ),
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _goCompleteDocs(),
-        backgroundColor: colorScheme.secondary,
-        child: const Icon(Icons.person_add),
       ),
     );
   }

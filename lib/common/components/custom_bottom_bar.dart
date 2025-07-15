@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:gearpizza/common/styles/colors_schemes.dart';
 
 class CustomBottomBar extends StatelessWidget {
   final int selectedIndex;

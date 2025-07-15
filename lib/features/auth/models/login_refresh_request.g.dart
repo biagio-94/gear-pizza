@@ -12,10 +12,9 @@ class _$LoginRefreshRequest extends LoginRefreshRequest {
 
   factory _$LoginRefreshRequest(
           [void Function(LoginRefreshRequestBuilder)? updates]) =>
-      (new LoginRefreshRequestBuilder()..update(updates))._build();
+      (LoginRefreshRequestBuilder()..update(updates))._build();
 
   _$LoginRefreshRequest._({this.refresh}) : super._();
-
   @override
   LoginRefreshRequest rebuild(
           void Function(LoginRefreshRequestBuilder) updates) =>
@@ -23,7 +22,7 @@ class _$LoginRefreshRequest extends LoginRefreshRequest {
 
   @override
   LoginRefreshRequestBuilder toBuilder() =>
-      new LoginRefreshRequestBuilder()..replace(this);
+      LoginRefreshRequestBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
@@ -70,7 +69,6 @@ class LoginRefreshRequestBuilder
 
   @override
   void replace(LoginRefreshRequest other) {
-    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$LoginRefreshRequest;
   }
 
@@ -84,7 +82,7 @@ class LoginRefreshRequestBuilder
 
   _$LoginRefreshRequest _build() {
     final _$result = _$v ??
-        new _$LoginRefreshRequest._(
+        _$LoginRefreshRequest._(
           refresh: refresh,
         );
     replace(_$result);

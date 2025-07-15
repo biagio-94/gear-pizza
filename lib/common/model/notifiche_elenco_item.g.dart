@@ -24,7 +24,7 @@ class _$NotificheElencoItem extends NotificheElencoItem {
 
   factory _$NotificheElencoItem(
           [void Function(NotificheElencoItemBuilder)? updates]) =>
-      (new NotificheElencoItemBuilder()..update(updates))._build();
+      (NotificheElencoItemBuilder()..update(updates))._build();
 
   _$NotificheElencoItem._(
       {this.pushId,
@@ -35,7 +35,6 @@ class _$NotificheElencoItem extends NotificheElencoItem {
       this.oraInvio,
       this.dati})
       : super._();
-
   @override
   NotificheElencoItem rebuild(
           void Function(NotificheElencoItemBuilder) updates) =>
@@ -43,7 +42,7 @@ class _$NotificheElencoItem extends NotificheElencoItem {
 
   @override
   NotificheElencoItemBuilder toBuilder() =>
-      new NotificheElencoItemBuilder()..replace(this);
+      NotificheElencoItemBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
@@ -139,7 +138,6 @@ class NotificheElencoItemBuilder
 
   @override
   void replace(NotificheElencoItem other) {
-    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$NotificheElencoItem;
   }
 
@@ -153,7 +151,7 @@ class NotificheElencoItemBuilder
 
   _$NotificheElencoItem _build() {
     final _$result = _$v ??
-        new _$NotificheElencoItem._(
+        _$NotificheElencoItem._(
           pushId: pushId,
           keyId: keyId,
           titolo: titolo,

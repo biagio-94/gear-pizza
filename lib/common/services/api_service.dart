@@ -55,13 +55,13 @@ class ApiService {
           }
         }
 
-        if (e.response?.statusCode == 401 &&
-            e.response?.requestOptions.uri.path.endsWith("/refresh") == false) {
-          final response = await _handleTokenRefresh(e);
-          return response != null
-              ? handler.resolve(response)
-              : handler.reject(e);
-        }
+        // if (e.response?.statusCode == 401 &&
+        //     e.response?.requestOptions.uri.path.endsWith("/refresh") == false) {
+        //   final response = await _handleTokenRefresh(e);
+        //   return response != null
+        //       ? handler.resolve(response)
+        //       : handler.reject(e);
+        // }
 
         if (e.response != null && e.response?.statusCode == 400 ||
             e.response?.statusCode == 404) {
@@ -84,45 +84,45 @@ class ApiService {
     }
   }
 
-  Future<Response?> _handleTokenRefresh(DioException e) async {
-    try {
-      if (_refreshToken == null) return null;
+  // Future<Response?> _handleTokenRefresh(DioException e) async {
+  //   try {
+  //     if (_refreshToken == null) return null;
 
-      final request = LoginRefreshRequest((b) => b..refresh = _refreshToken);
-      final serializedRefreshRequest = standardSerializers.serializeWith(
-          LoginRefreshRequest.serializer, request);
+  //     final request = LoginRefreshRequest((b) => b..refresh = _refreshToken);
+  //     final serializedRefreshRequest = standardSerializers.serializeWith(
+  //         LoginRefreshRequest.serializer, request);
 
-      // Invia la richiesta con il corpo serializzato
-      final response = await _dio.post(
-        AuthEndpoints.refreshToken,
-        data: serializedRefreshRequest,
-      );
+  //     // Invia la richiesta con il corpo serializzato
+  //     final response = await _dio.post(
+  //       AuthEndpoints.refreshToken,
+  //       data: serializedRefreshRequest,
+  //     );
 
-      if (response.statusCode == 200) {
-        final refreshResponse = standardSerializers.deserializeWith(
-            LoginResponse.serializer, response.data);
+  //     if (response.statusCode == 200) {
+  //       final refreshResponse = standardSerializers.deserializeWith(
+  //           LoginResponse.serializer, response.data);
 
-        if (refreshResponse == null || refreshResponse.token == null) {
-          return null;
-        }
+  //       if (refreshResponse == null || refreshResponse.token == null) {
+  //         return null;
+  //       }
 
-        setAccessToken(refreshResponse.token!);
+  //       setAccessToken(refreshResponse.token!);
 
-        if (refreshResponse.refreshToken != null) {
-          setRefreshToken(refreshResponse.refreshToken!);
-        }
+  //       if (refreshResponse.refreshToken != null) {
+  //         setRefreshToken(refreshResponse.refreshToken!);
+  //       }
 
-        final retryResponse = await _dio
-            .fetch(e.requestOptions..headers['auth-token'] = _accessToken);
+  //       final retryResponse = await _dio
+  //           .fetch(e.requestOptions..headers['auth-token'] = _accessToken);
 
-        return retryResponse;
-      } else {
-        return null;
-      }
-    } catch (_) {
-      return null;
-    }
-  }
+  //       return retryResponse;
+  //     } else {
+  //       return null;
+  //     }
+  //   } catch (_) {
+  //     return null;
+  //   }
+  // }
 
   Future<Response> get(String path, {Map<String, dynamic>? queryParams}) async {
     return _dio.get(path, queryParameters: queryParams);

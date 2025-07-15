@@ -13,22 +13,16 @@ class _$LoginRequest extends LoginRequest {
   final String password;
 
   factory _$LoginRequest([void Function(LoginRequestBuilder)? updates]) =>
-      (new LoginRequestBuilder()..update(updates))._build();
+      (LoginRequestBuilder()..update(updates))._build();
 
   _$LoginRequest._({required this.username, required this.password})
-      : super._() {
-    BuiltValueNullFieldError.checkNotNull(
-        username, r'LoginRequest', 'username');
-    BuiltValueNullFieldError.checkNotNull(
-        password, r'LoginRequest', 'password');
-  }
-
+      : super._();
   @override
   LoginRequest rebuild(void Function(LoginRequestBuilder) updates) =>
       (toBuilder()..update(updates)).build();
 
   @override
-  LoginRequestBuilder toBuilder() => new LoginRequestBuilder()..replace(this);
+  LoginRequestBuilder toBuilder() => LoginRequestBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
@@ -84,7 +78,6 @@ class LoginRequestBuilder
 
   @override
   void replace(LoginRequest other) {
-    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$LoginRequest;
   }
 
@@ -98,7 +91,7 @@ class LoginRequestBuilder
 
   _$LoginRequest _build() {
     final _$result = _$v ??
-        new _$LoginRequest._(
+        _$LoginRequest._(
           username: BuiltValueNullFieldError.checkNotNull(
               username, r'LoginRequest', 'username'),
           password: BuiltValueNullFieldError.checkNotNull(

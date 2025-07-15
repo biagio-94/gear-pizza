@@ -1,8 +1,4 @@
 import 'package:dio/dio.dart';
-import 'package:get_it/get_it.dart';
-import 'package:gearpizza/common/model/funzionalita.dart';
-import 'package:gearpizza/common/model/preventivo_elenco_item.dart';
-import 'package:gearpizza/features/auth/models/auth_gear_pizza_user.dart';
 import 'package:gearpizza/features/auth/services/auth_service.dart';
 import '../../../common/services/api_service_exception.dart';
 import '../../../common/utils/exception_handler.dart';
@@ -13,8 +9,7 @@ class DashboardService {
   final AuthService authService;
   DashboardService(this.dashboardRepository, this.authService);
 
-  Future<List<PreventivoElencoItem>> fetchPreventivi(
-      {required String? idRef}) async {
+  Future<List<String>> fetchPreventivi({required String? idRef}) async {
     try {
       return await dashboardRepository.fetchPreventivi(idRef: idRef);
     } on ApiServiceException catch (_) {

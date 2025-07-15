@@ -1,4 +1,3 @@
-import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -16,14 +15,8 @@ import 'package:gearpizza/features/auth/bloc/auth_bloc.dart';
 import 'package:gearpizza/features/auth/bloc/auth_event.dart';
 import 'package:gearpizza/features/auth/bloc/auth_state.dart';
 import 'package:gearpizza/features/auth/routes/auth_routes.dart';
-import 'package:gearpizza/features/onboarding/screens/choose_role_screen.dart';
-import 'package:gearpizza/features/onboarding/screens/onboarding_completed_view.dart';
-import 'package:gearpizza/features/onboarding/screens/onboarding_screen.dart';
 import 'package:gearpizza/features/dashboard/routes/dashboard_routes.dart';
 import 'package:gearpizza/features/dashboard/screens/home_screen.dart';
-import 'package:gearpizza/features/documents/routes/document_routes.dart';
-import 'package:gearpizza/features/documents/screens/photo_preview_screen.dart';
-import 'package:gearpizza/features/profile/screens/dealer_details_screen.dart';
 
 class MainRouter {
   final AuthBloc authBloc;
@@ -80,22 +73,6 @@ class MainRouter {
     },
     routes: [
       ...authRoutes,
-      GoRoute(
-        path: '/chooseRole',
-        pageBuilder: (context, state) =>
-            const NoTransitionPage(child: ChooseRoleScreen()),
-      ),
-      GoRoute(
-        path: '/onboarding',
-        pageBuilder: (context, state) =>
-            const NoTransitionPage(child: OnboardingScreen()),
-      ),
-      GoRoute(
-        path: '/onboardingCompletedView',
-        pageBuilder: (context, state) =>
-            const NoTransitionPage(child: OnboardingCompletedView()),
-      ),
-      ...documentRoutes,
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) => MainScaffold(
           navigationShell: navigationShell,
@@ -139,16 +116,6 @@ class MainRouter {
                 path: '/clients',
                 builder: (context, state) => const Center(),
               ),
-            ],
-          ),
-          // Altro branch
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: '/settings',
-                builder: (context, state) => const DealerDetailsScreen(),
-              ),
-              // Additional 'Altro' nested routes can go here
             ],
           ),
         ],

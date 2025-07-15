@@ -1,6 +1,4 @@
 import 'package:flutter/foundation.dart';
-import 'package:gearpizza/common/model/funzionalita.dart';
-import 'package:gearpizza/common/model/preventivo_elenco_item.dart';
 
 @immutable
 abstract class DashboardState {
@@ -8,7 +6,7 @@ abstract class DashboardState {
 }
 
 class DashboardInitializedState extends DashboardState {
-  final List<PreventivoElencoItem> preventivi;
+  final List<String> preventivi;
   final String username;
   const DashboardInitializedState({
     required this.preventivi,
@@ -17,7 +15,7 @@ class DashboardInitializedState extends DashboardState {
 }
 
 class ChooseFunzionalitaState extends DashboardInitializedState {
-  final List<Funzionalita> funzionalita;
+  final List<String> funzionalita;
   const ChooseFunzionalitaState(
       {required this.funzionalita,
       required super.preventivi,

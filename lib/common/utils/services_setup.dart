@@ -3,8 +3,6 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:get_it/get_it.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:gearpizza/features/auth/services/superbase_auth_service.dart';
-import 'package:gearpizza/features/onboarding/repository/onboarding_repository.dart';
-import 'package:gearpizza/features/onboarding/service/onboarding_service.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:gearpizza/common/bloc/exception_bloc.dart';
 import 'package:gearpizza/common/bloc/loading_bloc.dart';
@@ -17,7 +15,6 @@ import 'package:gearpizza/features/auth/services/user_role_service.dart';
 import 'package:gearpizza/features/notifications/bloc/notification_bloc.dart';
 import 'package:gearpizza/features/notifications/repositories/notification_repository.dart';
 import 'package:gearpizza/features/notifications/services/notification_service.dart';
-import 'package:gearpizza/features/profile/repositories/profile_repository.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../features/dashboard/repositories/dashboard_repository.dart';
 import '../../features/dashboard/services/dashboard_service.dart';
@@ -76,20 +73,10 @@ Future<void> setupServiceLocator() async {
         biometricService: getIt<BiometricAuthService>(),
       ));
 
-  // Repository e Service per Onboarding
-  getIt.registerLazySingleton<OnboardingRepository>(
-    () => OnboardingRepository(supabaseClient: getIt<SupabaseClient>()),
-  );
-  getIt.registerLazySingleton<OnboardingService>(
-    () => OnboardingService(getIt<OnboardingRepository>()),
-  );
-
   getIt.registerFactory<UserRoleService>(() => UserRoleService());
 
   getIt.registerLazySingleton<DashboardRepository>(
       () => DashboardRepository(getIt<ApiService>()));
-  getIt.registerLazySingleton<ProfileRepository>(() =>
-      ProfileRepository(getIt<ApiService>(), getIt<NotificationRepository>()));
 
   getIt.registerLazySingleton<DashboardService>(() =>
       DashboardService(getIt<DashboardRepository>(), getIt<AuthService>()));

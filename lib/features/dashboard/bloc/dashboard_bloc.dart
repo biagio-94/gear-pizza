@@ -2,11 +2,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 import 'package:gearpizza/common/bloc/exception_bloc.dart';
 import 'package:gearpizza/common/bloc/loading_bloc.dart';
-import 'package:gearpizza/common/model/configurazione_prodotto.dart';
-import 'package:gearpizza/common/model/funzionalita.dart';
-import 'package:gearpizza/common/model/tabella_finanziaria.dart';
 import 'package:gearpizza/common/services/api_service_exception.dart';
-import 'package:gearpizza/features/auth/models/auth_gear_pizza_user.dart';
 import 'package:gearpizza/features/dashboard/bloc/dashboard_event.dart';
 import 'package:gearpizza/features/dashboard/bloc/dashboard_state.dart';
 import 'package:gearpizza/features/dashboard/services/dashboard_service.dart';
@@ -30,11 +26,11 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
           final preventivi = currentState.preventivi;
           final username = currentState.username;
 
-          emit(ChooseFunzionalitaState(
-            funzionalita: [Funzionalita()],
-            preventivi: preventivi,
-            username: username,
-          ));
+          // emit(ChooseFunzionalitaState(
+          //   funzionalita: [Funzionalita()],
+          //   preventivi: preventivi,
+          //   username: username,
+          // ));
         } else {
           emit(ChooseFunzionalitaState(
             funzionalita: [],
@@ -112,14 +108,14 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
           );
 
           if (isEliminated == true) {
-            final updatedPreventivi = currentState.preventivi
-                .where((preventivo) => preventivo.id != event.idPreventivo)
-                .toList();
+            // final updatedPreventivi = currentState.preventivi
+            //     .where((preventivo) => preventivo.id != event.idPreventivo)
+            //     .toList();
 
-            emit(DashboardInitializedState(
-              preventivi: updatedPreventivi,
-              username: currentState.username,
-            ));
+            // emit(DashboardInitializedState(
+            //   preventivi: updatedPreventivi,
+            //   username: currentState.username,
+            // ));
           } else {
             exceptionBloc.throwExceptionState(
                 'Errore: impossibile eliminare il preventivo.');

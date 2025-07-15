@@ -4,6 +4,7 @@ import 'package:gearpizza/common/bloc/exception_bloc.dart';
 import 'package:gearpizza/common/bloc/exception_state.dart';
 import 'package:gearpizza/common/bloc/loading_bloc.dart';
 import 'package:gearpizza/common/bloc/loading_state.dart';
+import 'package:gearpizza/common/components/centered_text_divider.dart';
 import 'package:gearpizza/common/components/custom_button.dart';
 import 'package:gearpizza/common/components/loading/loading_screen.dart';
 import 'package:gearpizza/common/components/prefix_text_input.dart';
@@ -183,11 +184,12 @@ class _LoginScreenState extends State<LoginScreen>
                                     type: ButtonType.greenFilled,
                                   ),
                                   const SizedBox(height: 24),
-                                  Center(
-                                    child: Text(
-                                      'oppure con',
-                                      style: AppTextStyles.bodySmall(context),
-                                    ),
+                                  CenteredTextDivider(
+                                    text: 'oppure con',
+                                    textStyle: AppTextStyles.bodySmall(context),
+                                    lineColor: Colors.grey,
+                                    lineThickness: 1,
+                                    spacing: 12,
                                   ),
                                   const SizedBox(height: 16),
                                   SocialButtonsGroup(

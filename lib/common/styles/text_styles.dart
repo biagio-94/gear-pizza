@@ -1,81 +1,94 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
-import 'colors_schemes.dart';
-import 'font_sizes.dart';
+import 'package:gearpizza/common/styles/font_sizes.dart';
 
 class AppTextStyles {
-// Text styles
-  static const TextStyle whiteTextStyle = TextStyle(
-    fontSize: AppFontSizes.bodyText,
-  );
+  // Non const perché usano context per colore
+  static TextStyle whiteText(BuildContext context) => TextStyle(
+        fontSize: AppFontSizes.bodyText,
+        color: Colors
+            .white, // o Theme.of(context).colorScheme.onPrimary se preferisci
+      );
 
-  static const TextStyle whiteTextLargeStyle = TextStyle(
-    fontSize: AppFontSizes.bodyTextLarge,
-  );
+  static TextStyle whiteTextLarge(BuildContext context) => TextStyle(
+        fontSize: AppFontSizes.bodyTextLarge,
+        color: Colors.white,
+      );
 
-  static const TextStyle whiteTextTitleStyle = TextStyle(
-    fontSize: AppFontSizes.title,
-    fontWeight: FontWeight.bold,
-  );
+  static TextStyle whiteTextTitle(BuildContext context) => TextStyle(
+        fontSize: AppFontSizes.title,
+        fontWeight: FontWeight.bold,
+        color: Colors.white,
+      );
 
-  static const TextStyle smallGreyText = TextStyle(
-    fontWeight: AppFontSizes.medium,
-    fontSize: AppFontSizes.bodyTextSmall,
-  );
+  static TextStyle smallGreyText(BuildContext context) => TextStyle(
+        fontWeight: FontWeight
+            .w500, // correggi qui da AppFontSizes.medium (che è probabilmente un double)
+        fontSize: AppFontSizes.bodyTextSmall,
+        color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+      );
 
-  static const TextStyle smallThinGreyText = TextStyle(
-    fontWeight: AppFontSizes.normal,
-    fontSize: AppFontSizes.bodyTextSmall,
-  );
+  static TextStyle smallBlueText(BuildContext context) => TextStyle(
+        fontWeight: FontWeight.w500,
+        fontSize: AppFontSizes.bodyTextSmall,
+        color: Theme.of(context).colorScheme.primary,
+      );
 
-  static const TextStyle smallBlueText = TextStyle(
-    fontWeight: AppFontSizes.medium,
-    fontSize: AppFontSizes.bodyTextSmall,
-  );
+  static TextStyle mediumGreyText(BuildContext context) => TextStyle(
+        fontWeight: FontWeight.w500,
+        fontSize: AppFontSizes.buttonText,
+        color: Theme.of(context).colorScheme.onSurface,
+      );
 
-  static const TextStyle mediumGreyText = TextStyle(
-    fontWeight: AppFontSizes.medium,
-    fontSize: AppFontSizes.buttonText,
-  );
+  static TextStyle mediumBlueText(BuildContext context) => TextStyle(
+        fontWeight: FontWeight.w500,
+        fontSize: AppFontSizes.buttonText,
+        color: Theme.of(context).colorScheme.primary,
+      );
 
-  static const TextStyle mediumBlueText = TextStyle(
-    fontWeight: AppFontSizes.medium,
-    fontSize: AppFontSizes.buttonText,
-  );
+  static TextStyle mediumBlueBoldText(BuildContext context) => TextStyle(
+        fontWeight: FontWeight.w600,
+        fontSize: AppFontSizes.buttonText,
+        color: Theme.of(context).colorScheme.primary,
+      );
 
-  static const TextStyle mediumBlueBoldText = TextStyle(
-    fontWeight: AppFontSizes.semiBold,
-    fontSize: AppFontSizes.buttonText,
-  );
+  static TextStyle blueTextPageTitleStyle(BuildContext context) => TextStyle(
+        fontSize: AppFontSizes.bodyTextSmall,
+        fontWeight: FontWeight.bold,
+        color: Theme.of(context).colorScheme.primary,
+      );
 
-  static const TextStyle blueTextPageTitleStyle = TextStyle(
-    fontSize: AppFontSizes.bodyTextSmall,
-    fontWeight: FontWeight.bold,
-  );
+  static TextStyle descriptionPageStyle(BuildContext context) => TextStyle(
+        fontSize: AppFontSizes.bodyText,
+        color: Theme.of(context).colorScheme.onBackground,
+      );
 
-  static const TextStyle descriptionPageStyle = TextStyle(
-    fontSize: AppFontSizes.bodyText,
-  );
-
-  static const TextStyle smallDescriptionStyle = TextStyle(
-    fontSize: AppFontSizes.bodyTextSmall,
-  );
+  static TextStyle smallDescriptionStyle(BuildContext context) => TextStyle(
+        fontSize: AppFontSizes.bodyTextSmall,
+        color: Theme.of(context).colorScheme.onBackground,
+      );
 
   // Input styles
-  static const TextStyle inputLabelStyle = TextStyle(
-    fontSize: AppFontSizes.bodyText,
-  );
+  static TextStyle inputLabelStyle(BuildContext context) => TextStyle(
+        fontSize: AppFontSizes.bodyText,
+        color: Theme.of(context).colorScheme.onSurface,
+      );
 
-  static const TextStyle inputFloatingLabelStyle = TextStyle(
-    overflow: TextOverflow.ellipsis,
-    fontSize: AppFontSizes.floatingLabel,
-    fontWeight: FontWeight.bold,
-  );
+  static TextStyle inputFloatingLabelStyle(BuildContext context) => TextStyle(
+        overflow: TextOverflow.ellipsis,
+        fontSize: AppFontSizes.floatingLabel,
+        fontWeight: FontWeight.bold,
+        color: Theme.of(context).colorScheme.primary,
+      );
 
-  static const TextStyle inputErrorStyle = TextStyle(
-    color: Colors.redAccent,
-    fontSize: 10,
-    fontWeight: FontWeight.bold,
-  );
+  static TextStyle inputErrorStyle(BuildContext context) => TextStyle(
+        color: Theme.of(context).colorScheme.error,
+        fontSize: 10,
+        fontWeight: FontWeight.bold,
+      );
+
+  // Header styles (esempi già presenti)
   static TextStyle h1(BuildContext context) => TextStyle(
         fontSize: AppFontSizes.title,
         fontWeight: FontWeight.bold,
@@ -88,7 +101,7 @@ class AppTextStyles {
         color: Theme.of(context).colorScheme.onBackground,
       );
 
-  // Body Text
+  // Body text
   static TextStyle body(BuildContext context) => TextStyle(
         fontSize: AppFontSizes.bodyText,
         fontWeight: FontWeight.normal,
@@ -101,40 +114,10 @@ class AppTextStyles {
         color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
       );
 
-  // White text variants
-  static TextStyle whiteText(BuildContext context) => TextStyle(
-        fontSize: AppFontSizes.bodyText,
-        color: AppColors.white,
-      );
-
-  static TextStyle whiteTextLarge(BuildContext context) => TextStyle(
-        fontSize: AppFontSizes.bodyTextLarge,
-        color: AppColors.white,
-      );
-
   // Button Text
   static TextStyle button(BuildContext context) => TextStyle(
         fontSize: AppFontSizes.buttonText,
         fontWeight: FontWeight.w500,
         color: Theme.of(context).colorScheme.onPrimary,
-      );
-
-  // Input styles
-  static TextStyle inputLabel(BuildContext context) => TextStyle(
-        fontSize: AppFontSizes.bodyText,
-        color: Theme.of(context).colorScheme.onSurface,
-      );
-
-  static TextStyle inputFloatingLabel(BuildContext context) => TextStyle(
-        overflow: TextOverflow.ellipsis,
-        fontSize: AppFontSizes.floatingLabel,
-        fontWeight: FontWeight.bold,
-        color: Theme.of(context).colorScheme.primary,
-      );
-
-  static TextStyle inputError(BuildContext context) => TextStyle(
-        color: AppColors.errorRed,
-        fontSize: AppFontSizes.bodyTextSmall,
-        fontWeight: FontWeight.bold,
       );
 }

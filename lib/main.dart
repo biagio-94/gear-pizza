@@ -81,8 +81,9 @@ class MyApp extends StatelessWidget {
 
           return BlocBuilder<ThemeCubit, ThemeState>(
             builder: (context, state) {
+              debugPrint("state is: $state");
               return MaterialApp.router(
-                theme: state is! LightThemeState ? lightTheme : darkTheme,
+                theme: state is LightThemeState ? darkTheme : darkTheme,
                 routeInformationProvider: router.routeInformationProvider,
                 routeInformationParser: router.routeInformationParser,
                 routerDelegate: router.routerDelegate,

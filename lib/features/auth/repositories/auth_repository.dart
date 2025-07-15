@@ -5,7 +5,6 @@ import 'package:gearpizza/common/services/secure_storage_service.dart';
 import 'package:gearpizza/common/utils/services_setup.dart';
 import 'package:gearpizza/features/auth/models/auth_gear_pizza_user.dart';
 import 'package:gearpizza/features/auth/services/auth_service_exception.dart';
-import 'package:gearpizza/features/auth/services/superbase_auth_service.dart';
 import 'package:gearpizza/features/auth/services/user_role_service.dart';
 import 'package:gearpizza/models/tables/roles.dart';
 import 'package:gearpizza/models/tables/users.dart';
@@ -157,8 +156,6 @@ class AuthRepository {
 
   Future<void> _afterFirebaseLogin(String email) async {
     await _secureStorage.writeSecureData(_emailKey, email);
-    await SupabaseAuthService()
-        .fetchAndSetSupabaseToken(_firebaseAuth.currentUser!);
     await _syncSupabaseUser(_firebaseAuth.currentUser!);
   }
 

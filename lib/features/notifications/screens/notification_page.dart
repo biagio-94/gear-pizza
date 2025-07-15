@@ -18,7 +18,6 @@ class _NotificationPageState extends State<NotificationPage> {
   @override
   void initState() {
     super.initState();
-    // Esempio: puoi forzare il fetch delle notifiche al caricamento della pagina.
     context.read<NotificationBloc>().add(InitializeNotificationsEvent());
   }
 
@@ -33,12 +32,11 @@ class _NotificationPageState extends State<NotificationPage> {
             return Center(
               child: Text(
                 AppLocalizations.of(context)!.noNotifications,
-                style: AppTextStyles.mediumBlueText,
+                style: AppTextStyles.mediumBlueText(context),
               ),
             );
           }
 
-          // Ordino le notifiche: quelle non lette in alto e poi per timestamp
           final sortedNotifications = [...notifications]..sort((a, b) {
               if (a.read != b.read) {
                 return a.read ? 1 : -1;
@@ -46,7 +44,6 @@ class _NotificationPageState extends State<NotificationPage> {
               return b.timestamp.compareTo(a.timestamp);
             });
 
-          // Raggruppo le notifiche per giorno (utilizzo anno, mese e giorno come chiave)
           final Map<DateTime, List> groupedNotifications = {};
           for (var notif in sortedNotifications) {
             final dateKey = DateTime(
@@ -54,13 +51,10 @@ class _NotificationPageState extends State<NotificationPage> {
               notif.timestamp.month,
               notif.timestamp.day,
             );
-            if (groupedNotifications[dateKey] == null) {
-              groupedNotifications[dateKey] = [];
-            }
+            groupedNotifications.putIfAbsent(dateKey, () => []);
             groupedNotifications[dateKey]!.add(notif);
           }
 
-          // Ordino le date (chiavi) in ordine decrescente (più recente in alto)
           final sortedDates = groupedNotifications.keys.toList()
             ..sort((a, b) => b.compareTo(a));
 
@@ -74,12 +68,12 @@ class _NotificationPageState extends State<NotificationPage> {
                   const SizedBox(height: 8),
                   Text(
                     "NOTIFICHE",
-                    style: AppTextStyles.blueTextPageTitleStyle,
+                    style: AppTextStyles.blueTextPageTitleStyle(context),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     "Qui tieni traccia dello stato d'avanzamento delle tue pratiche.",
-                    style: AppTextStyles.descriptionPageStyle,
+                    style: AppTextStyles.descriptionPageStyle(context),
                   ),
                   const SizedBox(height: 32),
                   ListView.builder(
@@ -90,7 +84,6 @@ class _NotificationPageState extends State<NotificationPage> {
                       final date = sortedDates[dateIndex];
                       final dateNotifications = groupedNotifications[date]!;
 
-                      // Formattazione della data utilizzando MaterialLocalizations
                       final formattedDate = MaterialLocalizations.of(context)
                           .formatMediumDate(date);
 
@@ -99,7 +92,7 @@ class _NotificationPageState extends State<NotificationPage> {
                         children: [
                           Text(
                             formattedDate,
-                            style: AppTextStyles.smallDescriptionStyle,
+                            style: AppTextStyles.smallDescriptionStyle(context),
                           ),
                           const SizedBox(height: 8),
                           ListView.builder(

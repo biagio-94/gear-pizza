@@ -66,9 +66,7 @@ class NotificationTile extends StatelessWidget {
                   const SizedBox(height: 8),
                   Text(
                     formattedDate,
-                    style: AppTextStyles.smallDescriptionStyle.copyWith(
-                      color: colorScheme.onSurface.withOpacity(0.7),
-                    ),
+                    style: AppTextStyles.smallDescriptionStyle(context),
                   ),
                 ],
               ),

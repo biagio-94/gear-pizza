@@ -1,17 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:get_it/get_it.dart';
-import 'package:go_router/go_router.dart';
 import 'package:gearpizza/common/bloc/exception_bloc.dart';
 import 'package:gearpizza/common/bloc/exception_state.dart';
 import 'package:gearpizza/common/bloc/loading_bloc.dart';
 import 'package:gearpizza/common/bloc/loading_state.dart';
 import 'package:gearpizza/common/components/custom_button.dart';
-import 'package:gearpizza/common/components/custom_icon_button.dart';
 import 'package:gearpizza/common/components/custom_input.dart';
 import 'package:gearpizza/common/components/loading/loading_screen.dart';
 import 'package:gearpizza/common/components/social_buttons.dart';
-import 'package:gearpizza/common/components/custom_switch.dart';
 import 'package:gearpizza/common/styles/text_styles.dart';
 import 'package:gearpizza/common/utils/show_error_dialog.dart';
 import 'package:gearpizza/features/auth/bloc/auth_bloc.dart';
@@ -34,15 +30,11 @@ class _LoginScreenState extends State<LoginScreen>
 
   late final AnimationController _animController;
   late final Animation<double> _logoAnimation;
-  late final Animation<double> _fieldsAnimation;
 
   bool _showPasswordField = false;
-  bool _bioAvailable = false;
 
-  // Nuovi flags per lo switch
   bool isSupported = false;
   bool isActive = false;
-  bool _isFirstLogin = false;
   bool isReferente = false;
 
   @override
@@ -57,10 +49,6 @@ class _LoginScreenState extends State<LoginScreen>
       parent: _animController,
       curve: Curves.easeOut,
     );
-    _fieldsAnimation = CurvedAnimation(
-      parent: _animController,
-      curve: Curves.easeIn,
-    );
 
     _idFocusNode.addListener(() {
       if (!_showPasswordField && _idFocusNode.hasFocus) {
@@ -68,16 +56,8 @@ class _LoginScreenState extends State<LoginScreen>
       }
     });
 
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      // Inizializza auth e stato biometria
+    WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<AuthBloc>().add(const AuthStarted());
-      // TODO: recupera lo stato di supporto e preferenza da storage/local prefs
-      // setState(() {
-      //   isSupported = true;
-      //   isActive = false;
-      //   _isFirstLogin = false;
-      //   isReferente = false;
-      // });
     });
   }
 
@@ -92,9 +72,11 @@ class _LoginScreenState extends State<LoginScreen>
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).colorScheme.brightness == Brightness.dark;
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
     return Scaffold(
+      backgroundColor: colorScheme.onPrimary,
       body: Stack(
         children: [
           SafeArea(
@@ -123,9 +105,8 @@ class _LoginScreenState extends State<LoginScreen>
                 BlocListener<AuthBloc, AuthState>(
                   listener: (context, state) async {
                     if (state is AuthUnauthenticatedBiometricPrompt) {
-                      WidgetsBinding.instance.addPostFrameCallback((_) async {
+                      WidgetsBinding.instance.addPostFrameCallback((_) {
                         setState(() {
-                          _bioAvailable = true;
                           _idController.text = state.email;
                           isSupported = true;
                           isActive = true;
@@ -136,192 +117,131 @@ class _LoginScreenState extends State<LoginScreen>
                           .add(const AuthBiometricLoginRequested());
                     }
                     if (state is AuthBiometricsChoosed) {
-                      setState(() {
-                        _bioAvailable = state.isbioAvailable;
-                        isActive = false;
-                      });
+                      setState(() => isActive = false);
                     }
                   },
                 ),
               ],
-              child: ListView(
-                padding: const EdgeInsets.only(left: 24, right: 24, bottom: 10),
+              child: Column(
                 children: [
+                  const SizedBox(height: 40),
                   FadeTransition(
                     opacity: _logoAnimation,
                     child: Center(
                       child: Image.asset(
-                        'assets/icon/hyperfit_logo.png',
-                        color: isDark
-                            ? null
-                            : Theme.of(context).colorScheme.primaryContainer,
-                        width: 200,
-                        height: 200,
+                        'assets/icon/gearPizzaIcon.png',
+                        width: 120,
+                        height: 120,
                       ),
                     ),
                   ),
-                  Form(
-                    key: _formKey,
-                    child: BlocBuilder<AuthBloc, AuthState>(
-                      builder: (context, state) {
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            CustomTextInput(
-                              controller: _idController,
-                              keyboardType: TextInputType.emailAddress,
-                              enabled: _bioAvailable ? false : true,
-                              labelText: 'Email',
-                              focusNode: _idFocusNode,
-                              validator: (value) => (value?.isEmpty ?? true)
-                                  ? 'Campo obbligatorio'
-                                  : null,
-                            ),
-                            const SizedBox(height: 16),
-                            if (!_bioAvailable)
-                              AnimatedSize(
-                                duration: const Duration(milliseconds: 300),
-                                child: _showPasswordField
-                                    ? FadeTransition(
-                                        opacity: _fieldsAnimation,
-                                        child: Column(
-                                          children: [
-                                            CustomTextInput(
-                                              password: true,
-                                              controller: _passwordController,
-                                              labelText: 'Password',
-                                              validator: (value) =>
-                                                  (value?.isEmpty ?? true)
-                                                      ? 'Campo obbligatorio'
-                                                      : null,
-                                            ),
-                                            Align(
-                                              alignment: Alignment.centerRight,
-                                              child: TextButton(
-                                                onPressed: () => context
-                                                    .read<AuthBloc>()
-                                                    .add(AuthResetPassEvent()),
-                                                child: const Text(
-                                                  'Recupera password',
-                                                  style: TextStyle(
-                                                    color: Colors.white,
-                                                    decoration: TextDecoration
-                                                        .underline,
-                                                    fontSize: 14,
-                                                  ),
-                                                ),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      )
-                                    : const SizedBox.shrink(),
-                              ),
-                            const SizedBox(height: 12),
-                            if (!_bioAvailable) _buildLoginButton(isDark),
-
-                            // Inserimento dello switch biometrico
-                            if (isSupported && isActive && !_isFirstLogin)
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.start,
+                  const SizedBox(height: 24),
+                  Expanded(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 24, vertical: 32),
+                      decoration: BoxDecoration(
+                        color: colorScheme.surface,
+                        borderRadius: const BorderRadius.only(
+                          topLeft: Radius.circular(32),
+                          topRight: Radius.circular(32),
+                        ),
+                      ),
+                      child: SingleChildScrollView(
+                        child: Form(
+                          key: _formKey,
+                          child: BlocBuilder<AuthBloc, AuthState>(
+                            builder: (context, state) {
+                              return Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  CustomSwitch(
-                                    accept: isActive,
-                                    onChanged: (value) {
-                                      if (isReferente) {
-                                        return;
-                                      }
-                                      if (isActive) {
-                                        showDialog(
-                                          context: context,
-                                          builder: (context) {
-                                            return AlertDialog(
-                                              title: const Text("Attenzione"),
-                                              content: const Text(
-                                                "Disattivando l'accesso biometrico, dovrai accedere nuovamente utilizzando le tue credenziali. Vuoi procedere?",
-                                              ),
-                                              actions: [
-                                                TextButton(
-                                                  style: TextButton.styleFrom(
-                                                    foregroundColor: Theme.of(
-                                                            context)
-                                                        .colorScheme
-                                                        .onSurface, // testo bianco
-                                                  ),
-                                                  onPressed: () =>
-                                                      Navigator.of(context)
-                                                          .pop(),
-                                                  child: const Text("Annulla"),
-                                                ),
-                                                TextButton(
-                                                  style: TextButton.styleFrom(
-                                                    foregroundColor:
-                                                        Theme.of(context)
-                                                            .colorScheme
-                                                            .onSurface,
-                                                  ),
-                                                  onPressed: () {
-                                                    Navigator.of(context).pop();
-                                                    context
-                                                        .read<AuthBloc>()
-                                                        .add(
-                                                            AuthEnableBiometric(
-                                                                false));
-                                                  },
-                                                  child: const Text("Conferma"),
-                                                ),
-                                              ],
-                                            );
-                                          },
-                                        );
-                                      }
-                                    },
+                                  Text(
+                                    'Ti diamo il benvenuto!',
+                                    style: AppTextStyles.h1(context),
                                   ),
-                                  const SizedBox(width: 8),
-                                  const Text(
-                                    'Accesso con Biometria',
-                                    style: AppTextStyles.whiteTextLargeStyle,
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    'Iniziamo col numero di telefono',
+                                    style: AppTextStyles.body(context),
+                                  ),
+                                  const SizedBox(height: 24),
+                                  Row(
+                                    children: [
+                                      SizedBox(
+                                        width: 90,
+                                        child: CustomTextInput(
+                                          labelText: 'Prefisso',
+                                          validator: (value) {
+                                            if (value == null ||
+                                                value.isEmpty) {
+                                              return 'Campo obbligatorio';
+                                            }
+                                            return null;
+                                          },
+                                        ),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: CustomTextInput(
+                                          controller: _idController,
+                                          keyboardType: TextInputType.phone,
+                                          labelText: 'Numero di telefono',
+                                          focusNode: _idFocusNode,
+                                          validator: (value) =>
+                                              (value?.isEmpty ?? true)
+                                                  ? 'Campo obbligatorio'
+                                                  : null,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 24),
+                                  CustomButton(
+                                    label: 'Continua con SMS',
+                                    width: WideButton.extraWide,
+                                    onPressed: _onPressedLogin,
+                                    type: ButtonType.blueFilled,
+                                  ),
+                                  const SizedBox(height: 24),
+                                  Center(
+                                    child: Text(
+                                      'oppure con',
+                                      style: AppTextStyles.bodySmall(context),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 16),
+                                  SocialButtonsGroup(
+                                    onGoogle: () => context
+                                        .read<AuthBloc>()
+                                        .add(const AuthGoogleSignInRequested()),
+                                    onFacebook: () => context
+                                        .read<AuthBloc>()
+                                        .add(
+                                            const AuthFacebookSignInRequested()),
+                                    onEmail: () => context
+                                        .read<AuthBloc>()
+                                        .add(const AuthregisterEvent()),
+                                  ),
+                                  const SizedBox(height: 12),
+                                  Center(
+                                    child: TextButton(
+                                      onPressed: () {},
+                                      child: Text(
+                                        'Altri metodi',
+                                        style: AppTextStyles.bodySmall(context)
+                                            .copyWith(
+                                          color: colorScheme.primary,
+                                          decoration: TextDecoration.underline,
+                                        ),
+                                      ),
+                                    ),
                                   ),
                                 ],
-                              ),
-
-                            if (_bioAvailable) ...[
-                              Center(
-                                child: Padding(
-                                  padding: const EdgeInsets.only(top: 70),
-                                  child: CustomIconButton(
-                                    onPressed: () {
-                                      context.read<AuthBloc>().add(
-                                          const AuthBiometricLoginRequested());
-                                    },
-                                    icon: Icons.fingerprint,
-                                    iconSize: 50,
-                                  ),
-                                ),
-                              )
-                            ] else ...[
-                              const SizedBox(height: 24),
-                              const Text(
-                                'Oppure',
-                                textAlign: TextAlign.center,
-                                style: TextStyle(color: Colors.white),
-                              ),
-                              const SizedBox(height: 16),
-                              SocialButtonsGroup(
-                                onGoogle: () => context
-                                    .read<AuthBloc>()
-                                    .add(const AuthGoogleSignInRequested()),
-                                onFacebook: () => context
-                                    .read<AuthBloc>()
-                                    .add(const AuthFacebookSignInRequested()),
-                                onEmail: () => context
-                                    .read<AuthBloc>()
-                                    .add(const AuthregisterEvent()),
-                              ),
-                            ],
-                          ],
-                        );
-                      },
+                              );
+                            },
+                          ),
+                        ),
+                      ),
                     ),
                   ),
                 ],
@@ -329,17 +249,6 @@ class _LoginScreenState extends State<LoginScreen>
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildLoginButton(bool isDark) {
-    return Center(
-      child: CustomButton(
-        label: 'ACCEDI',
-        width: WideButton.extraWide,
-        type: isDark ? ButtonType.whiteFilled : ButtonType.blueFilled,
-        onPressed: _onPressedLogin,
       ),
     );
   }

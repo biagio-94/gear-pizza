@@ -2,7 +2,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:get_it/get_it.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:gearpizza/features/auth/services/superbase_auth_service.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:gearpizza/common/bloc/exception_bloc.dart';
 import 'package:gearpizza/common/bloc/loading_bloc.dart';
@@ -19,7 +18,6 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../features/dashboard/repositories/dashboard_repository.dart';
 import '../../features/dashboard/services/dashboard_service.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:flutter/foundation.dart'; // per kDebugMode
 
 final GetIt getIt = GetIt.instance;
 
@@ -28,14 +26,6 @@ Future<void> setupServiceLocator() async {
   await Firebase.initializeApp();
   // Carica variabili d'ambiente
   await dotenv.load(fileName: ".env");
-
-  // Inizializza Supabase usando valori da .env
-  await Supabase.initialize(
-    url: dotenv.env['SUPABASE_URL']!,
-    anonKey: dotenv.env['SUPABASE_ANON_KEY']!,
-    debug: kDebugMode,
-  );
-  await SupabaseAuthService().init();
 
   getIt.registerLazySingleton<FirebaseAuth>(() => FirebaseAuth.instance);
   getIt.registerLazySingleton<GoogleSignIn>(() => GoogleSignIn());

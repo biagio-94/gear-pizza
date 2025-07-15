@@ -1,52 +1,52 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 
 class AppColors {
-  // Shared palette
-  static const Color darkBlue = Color(0xFF080E1A);
-  static const Color white = Color(0xFFFFFFFF);
-  static const Color blueAccent = Color(0xFF3D8BFF); // Vibrant secondary
-  static const Color darkGrey = Color(0xFF1C1C1E);
-  static const Color grey = Color(0xFF2C2C2E);
-  static const Color errorRed = Color(0xFFEF4444);
-  static const Color successGreen = Color(0xFF22C55E);
-
-  // Light theme colors
-  static const Color lightBackground = white;
-  static const Color lightOnBackground = darkBlue;
-  static const Color lightSurface = Color(0xFFF5F5F5);
-  static const Color lightOnSurface = darkBlue;
-
-  // Dark theme colors
-  static const Color darkBackground = darkBlue;
-  static const Color darkOnBackground = white;
-  static const Color darkSurface = darkGrey;
-  static const Color darkOnSurface = white;
+  // Palette Glovo-inspired
+  static const Color glovoYellow = Color(0xFFFFD600); // Primary vibrant yellow
+  static const Color glovoGreen = Color(0xFF00C58D); // Secondary accent
+  static const Color darkBackground = Color(0xFF121212);
+  static const Color lightBackground = Color(0xFFFFFFFF);
+  static const Color lightSurface =
+      Color(0xFFFFFFFF); // super chiaro, quasi bianco per surface light
+  static const Color darkSurface = Color(0xFF1E1E1E);
+  static const Color lightOnSurface =
+      Color(0xFF222222); // testo scuro su surface chiara
+  static const Color darkOnSurface =
+      Color(0xFFECECEC); // testo chiaro su surface scura
+  static const Color errorRed = Color(0xFFE53935);
+  static const Color successGreen = Color(0xFF43A047);
 }
 
-final ColorScheme lightColorScheme = const ColorScheme(
+final ColorScheme lightColorScheme = ColorScheme(
   brightness: Brightness.light,
-  primary: AppColors.darkBlue,
-  onPrimary: AppColors.white,
-  primaryContainer: AppColors.grey,
-  onPrimaryContainer: AppColors.white,
-  secondary: AppColors.blueAccent,
-  onSecondary: AppColors.white,
+  primary: AppColors.glovoYellow,
+  onPrimary: Colors.black, // testo nero su primary giallo
+  secondary: AppColors.glovoGreen,
+  onSecondary: Colors.white,
   error: AppColors.errorRed,
-  onError: AppColors.white,
-  surface: AppColors.lightSurface,
-  onSurface: AppColors.lightOnSurface,
+  onError: Colors.white,
+  background: AppColors.lightBackground,
+  onBackground: AppColors.lightOnSurface,
+  surface: AppColors.lightSurface, // bianco, container primari bianchi
+  onSurface: AppColors.lightOnSurface, // testo nero su surface bianco
+  tertiary: AppColors.glovoGreen,
+  onTertiary: Colors.white,
 );
 
-final ColorScheme darkColorScheme = const ColorScheme(
-  brightness: Brightness.dark,
-  primary: AppColors.darkBlue,
-  onPrimary: AppColors.white,
-  primaryContainer: AppColors.grey,
-  onPrimaryContainer: AppColors.white,
-  secondary: AppColors.blueAccent,
-  onSecondary: AppColors.white,
+final ColorScheme darkColorScheme = ColorScheme(
+  brightness: Brightness.light,
+  primary: AppColors.glovoYellow,
+  onPrimary: Colors.black, // testo nero su primary giallo
+  secondary: AppColors.glovoGreen,
+  onSecondary: Colors.white,
   error: AppColors.errorRed,
-  onError: AppColors.white,
-  surface: AppColors.darkSurface,
-  onSurface: AppColors.darkOnSurface,
+  onError: Colors.white,
+  background: AppColors.lightBackground,
+  onBackground: AppColors.lightOnSurface,
+  surface: AppColors.lightSurface, // bianco, container primari bianchi
+  onSurface: AppColors.lightOnSurface, // testo nero su surface bianco
+  tertiary: AppColors.glovoGreen,
+  onTertiary: Colors.white,
 );

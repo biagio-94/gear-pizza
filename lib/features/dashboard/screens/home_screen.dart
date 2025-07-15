@@ -77,7 +77,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       CustomButton(
                         onPressed: () => GoRouter.of(context).go('/add-client'),
                         label: 'Aggiungi Primo Cliente',
-                        type: ButtonType.blueFilled,
+                        type: ButtonType.greenFilled,
                         uppercase: false,
                       ),
                     ],

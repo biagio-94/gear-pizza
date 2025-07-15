@@ -188,7 +188,7 @@ class _RegisterScreenState extends State<RegisterScreen>
                             child: CustomButton(
                               label: 'REGISTRATI',
                               width: WideButton.extraWide,
-                              type: ButtonType.whiteFilled,
+                              type: ButtonType.yellowFilled,
                               onPressed: _onRegister,
                             ),
                           ),

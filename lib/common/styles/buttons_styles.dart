@@ -60,11 +60,11 @@
 //   // Metodo per ottenere lo stile in base al tipo di bottone
 //   static ButtonStyle? getButtonStyle(ButtonType type) {
 //     switch (type) {
-//       case ButtonType.blueFilled:
+//       case ButtonType.greenFilled:
 //         return blueFilled;
 //       // case ButtonType.blueFilledRounded:
 //       //   return blueFilledRounded;
-//       case ButtonType.whiteFilled:
+//       case ButtonType.yellowFilled:
 //         return whiteFilled;
 //       // case ButtonType.whiteFilledRounded:
 //       //   return whiteFilledRounded;

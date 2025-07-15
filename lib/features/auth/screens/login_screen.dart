@@ -5,8 +5,8 @@ import 'package:gearpizza/common/bloc/exception_state.dart';
 import 'package:gearpizza/common/bloc/loading_bloc.dart';
 import 'package:gearpizza/common/bloc/loading_state.dart';
 import 'package:gearpizza/common/components/custom_button.dart';
-import 'package:gearpizza/common/components/custom_input.dart';
 import 'package:gearpizza/common/components/loading/loading_screen.dart';
+import 'package:gearpizza/common/components/prefix_text_input.dart';
 import 'package:gearpizza/common/components/social_buttons.dart';
 import 'package:gearpizza/common/styles/text_styles.dart';
 import 'package:gearpizza/common/utils/show_error_dialog.dart';
@@ -24,7 +24,8 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen>
     with SingleTickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
-  final TextEditingController _idController = TextEditingController();
+  final TextEditingController _numberController = TextEditingController();
+  final TextEditingController _prefixController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final FocusNode _idFocusNode = FocusNode();
 
@@ -65,7 +66,7 @@ class _LoginScreenState extends State<LoginScreen>
   void dispose() {
     _animController.dispose();
     _idFocusNode.dispose();
-    _idController.dispose();
+    _numberController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
@@ -107,7 +108,7 @@ class _LoginScreenState extends State<LoginScreen>
                     if (state is AuthUnauthenticatedBiometricPrompt) {
                       WidgetsBinding.instance.addPostFrameCallback((_) {
                         setState(() {
-                          _idController.text = state.email;
+                          _numberController.text = state.email;
                           isSupported = true;
                           isActive = true;
                         });
@@ -139,7 +140,9 @@ class _LoginScreenState extends State<LoginScreen>
                   Expanded(
                     child: Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 24, vertical: 32),
+                        horizontal: 24,
+                        vertical: 12,
+                      ),
                       decoration: BoxDecoration(
                         color: colorScheme.surface,
                         borderRadius: const BorderRadius.only(
@@ -153,54 +156,32 @@ class _LoginScreenState extends State<LoginScreen>
                           child: BlocBuilder<AuthBloc, AuthState>(
                             builder: (context, state) {
                               return Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
+                                crossAxisAlignment: CrossAxisAlignment.center,
                                 children: [
-                                  Text(
-                                    'Ti diamo il benvenuto!',
-                                    style: AppTextStyles.h1(context),
+                                  Padding(
+                                    padding:
+                                        const EdgeInsets.symmetric(vertical: 4),
+                                    child: Text(
+                                      'Ti diamo il benvenuto!',
+                                      style: AppTextStyles.h1(context),
+                                    ),
                                   ),
-                                  const SizedBox(height: 8),
                                   Text(
                                     'Iniziamo col numero di telefono',
                                     style: AppTextStyles.body(context),
                                   ),
                                   const SizedBox(height: 24),
-                                  Row(
-                                    children: [
-                                      SizedBox(
-                                        width: 90,
-                                        child: CustomTextInput(
-                                          labelText: 'Prefisso',
-                                          validator: (value) {
-                                            if (value == null ||
-                                                value.isEmpty) {
-                                              return 'Campo obbligatorio';
-                                            }
-                                            return null;
-                                          },
-                                        ),
-                                      ),
-                                      const SizedBox(width: 12),
-                                      Expanded(
-                                        child: CustomTextInput(
-                                          controller: _idController,
-                                          keyboardType: TextInputType.phone,
-                                          labelText: 'Numero di telefono',
-                                          focusNode: _idFocusNode,
-                                          validator: (value) =>
-                                              (value?.isEmpty ?? true)
-                                                  ? 'Campo obbligatorio'
-                                                  : null,
-                                        ),
-                                      ),
-                                    ],
+                                  PhonePrefixInput(
+                                    prefixController: _prefixController,
+                                    numberController: _numberController,
                                   ),
                                   const SizedBox(height: 24),
                                   CustomButton(
                                     label: 'Continua con SMS',
                                     width: WideButton.extraWide,
                                     onPressed: _onPressedLogin,
-                                    type: ButtonType.blueFilled,
+                                    rounded: true,
+                                    type: ButtonType.greenFilled,
                                   ),
                                   const SizedBox(height: 24),
                                   Center(
@@ -258,7 +239,7 @@ class _LoginScreenState extends State<LoginScreen>
     if (_formKey.currentState?.validate() == true) {
       context.read<AuthBloc>().add(
             AuthLoginRequested(
-              email: _idController.text.trim(),
+              email: _numberController.text.trim(),
               password: _passwordController.text,
             ),
           );

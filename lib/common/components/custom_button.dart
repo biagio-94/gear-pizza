@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../styles/font_sizes.dart';
 
-enum ButtonType { whiteFilled, blueFilled, outlined }
+enum ButtonType { yellowFilled, greenFilled, outlined }
 
 enum WideButton { small, normal, wide, extraWide }
 
@@ -34,95 +34,69 @@ class CustomButton extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
     final isDark = cs.brightness == Brightness.dark;
 
-    // Determina colori in base al tipo e al tema
+    // Colori
     late Color backgroundColor;
     late Color textColor;
-    late Color borderColor;
 
     switch (type) {
-      case ButtonType.whiteFilled:
-        // Su dark: bianco bg + nero testo; su light: nero bg + bianco testo
+      case ButtonType.yellowFilled:
         backgroundColor = isDark ? cs.onSurface : cs.surface;
         textColor = isDark ? cs.surface : cs.onSurface;
-        borderColor = Colors.transparent;
         break;
-      case ButtonType.blueFilled:
-        backgroundColor = cs.primary;
+      case ButtonType.greenFilled:
+        backgroundColor = cs.secondary;
         textColor = cs.onPrimary;
-        borderColor = cs.primary;
         break;
       case ButtonType.outlined:
         backgroundColor = Colors.transparent;
         textColor = color ?? cs.primary;
-        borderColor = color ?? cs.primary;
         break;
     }
 
-    // Padding in base alla larghezza
-    late EdgeInsets padding;
-    switch (width) {
-      case WideButton.small:
-        padding = const EdgeInsets.symmetric(vertical: 6, horizontal: 12);
-        break;
-      case WideButton.normal:
-        padding = const EdgeInsets.symmetric(vertical: 12, horizontal: 24);
-        break;
-      case WideButton.wide:
-        padding = const EdgeInsets.symmetric(vertical: 12, horizontal: 50);
-        break;
-      case WideButton.extraWide:
-        padding = const EdgeInsets.symmetric(vertical: 12, horizontal: 70);
-        break;
-      default:
-        padding = const EdgeInsets.symmetric(vertical: 12, horizontal: 18);
-    }
+    // Padding dinamico
+    final EdgeInsets padding = switch (width) {
+      WideButton.small =>
+        const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
+      WideButton.normal =>
+        const EdgeInsets.symmetric(vertical: 12, horizontal: 24),
+      WideButton.wide =>
+        const EdgeInsets.symmetric(vertical: 12, horizontal: 50),
+      WideButton.extraWide =>
+        const EdgeInsets.symmetric(vertical: 12, horizontal: 70),
+      _ => const EdgeInsets.symmetric(vertical: 12, horizontal: 18),
+    };
 
-    final borderRadius = BorderRadius.circular(rounded ? 18 : 8);
+    final borderRadius = BorderRadius.circular(rounded ? 100 : 8);
     final buttonText = uppercase ? label.toUpperCase() : label;
 
-    final buttonStyle = ElevatedButton.styleFrom(
+    final style = ElevatedButton.styleFrom(
       backgroundColor:
           disabled ? cs.onSurface.withOpacity(0.12) : backgroundColor,
       foregroundColor: disabled ? cs.onSurface.withOpacity(0.38) : textColor,
       padding: padding,
       shape: RoundedRectangleBorder(borderRadius: borderRadius),
-      side: BorderSide(
-          color: disabled ? cs.onSurface.withOpacity(0.12) : borderColor),
+    );
+
+    final textStyle = TextStyle(
+      fontSize: AppFontSizes.buttonText,
+      fontWeight: AppFontSizes.medium,
+      color: disabled ? cs.onSurface.withOpacity(0.38) : textColor,
     );
 
     return ElevatedButton(
       onPressed: disabled ? null : onPressed,
-      style: buttonStyle,
+      style: style,
       child: icon != null
           ? Row(
               mainAxisSize: MainAxisSize.min,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(icon,
-                    size: 24, color: buttonStyle.foregroundColor?.resolve({})),
+                Icon(icon, size: 24, color: textStyle.color),
                 const SizedBox(width: 8),
-                Text(
-                  buttonText,
-                  style: TextStyle(
-                    fontSize: uppercase
-                        ? AppFontSizes.bodyText
-                        : AppFontSizes.bodyTextLarge,
-                    fontWeight: FontWeight.w600,
-                    color: buttonStyle.foregroundColor?.resolve({}),
-                  ),
-                ),
+                Text(buttonText, style: textStyle),
               ],
             )
-          : Text(
-              buttonText,
-              style: TextStyle(
-                fontSize: uppercase
-                    ? AppFontSizes.bodyText
-                    : AppFontSizes.bodyTextLarge,
-                fontWeight: FontWeight.w600,
-                color: buttonStyle.foregroundColor?.resolve({}),
-              ),
-            ),
+          : Text(buttonText, style: textStyle),
     );
   }
 }

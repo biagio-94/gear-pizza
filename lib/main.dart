@@ -1,5 +1,4 @@
 import 'dart:ui';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -15,7 +14,6 @@ import 'package:gearpizza/common/utils/get_device_id.dart';
 import 'package:gearpizza/common/utils/services_setup.dart';
 import 'package:gearpizza/features/auth/bloc/auth_bloc.dart';
 import 'package:gearpizza/features/auth/bloc/auth_event.dart';
-import 'package:gearpizza/features/auth/bloc/auth_state.dart';
 import 'package:gearpizza/features/auth/services/auth_service.dart';
 import 'package:gearpizza/features/notifications/bloc/notification_bloc.dart';
 import 'package:gearpizza/router/router.dart';

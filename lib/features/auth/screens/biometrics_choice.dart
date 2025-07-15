@@ -179,8 +179,8 @@ class _BiometricsChoiceState extends State<BiometricsChoice> {
                           CustomButton(
                             label: 'Attiva accesso automatico',
                             type: isDark
-                                ? ButtonType.whiteFilled
-                                : ButtonType.blueFilled,
+                                ? ButtonType.yellowFilled
+                                : ButtonType.greenFilled,
                             disabled: !isBiometricSelected,
                             onPressed: () {
                               context.read<AuthBloc>().add(
@@ -192,8 +192,8 @@ class _BiometricsChoiceState extends State<BiometricsChoice> {
                           CustomButton(
                             label: 'Continua senza impronta',
                             type: isDark
-                                ? ButtonType.whiteFilled
-                                : ButtonType.blueFilled,
+                                ? ButtonType.yellowFilled
+                                : ButtonType.greenFilled,
                             onPressed: () {
                               context
                                   .read<AuthBloc>()

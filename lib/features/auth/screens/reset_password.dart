@@ -152,8 +152,8 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                                     CustomButton(
                                       label: 'Invia Email',
                                       type: isDark
-                                          ? ButtonType.whiteFilled
-                                          : ButtonType.blueFilled,
+                                          ? ButtonType.yellowFilled
+                                          : ButtonType.greenFilled,
                                       onPressed: _submit,
                                     ),
                                     const SizedBox(height: 16),

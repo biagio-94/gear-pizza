@@ -170,7 +170,6 @@ class _LoginScreenState extends State<LoginScreen>
                                     'Iniziamo col numero di telefono',
                                     style: AppTextStyles.body(context),
                                   ),
-                                  const SizedBox(height: 24),
                                   PhonePrefixInput(
                                     prefixController: _prefixController,
                                     numberController: _numberController,
@@ -202,20 +201,6 @@ class _LoginScreenState extends State<LoginScreen>
                                     onEmail: () => context
                                         .read<AuthBloc>()
                                         .add(const AuthregisterEvent()),
-                                  ),
-                                  const SizedBox(height: 12),
-                                  Center(
-                                    child: TextButton(
-                                      onPressed: () {},
-                                      child: Text(
-                                        'Altri metodi',
-                                        style: AppTextStyles.bodySmall(context)
-                                            .copyWith(
-                                          color: colorScheme.primary,
-                                          decoration: TextDecoration.underline,
-                                        ),
-                                      ),
-                                    ),
                                   ),
                                 ],
                               );

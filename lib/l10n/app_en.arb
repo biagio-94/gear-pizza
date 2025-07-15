@@ -1,0 +1,127 @@
+{
+  "@@locale": "en",
+  "dashboard": "DASHBOARD",
+  "@dashboard": {
+    "description": "Title for the dashboard screen."
+  },
+  "hello": "Hello",
+  "@hello": {
+    "description": "Greeting message."
+  },
+  "welcome": "Welcome to Sella Personal Credit for Business.",
+  "@welcome": {
+    "description": "Welcome message shown on the first access."
+  },
+  "welcome2": "Welcome back to Sella Personal Credit for Business.",
+  "@welcome2": {
+    "description": "Welcome message for returning users."
+  },
+  "action": "How do you want to proceed?",
+  "@action": {
+    "description": "Prompt asking the user how to proceed."
+  },
+  "newEstimate": "Create new quotation",
+  "@newEstimate": {
+    "description": "Button text to create a new quotation."
+  },
+  "financialCalculator": "Financial calculator",
+  "@financialCalculator": {
+    "description": "Label for the financial calculator feature."
+  },
+  "yourEstimates": "Your estimates",
+  "@yourEstimates": {
+    "description": "Title for the list of quotations."
+  },
+  "choose_product": "Choose product",
+  "@choose_product": {
+    "description": "Prompt to choose a product."
+  },
+  "what_product": "What product do you want to fund?",
+  "@what_product": {
+    "description": "Question asking which product the user wants to fund."
+  },
+  "loan": "LOAN",
+  "@loan": {
+    "description": "Label for the loan option."
+  },
+  "loanProceed": "Proceed with your quote proposal or edit the various fields",
+  "@loanProceed": {
+    "description": "Instructions for proceeding with or editing a loan proposal."
+  },
+  "or": "Or",
+  "@or": {
+    "description": "Separator used between two alternative options."
+  },
+  "modifyLoan": "Modify the loan",
+  "@modifyLoan": {
+    "description": "Label for the action to modify an existing loan."
+  },
+  "monthlyPayment": "Monthly payment",
+  "@monthlyPayment": {
+    "description": "Label for the monthly payment amount."
+  },
+  "installmentNumber": "N° Installment",
+  "@installmentNumber": {
+    "description": "Label for the installment number."
+  },
+  "tan": "TAN",
+  "@tan": {
+    "description": "Annual Nominal Rate (TAN)."
+  },
+  "taeg": "TAEG",
+  "@taeg": {
+    "description": "Annual Effective Rate (TAEG)."
+  },
+  "totalRequired": "Total required:",
+  "@totalRequired": {
+    "description": "Label indicating the total required amount."
+  },
+  "proceedWithLoan": "PROCEED TO LOAN",
+  "@proceedWithLoan": {
+    "description": "Action to proceed with the loan process."
+  },
+  "insurance": "INSURANCE",
+  "@insurance": {
+    "description": "Label for the insurance option."
+  },
+  "choose_insurance": "Select insurance coverage to be funded",
+  "@choose_insurance": {
+    "description": "Prompt to select the desired insurance coverage."
+  },
+  "company_name": "Company name",
+  "@company_name": {
+    "description": "Label for the company name."
+  },
+  "dealer_code": "Dealer code",
+  "@dealer_code": {
+    "description": "Label for the dealer code."
+  },
+  "calcolculatorButtonText1": "Continue with insurance",
+  "@calcolculatorButtonText1": {
+    "description": "Button text for continuing with insurance coverage."
+  },
+  "calcolculatorButtonText2": "Continue without insurance",
+  "@calcolculatorButtonText2": {
+    "description": "Button text for continuing without insurance."
+  },
+  "calcolculatorButtonNewImport": "Choose another amount",
+  "@calcolculatorButtonNewImport": {
+    "description": "Button text to choose another amount."
+  },
+  "noNotifications": "No notifications available.",
+  "@noNotifications": {
+    "description": "Message displayed when there are no notifications."
+  },
+  "sendPDFSecciAnonymus": "Send anonymous quote",
+  "@sendPDFSecciAnonymus": {
+    "description": "Button text to send an anonymous quotation."
+  },
+  "yourLoan": "Your loan",
+  "@yourLoan": {
+    "description": "Title for the loan details section."
+  },
+  "multiRataScreenDescription": "Increase or decrease the installment amount using the dedicated buttons.",
+  "@multiRataScreenDescription": {
+    "description": "Description for adjusting the installment amount on the multi-installment screen."
+  }
+}

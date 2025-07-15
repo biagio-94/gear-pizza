@@ -1,0 +1,127 @@
+{
+  "@@locale": "it",
+  "dashboard": "DASHBOARD",
+  "@dashboard": {
+    "description": "Titolo della schermata principale del dashboard."
+  },
+  "hello": "Ciao ",
+  "@hello": {
+    "description": "Saluto iniziale."
+  },
+  "welcome": "benvenuto in Sella Personal Credit for Business.",
+  "@welcome": {
+    "description": "Messaggio di benvenuto per il primo accesso."
+  },
+  "welcome2": "bentornato in Sella Personal Credit for Business.",
+  "@welcome2": {
+    "description": "Messaggio di bentornato per gli utenti già registrati."
+  },
+  "action": "Come vuoi procedere?",
+  "@action": {
+    "description": "Richiesta su come procedere."
+  },
+  "newEstimate": "Crea nuovo preventivo",
+  "@newEstimate": {
+    "description": "Testo per creare un nuovo preventivo."
+  },
+  "financialCalculator": "Calcolatrice finanziaria",
+  "@financialCalculator": {
+    "description": "Etichetta per la calcolatrice finanziaria."
+  },
+  "yourEstimates": "I tuoi preventivi",
+  "@yourEstimates": {
+    "description": "Titolo per la lista dei preventivi."
+  },
+  "choose_product": "Scegli il prodotto",
+  "@choose_product": {
+    "description": "Prompt per scegliere un prodotto."
+  },
+  "what_product": "Quale prodotto vuoi finanziare?",
+  "@what_product": {
+    "description": "Domanda per selezionare il prodotto da finanziare."
+  },
+  "company_name": "Ragione sociale",
+  "@company_name": {
+    "description": "Etichetta per il nome dell'azienda."
+  },
+  "dealer_code": "Codice dealer",
+  "@dealer_code": {
+    "description": "Etichetta per il codice dealer."
+  },
+  "loan": "PREVENTIVO",
+  "@loan": {
+    "description": "Etichetta per il preventivo."
+  },
+  "loanProceed": "Procedi con la tua proposta di preventivo o modifica i vari campi",
+  "@loanProceed": {
+    "description": "Istruzioni per procedere con o modificare il preventivo."
+  },
+  "or": "Oppure",
+  "@or": {
+    "description": "Testo separatore tra alternative."
+  },
+  "modifyLoan": "Modifica il preventivo",
+  "@modifyLoan": {
+    "description": "Testo per modificare il preventivo."
+  },
+  "monthlyPayment": "Rata mensile",
+  "@monthlyPayment": {
+    "description": "Etichetta per la rata mensile."
+  },
+  "installmentNumber": "N° Rate",
+  "@installmentNumber": {
+    "description": "Etichetta per il numero di rate."
+  },
+  "tan": "TAN",
+  "@tan": {
+    "description": "Indicatore del Tasso Annuo Nominale (TAN)."
+  },
+  "taeg": "TAEG",
+  "@taeg": {
+    "description": "Indicatore del Tasso Annuo Effettivo Globale (TAEG)."
+  },
+  "totalRequired": "Totale richiesto:",
+  "@totalRequired": {
+    "description": "Etichetta per l'importo totale richiesto."
+  },
+  "proceedWithLoan": "PROCEDI CON IL PREVENTIVO",
+  "@proceedWithLoan": {
+    "description": "Testo del pulsante per procedere con il preventivo."
+  },
+  "insurance": "ASSICURAZIONE",
+  "@insurance": {
+    "description": "Etichetta per l'assicurazione."
+  },
+  "choose_insurance": "Seleziona la copertura assicurativa da finanziare",
+  "@choose_insurance": {
+    "description": "Prompt per selezionare la copertura assicurativa."
+  },
+  "calcolculatorButtonText1": "Procedi con assicurazione",
+  "@calcolculatorButtonText1": {
+    "description": "Testo del pulsante per procedere con l'assicurazione."
+  },
+  "calcolculatorButtonText2": "Procedi senza assicurazione",
+  "@calcolculatorButtonText2": {
+    "description": "Testo del pulsante per procedere senza l'assicurazione."
+  },
+  "calcolculatorButtonNewImport": "Esegui nuovo calcolo",
+  "@calcolculatorButtonNewImport": {
+    "description": "Testo del pulsante per eseguire un nuovo calcolo."
+  },
+  "noNotifications": "Nessuna notifica disponibile.",
+  "@noNotifications": {
+    "description": "Messaggio visualizzato quando non ci sono notifiche."
+  },
+  "sendPDFSecciAnonymus": "Invia preventivo anonimo",
+  "@sendPDFSecciAnonymus": {
+    "description": "Testo del pulsante per inviare un preventivo in modalità anonima."
+  },
+  "yourLoan": "Il tuo preventivo",
+  "@yourLoan": {
+    "description": "Titolo della sezione del preventivo."
+  },
+  "multiRataScreenDescription": "Aumenta o diminuisci l'importo della rata attraverso gli appositi pulsanti. ",
+  "@multiRataScreenDescription": {
+    "description": "Descrizione per la schermata di regolazione dell'importo della rata."
+  }
+}

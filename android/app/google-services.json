@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "554571923629",
+    "project_id": "gearpizza-672ce",
+    "storage_bucket": "gearpizza-672ce.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:554571923629:android:b8e2a1b1015d9e88f04624",
+        "android_client_info": {
+          "package_name": "com.gear.pizza"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "554571923629-n6f2uc3in1bq0uda7kp4h9nauh1kifo9.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyByV2YxJAjLVMDSUg68HhNwY50qGpweSnM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "554571923629-n6f2uc3in1bq0uda7kp4h9nauh1kifo9.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

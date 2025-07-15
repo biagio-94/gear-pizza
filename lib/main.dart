@@ -1,0 +1,133 @@
+import 'dart:ui';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get_it/get_it.dart';
+import 'package:gearpizza/common/bloc/exception_bloc.dart';
+import 'package:gearpizza/common/bloc/loading_bloc.dart';
+import 'package:gearpizza/common/bloc/theme_bloc.dart';
+import 'package:gearpizza/common/services/api_service.dart';
+import 'package:gearpizza/common/services/secure_storage_service.dart';
+import 'package:gearpizza/common/styles/themes.dart';
+import 'package:gearpizza/common/utils/get_device_id.dart';
+import 'package:gearpizza/common/utils/services_setup.dart';
+import 'package:gearpizza/features/auth/bloc/auth_bloc.dart';
+import 'package:gearpizza/features/auth/bloc/auth_event.dart';
+import 'package:gearpizza/features/auth/bloc/auth_state.dart';
+import 'package:gearpizza/features/auth/services/auth_service.dart';
+import 'package:gearpizza/features/onboarding/bloc/onboarding_bloc.dart';
+import 'package:gearpizza/features/onboarding/bloc/onboarding_event.dart';
+import 'package:gearpizza/features/onboarding/service/onboarding_service.dart';
+import 'package:gearpizza/features/documents/bloc/documents_bloc.dart';
+import 'package:gearpizza/features/documents/repositories/document_repository.dart';
+import 'package:gearpizza/features/documents/services/document_service.dart';
+import 'package:gearpizza/features/notifications/bloc/notification_bloc.dart';
+import 'package:gearpizza/features/profile/bloc/profile_bloc.dart';
+import 'package:gearpizza/features/profile/repositories/profile_repository.dart';
+import 'package:gearpizza/router/router.dart';
+import 'package:gearpizza/src/generated/l10n/app_localizations.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+  await setupServiceLocator();
+
+  final bool isPhysical = await isPhysicalDevice();
+
+  // Abilita o disabilita la raccolta dei crash report in base al tipo di dispositivo
+  await FirebaseCrashlytics.instance
+      .setCrashlyticsCollectionEnabled(isPhysical);
+
+  if (isPhysical) {
+    // Registra gli errori Flutter non gestiti
+    FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
+
+    // Registra gli errori Dart non gestiti
+    PlatformDispatcher.instance.onError = (error, stack) {
+      FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+      return true;
+    };
+  }
+
+  runApp(const MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(
+          create: (context) => ThemeCubit(
+            GetIt.instance<SecureStorageService>(),
+          ),
+        ),
+        BlocProvider(
+          create: (_) => AuthBloc(authService: GetIt.I<AuthService>())
+            ..add(const AuthStarted()),
+        ),
+        BlocProvider(
+          create: (context) => GetIt.instance<LoadingBloc>(),
+        ),
+        BlocProvider(
+          create: (context) => GetIt.instance<ExceptionBloc>(),
+        ),
+        BlocProvider(
+          create: (context) => GetIt.instance<NotificationBloc>(),
+        ),
+        BlocProvider(
+          create: (context) {
+            return DocumentsBloc(
+              DocumentService(
+                DocumentRepository(GetIt.instance<ApiService>()),
+              ),
+            );
+          },
+        ),
+        BlocProvider<OnboardingBloc>(
+          create: (context) {
+            final authState = context.read<AuthBloc>().state;
+            final userId = (authState is AuthAuthenticated)
+                ? authState.user.firebaseUid
+                : '';
+
+            return OnboardingBloc(
+              firebaseUid: userId!,
+              service: getIt<OnboardingService>(),
+            )..add(LoadQuestions());
+          },
+        ),
+        BlocProvider(
+          create: (context) => ProfileBloc(getIt<ProfileRepository>()),
+        ),
+      ],
+      child: Builder(
+        builder: (context) {
+          final authBloc = context.read<AuthBloc>();
+          final router = MainRouter(
+            authBloc: authBloc,
+          ).router;
+
+          return BlocBuilder<ThemeCubit, ThemeState>(
+            builder: (context, state) {
+              return MaterialApp.router(
+                theme: state is! LightThemeState ? lightTheme : darkTheme,
+                routeInformationProvider: router.routeInformationProvider,
+                routeInformationParser: router.routeInformationParser,
+                routerDelegate: router.routerDelegate,
+                localizationsDelegates: AppLocalizations.localizationsDelegates,
+                supportedLocales: AppLocalizations.supportedLocales,
+                debugShowCheckedModeBanner: false,
+              );
+            },
+          );
+        },
+      ),
+    );
+  }
+}

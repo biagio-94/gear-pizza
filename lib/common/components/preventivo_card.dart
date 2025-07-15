@@ -6,7 +6,7 @@
 // import 'package:gearpizza/features/dashboard/bloc/dashboard_state.dart';
 // import 'package:gearpizza/features/documents/bloc/documents_bloc.dart';
 // import 'package:gearpizza/features/documents/bloc/documents_event.dart';
-// import '../model/preventivo_elenco_item.dart';
+// import './models/preventivo_elenco_item.dart';
 // import '../styles/colors_schemes.dart';
 
 // class PreventivoCard extends StatelessWidget {

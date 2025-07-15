@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:gearpizza/common/model/notifiche_elenco_item.dart';
+import 'package:gearpizza/common/models/notifiche_elenco_item.dart';
 
 class AppNotification {
   final String id;

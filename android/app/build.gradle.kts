@@ -36,7 +36,7 @@ android {
 
   defaultConfig {
     applicationId = "com.gear.pizza"
-    minSdk = 23
+    minSdk = 28
     targetSdk = flutter.targetSdkVersion
     versionCode = flutter.versionCode
     versionName = flutter.versionName
@@ -53,14 +53,14 @@ android {
 
   signingConfigs {
   getByName("debug").apply {
-    storeFile = file("../hyperfitKeystoreDebug")
+    storeFile = file("../gearpizzaKeystoreDebug.keystore")
     storePassword = debugStorePassword
     keyAlias      = debugKeyAlias
     keyPassword   = debugKeyPassword
   }
 
   create("release") {
-    storeFile    = file("../hyperfitKeystore")
+    storeFile    = file("../gearpizzaKeystore.keystore")
     storePassword = releaseStorePassword
     keyAlias      = releaseKeyAlias
     keyPassword   = releaseKeyPassword
@@ -70,7 +70,7 @@ android {
 
   buildTypes {
     getByName("debug") {
-      applicationIdSuffix = ".test.debug"
+      applicationIdSuffix = ".debug"
       signingConfig = signingConfigs.getByName("debug")
     }
     getByName("release") {

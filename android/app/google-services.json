@@ -14,6 +14,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "554571923629-nj92ke6adaep3rsi94uq1uvq8a20bf6q.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.gear.pizza",
+            "certificate_hash": "13efbb2bff4a4184c15829068920e1ba0ca06a03"
+          }
+        },
+        {
           "client_id": "554571923629-n6f2uc3in1bq0uda7kp4h9nauh1kifo9.apps.googleusercontent.com",
           "client_type": 3
         }
@@ -29,6 +37,57 @@
             {
               "client_id": "554571923629-n6f2uc3in1bq0uda7kp4h9nauh1kifo9.apps.googleusercontent.com",
               "client_type": 3
+            },
+            {
+              "client_id": "554571923629-u2bmqao75hk7j32tn08oh3t6lhjpjccc.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.gear.pizza"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:554571923629:android:d954a03f62a3f8e2f04624",
+        "android_client_info": {
+          "package_name": "com.gear.pizza.debug"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "554571923629-ac547ttociunakp559jct1oe16if2t5c.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.gear.pizza.debug",
+            "certificate_hash": "d4830672aa6df0993a892daaae334524e4f49ee2"
+          }
+        },
+        {
+          "client_id": "554571923629-n6f2uc3in1bq0uda7kp4h9nauh1kifo9.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyByV2YxJAjLVMDSUg68HhNwY50qGpweSnM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "554571923629-n6f2uc3in1bq0uda7kp4h9nauh1kifo9.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "554571923629-u2bmqao75hk7j32tn08oh3t6lhjpjccc.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.gear.pizza"
+              }
             }
           ]
         }

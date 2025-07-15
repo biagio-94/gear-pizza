@@ -27,10 +27,10 @@ class SocialButton extends StatelessWidget {
         foregroundColor: fgColor,
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(100),
           side: BorderSide(
             color: isDark ? cs.surface : cs.onSurface,
-            width: 1.5,
+            width: 1,
           ),
         ),
       ),

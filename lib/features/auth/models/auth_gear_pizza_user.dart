@@ -1,53 +1,113 @@
 import 'package:firebase_auth/firebase_auth.dart' as fb;
 import 'package:gearpizza/features/auth/services/user_role_service.dart';
-import 'package:gearpizza/models/tables/users.dart';
 
-/// Classe che unifica l'utente Firebase Auth e il record completo
-/// dalla tabella `users` di Supabase.
+/// Modello che rappresenta l'utente da Directus.
+/// Dovrai definirlo in base allo schema del tuo Directus.
+class DirectusUser {
+  final String id;
+  final String? firebaseUid;
+  final String nome;
+  final String cognome;
+  final String email;
+  final String? telefono;
+  final String? ruoloId;
+  final DateTime dataCreazione;
+  final DateTime dataAggiornamento;
+  final String? dataNascita;
+  final String? sesso;
+  final double? altezza;
+  final int onboardingStep;
+  final bool onboardingComplete;
+  final Map<String, dynamic>? onboardingData;
+
+  DirectusUser({
+    required this.id,
+    this.firebaseUid,
+    required this.nome,
+    required this.cognome,
+    required this.email,
+    this.telefono,
+    this.ruoloId,
+    required this.dataCreazione,
+    required this.dataAggiornamento,
+    this.dataNascita,
+    this.sesso,
+    this.altezza,
+    required this.onboardingStep,
+    required this.onboardingComplete,
+    this.onboardingData,
+  });
+
+  DirectusUser copyWith({
+    String? nome,
+    String? cognome,
+    String? email,
+    String? telefono,
+    String? ruoloId,
+    DateTime? dataCreazione,
+    DateTime? dataAggiornamento,
+    String? dataNascita,
+    String? sesso,
+    double? altezza,
+    int? onboardingStep,
+    bool? onboardingComplete,
+    Map<String, dynamic>? onboardingData,
+  }) {
+    return DirectusUser(
+      id: id,
+      firebaseUid: firebaseUid,
+      nome: nome ?? this.nome,
+      cognome: cognome ?? this.cognome,
+      email: email ?? this.email,
+      telefono: telefono ?? this.telefono,
+      ruoloId: ruoloId ?? this.ruoloId,
+      dataCreazione: dataCreazione ?? this.dataCreazione,
+      dataAggiornamento: dataAggiornamento ?? this.dataAggiornamento,
+      dataNascita: dataNascita ?? this.dataNascita,
+      sesso: sesso ?? this.sesso,
+      altezza: altezza ?? this.altezza,
+      onboardingStep: onboardingStep ?? this.onboardingStep,
+      onboardingComplete: onboardingComplete ?? this.onboardingComplete,
+      onboardingData: onboardingData ?? this.onboardingData,
+    );
+  }
+}
+
 class AuthGeaPizzaUser {
-  /// Utente autenticato su Firebase
   final fb.User firebaseUser;
 
-  /// Record completo della tabella `users` di Supabase
-  UsersRow supaUser;
+  /// Qui sostituisci `UsersRow` con `DirectusUser`
+  DirectusUser directusUser;
   Roles? role;
 
   AuthGeaPizzaUser({
     required this.firebaseUser,
-    required this.supaUser,
+    required this.directusUser,
     this.role,
   });
 
-  // -------------------------
-  // Getters per i campi utente
-  // -------------------------
+  // Getters
+  String get userId => directusUser.id;
+  String? get firebaseUid => directusUser.firebaseUid;
+  String get nome => directusUser.nome;
+  String get cognome => directusUser.cognome;
+  String get email => directusUser.email;
+  String? get telefono => directusUser.telefono;
+  String? get ruoloId => directusUser.ruoloId;
+  DateTime get dataCreazione => directusUser.dataCreazione;
+  DateTime get dataAggiornamento => directusUser.dataAggiornamento;
+  String? get dataNascita => directusUser.dataNascita;
+  String? get sesso => directusUser.sesso;
+  double? get altezza => directusUser.altezza;
+  int get onboardingStep => directusUser.onboardingStep;
+  bool get onboardingComplete => directusUser.onboardingComplete;
+  Map<String, dynamic>? get onboardingData => directusUser.onboardingData;
 
-  String get userId => supaUser.userId;
-  String? get firebaseUid => supaUser.firebaseUid;
-  String get nome => supaUser.nome;
-  String get cognome => supaUser.cognome;
-  String get email => supaUser.email;
-  String? get telefono => supaUser.telefono;
-  String? get ruoloId => supaUser.ruoloId;
-  DateTime get dataCreazione => supaUser.dataCreazione;
-  DateTime get dataAggiornamento => supaUser.dataAggiornamento;
-  String? get dataNascita => supaUser.dataNascita;
-  String? get sesso => supaUser.sesso;
-  double? get altezza => supaUser.altezza;
-  int get onboardingStep => supaUser.onboardingStep;
-  bool get onboardingComplete => supaUser.onboardingComplete;
-  Map<String, dynamic>? get onboardingData => supaUser.onboardingData;
-
-  // -------------------------
-  // Metodi di aggiornamento
-  // -------------------------
-
-  /// Sostituisce completamente il record SupaUser
-  void updateSupaUser(UsersRow newSupaUser) {
-    supaUser = newSupaUser;
+  // Aggiornamento
+  void updateDirectusUser(DirectusUser newUser) {
+    directusUser = newUser;
   }
 
-  /// Modifica campi specifici del record SupaUser
   void updateFields({
     String? nome,
     String? cognome,
@@ -63,7 +123,7 @@ class AuthGeaPizzaUser {
     bool? onboardingComplete,
     Map<String, dynamic>? onboardingData,
   }) {
-    supaUser = supaUser.copyWith(
+    directusUser = directusUser.copyWith(
       nome: nome,
       cognome: cognome,
       email: email,

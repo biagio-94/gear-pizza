@@ -244,7 +244,6 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     final current = state;
     if (current is AuthAuthenticated) {
       if (current.user.firebaseUid != null) {
-        // ricontrolla su supabase che il ruolo c’è
         final isRoleChosen =
             await _authService.isRoleChosen(current.user.firebaseUid!);
         emit(

@@ -124,7 +124,7 @@ class AuthService {
 
   Future<AuthGeaPizzaUser> getAuthuser({required String firebaseUUID}) async {
     try {
-      return await _repository.getAuthUser(firebaseUUID: firebaseUUID);
+      return await _repository.getAuthUser();
     } on AuthServiceException {
       rethrow;
     } catch (e) {
@@ -182,11 +182,11 @@ class AuthService {
   }
 
   Future<bool> isOnboardingCompleted(String uid) async {
-    return await _repository.isOnboardingCompleted(uid);
+    return true;
   }
 
   Future<bool> isRoleChosen(String uid) async {
-    return await _repository.isRoleChosen(uid);
+    return true;
   }
 
   /// Returns the current authenticated user, or null.

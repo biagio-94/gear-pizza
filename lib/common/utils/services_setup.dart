@@ -14,7 +14,6 @@ import 'package:gearpizza/features/auth/services/user_role_service.dart';
 import 'package:gearpizza/features/notifications/bloc/notification_bloc.dart';
 import 'package:gearpizza/features/notifications/repositories/notification_repository.dart';
 import 'package:gearpizza/features/notifications/services/notification_service.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../features/dashboard/repositories/dashboard_repository.dart';
 import '../../features/dashboard/services/dashboard_service.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -29,9 +28,7 @@ Future<void> setupServiceLocator() async {
 
   getIt.registerLazySingleton<FirebaseAuth>(() => FirebaseAuth.instance);
   getIt.registerLazySingleton<GoogleSignIn>(() => GoogleSignIn());
-  getIt.registerLazySingleton<SupabaseClient>(
-    () => Supabase.instance.client,
-  );
+
   getIt.registerLazySingleton<LocalAuthentication>(() => LocalAuthentication());
 
   getIt.registerLazySingleton<ApiService>(() => ApiService());
@@ -51,11 +48,13 @@ Future<void> setupServiceLocator() async {
       () => BiometricAuthService(LocalAuthentication()));
 
   // Auth Repository
-  getIt.registerFactory<AuthRepository>(() => AuthRepository(
-      firebaseAuth: getIt<FirebaseAuth>(),
-      googleSignIn: getIt<GoogleSignIn>(),
-      secureStorage: getIt<SecureStorageService>(),
-      supabaseClient: getIt<SupabaseClient>()));
+  getIt.registerFactory<AuthRepository>(
+    () => AuthRepository(
+        firebaseAuth: getIt<FirebaseAuth>(),
+        googleSignIn: getIt<GoogleSignIn>(),
+        secureStorage: getIt<SecureStorageService>(),
+        apiService: getIt<ApiService>()),
+  );
 
   // Auth Service
   getIt.registerFactory<AuthService>(() => AuthService(

@@ -1,20 +1,18 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
+import 'package:gearpizza/common/services/api_service.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:gearpizza/common/services/secure_storage_service.dart';
 import 'package:gearpizza/common/utils/services_setup.dart';
 import 'package:gearpizza/features/auth/models/auth_gear_pizza_user.dart';
 import 'package:gearpizza/features/auth/services/auth_service_exception.dart';
 import 'package:gearpizza/features/auth/services/user_role_service.dart';
-import 'package:gearpizza/models/tables/roles.dart';
-import 'package:gearpizza/models/tables/users.dart';
-import 'package:supabase_flutter/supabase_flutter.dart' hide User;
 
 class AuthRepository {
   final FirebaseAuth _firebaseAuth;
   final GoogleSignIn _googleSignIn;
   final SecureStorageService _secureStorage;
-  final SupabaseClient _supabase;
+  final ApiService _apiService;
 
   static const _tokenKey = 'firebase_token';
   static const _biometricKey = 'biometric_enabled';
@@ -24,11 +22,11 @@ class AuthRepository {
     FirebaseAuth? firebaseAuth,
     GoogleSignIn? googleSignIn,
     required SecureStorageService secureStorage,
-    SupabaseClient? supabaseClient,
+    ApiService? apiService,
   })  : _firebaseAuth = firebaseAuth ?? FirebaseAuth.instance,
         _googleSignIn = googleSignIn ?? GoogleSignIn(),
         _secureStorage = secureStorage,
-        _supabase = supabaseClient ?? Supabase.instance.client;
+        _apiService = apiService ?? ApiService();
 
   Stream<User?> get authStateChanges => _firebaseAuth.authStateChanges();
   User? get currentUser => _firebaseAuth.currentUser;
@@ -137,93 +135,47 @@ class AuthRepository {
   Future<void> clearSavedToken() => _secureStorage.deleteSecureData(_tokenKey);
   Future<void> clearSavedEmail() => _secureStorage.deleteSecureData(_emailKey);
 
-  Future<UsersRow?> _fetchSupabaseUserRecord(String uid) => _supabase
-      .from('users')
-      .select()
-      .eq('firebase_uid', uid)
-      .maybeSingle()
-      .then((m) => m == null ? null : UsersRow.fromJson(m));
-
-  Future<bool> isOnboardingCompleted(String uid) async {
-    final user = await _fetchSupabaseUserRecord(uid);
-    return user?.onboardingComplete ?? false;
-  }
-
-  Future<bool> isRoleChosen(String uid) async {
-    final user = await _fetchSupabaseUserRecord(uid);
-    return user?.ruoloId != null;
-  }
-
   Future<void> _afterFirebaseLogin(String email) async {
     await _secureStorage.writeSecureData(_emailKey, email);
-    await _syncSupabaseUser(_firebaseAuth.currentUser!);
+
+    // final firebaseUid = _firebaseAuth.currentUser?.uid;
+    // if (firebaseUid == null) return;
+
+    // final userExists = await _apiService.userExists(firebaseUid: firebaseUid);
+
+    // if (!userExists) {
+    //   await _apiService.createUser(
+    //     firebaseUid: firebaseUid,
+    //     email: email,
+    //   );
+    // } else {
+    //   // facoltativo: aggiorna dati utente su Directus se serve
+    //   // await _apiService.updateUser(...);
+    // }
   }
 
-  Future<void> _syncSupabaseUser(User firebaseUser) async {
-    final uid = firebaseUser.uid;
-
-    final record = await _supabase
-        .from('users')
-        .select()
-        .eq('firebase_uid', uid)
-        .maybeSingle();
-
-    if (record == null) {
-      final parts = firebaseUser.displayName?.split(' ') ?? [];
-      final nome = parts.isNotEmpty ? parts.first : '';
-      final cognome = parts.length > 1 ? parts.sublist(1).join(' ') : '';
-
-      final newUser = UsersRow(
-        firebaseUid: uid,
-        email: firebaseUser.email ?? '',
-        nome: nome,
-        cognome: cognome,
-        dataCreazione: DateTime.now().toUtc(),
-      );
-      await _supabase.from('users').insert(newUser.toJson());
-
-      await getAuthUser(firebaseUUID: uid);
-    }
-  }
-
-  Future<AuthGeaPizzaUser> getAuthUser({
-    required String firebaseUUID,
-  }) async {
-    // 1) Recupera tutto il record utente da Supabase
-    final userMap = await _supabase
-        .from('users')
-        .select()
-        .eq(UsersRow.firebaseUidField, firebaseUUID)
-        .maybeSingle();
-
-    if (userMap == null) {
-      throw Exception('Utente non trovato su Supabase per $firebaseUUID');
+  Future<AuthGeaPizzaUser> getAuthUser() async {
+    final firebaseUser = _firebaseAuth.currentUser;
+    if (firebaseUser == null) {
+      throw AuthServiceException('Nessun utente autenticato');
     }
 
-    // 2) Convertilo in UsersRow
-    final supaUser = UsersRow.fromJson(userMap);
+    final directusUser = DirectusUser(
+        id: "123451245",
+        nome: "nome",
+        cognome: "cognome",
+        email: "email",
+        dataCreazione: DateTime(12),
+        dataAggiornamento: DateTime(12),
+        onboardingStep: 3,
+        onboardingComplete: true);
 
-    Roles? assignedRole;
+    // final role = UserRoleService().fromRoleId(directusUser.ruoloId);
 
-    // 3) Se ruoloId è valorizzato, recupera il nome del ruolo e mappalo
-    if (supaUser.ruoloId != null) {
-      final roleMap = await _supabase
-          .from('roles')
-          .select(RolesRow.nomeRuoloField)
-          .eq(RolesRow.ruoloIdField, supaUser.ruoloId!)
-          .maybeSingle();
-
-      if (roleMap != null && roleMap.containsKey(RolesRow.nomeRuoloField)) {
-        final roleName = roleMap[RolesRow.nomeRuoloField] as String;
-        assignedRole = UserRoleService().fromRoleName(roleName);
-      }
-    }
-
-    // 4) Crea e registra AuthGeaPizzaUser **una sola volta**
     final authUser = AuthGeaPizzaUser(
-      firebaseUser: _firebaseAuth.currentUser!,
-      supaUser: supaUser,
-      role: assignedRole,
+      firebaseUser: firebaseUser,
+      directusUser: directusUser,
+      role: Roles.admin,
     );
 
     if (getIt.isRegistered<AuthGeaPizzaUser>()) {

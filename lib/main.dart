@@ -83,7 +83,7 @@ class MyApp extends StatelessWidget {
             builder: (context, state) {
               debugPrint("state is: $state");
               return MaterialApp.router(
-                theme: state is LightThemeState ? darkTheme : darkTheme,
+                theme: state is LightThemeState ? lightTheme : darkTheme,
                 routeInformationProvider: router.routeInformationProvider,
                 routeInformationParser: router.routeInformationParser,
                 routerDelegate: router.routerDelegate,

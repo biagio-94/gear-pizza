@@ -31,7 +31,6 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   Future<void> _onStarted(AuthStarted event, Emitter<AuthState> emit) async {
     try {
       loadingBloc.showLoading('Checking authentication status...');
-
       final AuthGeaPizzaUser? user = await _authService.onStart();
       if (user != null) {
         final isRoleChosen = await _authService.isRoleChosen(user.firebaseUid!);

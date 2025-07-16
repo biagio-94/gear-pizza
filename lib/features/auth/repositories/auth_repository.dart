@@ -1,6 +1,12 @@
+import 'package:dio/dio.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 import 'package:gearpizza/common/services/api_service.dart';
+import 'package:gearpizza/common/utils/serializers.dart';
+import 'package:gearpizza/features/auth/api/auth_endpoints.dart';
+import 'package:gearpizza/features/auth/models/login_refresh_request.dart';
+import 'package:gearpizza/features/auth/models/login_response.dart';
+import 'package:get_it/get_it.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:gearpizza/common/services/secure_storage_service.dart';
 import 'package:gearpizza/common/utils/services_setup.dart';
@@ -13,6 +19,7 @@ class AuthRepository {
   final FirebaseAuth _firebaseAuth;
   final GoogleSignIn _googleSignIn;
   final SecureStorageService _secureStorage;
+  final ApiService _apiService;
 
   static const _tokenKey = 'firebase_token';
   static const _refreshTokenKey = 'refreshToken';
@@ -24,10 +31,65 @@ class AuthRepository {
     ApiService? apiService,
   })  : _firebaseAuth = firebaseAuth ?? FirebaseAuth.instance,
         _googleSignIn = googleSignIn ?? GoogleSignIn(),
+        _apiService = apiService ?? GetIt.I<ApiService>(),
         _secureStorage = secureStorage;
 
   Stream<User?> get authStateChanges => _firebaseAuth.authStateChanges();
   User? get currentUser => _firebaseAuth.currentUser;
+
+  /// All’avvio dell’app controllo se ho un refresh token valido:
+  /// - se è assente o scaduto: cancello lo storage e lancio LoginException
+  /// - altrimenti invio la chiamata di refresh, aggiorno i token e restituisco l’utente
+  Future<AuthGeaPizzaUser?> onStart() async {
+    try {
+      // 1) Leggo il refresh token dallo storage sicuro
+      final String? savedRefresh = await getSavedRefreshToken();
+      if (savedRefresh == null || !await isTokenValid(token: savedRefresh)) {
+        // non ho un token valido → svuoto tutto e forzo il login
+        await deleteSecureStorage();
+        throw LoginException('Sessione scaduta, effettua nuovamente l’accesso');
+      }
+
+      // 2) Preparo il body per la chiamata di refresh
+      final refreshRequest =
+          LoginRefreshRequest((b) => b..refresh = savedRefresh);
+      final serializedRequest = standardSerializers.serializeWith(
+        LoginRefreshRequest.serializer,
+        refreshRequest,
+      );
+
+      // 3) Chiamo l’endpoint di refresh
+      final Response response = await _apiService.post(
+        AuthEndpoints.refreshToken,
+        data: serializedRequest,
+      );
+
+      // se non ho 200 OK, restituisco null
+      if (response.statusCode != 200) return null;
+
+      // deserializzo e salvo i token come prima...
+      final refreshResp = standardSerializers.deserializeWith(
+        LoginResponse.serializer,
+        response.data,
+      );
+      final newAccess = refreshResp?.token;
+      final newRefresh = refreshResp?.refreshToken;
+      if (newAccess == null || newRefresh == null) {
+        throw AuthServiceException('Refresh token: risposta incompleta');
+      }
+      setAccessToken(newAccess);
+      setRefreshToken(newRefresh);
+
+      // se tutto ok, restituisco l’utente
+      return await getAuthUser();
+    } on AuthServiceException {
+      // se è già un AuthServiceException, lo rilancio così com’è
+      rethrow;
+    } catch (e) {
+      // qualunque altra eccezione la wrappo in AuthServiceException
+      throw AuthServiceException('Errore inizializzazione: $e');
+    }
+  }
 
   Future<UserCredential> registerWithEmail({
     required String email,
@@ -144,6 +206,22 @@ class AuthRepository {
     //   // facoltativo: aggiorna dati utente su Directus se serve
     //   // await _apiService.updateUser(...);
     // }
+  }
+
+  void setAccessToken(String authToken) {
+    _apiService.setAccessToken(authToken);
+  }
+
+  void setRefreshToken(String refreshToken) {
+    _apiService.setRefreshToken(refreshToken);
+  }
+
+  Future<void> deleteSecureStorage() async {
+    try {
+      await _secureStorage.deleteAllSecureData();
+    } catch (e) {
+      throw AuthServiceException(e.toString());
+    }
   }
 
   Future<bool> isTokenValid({required String token}) async {

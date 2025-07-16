@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:gearpizza/common/services/biometric_auth_service.dart';
 import 'package:gearpizza/features/auth/models/auth_gear_pizza_user.dart';
@@ -15,21 +16,12 @@ class AuthService {
   })  : _repository = repository,
         _biometricService = biometricService;
 
-  /// Registers a user and returns the Firebase [User].
+  /// All’avvio dell’app: delego tutta la logica al repository
   Future<AuthGeaPizzaUser?> onStart() async {
     try {
-      final String? refreshToken = await _repository.getSavedRefreshToken();
-      if (refreshToken != null &&
-          await _repository.isTokenValid(token: refreshToken)) {
-        // If we have a refresh token, we can assume the user is authenticated
-        final AuthGeaPizzaUser user = await _repository.getAuthUser();
-        return user;
-      } else {
-        // No refresh token means no active session
-        return null;
-      }
-    } on AuthServiceException {
-      rethrow;
+      return await _repository.onStart();
+    } on LoginException {
+      rethrow; // sessione scaduta
     } catch (e) {
       throw AuthServiceException(e.toString());
     }

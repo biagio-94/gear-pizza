@@ -3,15 +3,20 @@ import 'package:gearpizza/features/auth/services/auth_service.dart';
 import '../../../common/services/api_service_exception.dart';
 import '../../../common/utils/exception_handler.dart';
 import '../repositories/dashboard_repository.dart';
+import 'package:gearpizza/features/dashboard/models/restaurants_dto.dart';
+import 'package:gearpizza/features/dashboard/models/alergen_dto.dart';
+import 'package:gearpizza/features/dashboard/models/pizza_dto.dart';
 
 class DashboardService {
   final DashboardRepository dashboardRepository;
   final AuthService authService;
+
   DashboardService(this.dashboardRepository, this.authService);
 
-  Future<List<String>> fetchPreventivi({required String? idRef}) async {
+  /// Ritorna la lista di ristoranti come DTO leggeri per la UI
+  Future<List<RestaurantDto>> fetchAllRestaurants() async {
     try {
-      return await dashboardRepository.fetchPreventivi(idRef: idRef);
+      return await dashboardRepository.fetchAllRestaurants();
     } on ApiServiceException catch (_) {
       rethrow;
     } on DioException catch (e) {
@@ -21,9 +26,10 @@ class DashboardService {
     }
   }
 
-  Future<bool?> getEliminaPreventivo({required int id}) async {
+  /// Ritorna la lista di allergeni
+  Future<List<AllergenDto>> fetchAllAllergens() async {
     try {
-      return await dashboardRepository.eliminaPreventivo(id: id);
+      return await dashboardRepository.fetchAllAllergens();
     } on ApiServiceException catch (_) {
       rethrow;
     } on DioException catch (e) {
@@ -33,15 +39,18 @@ class DashboardService {
     }
   }
 
-  Future<void> saveTutorialCompleted() async {
-    // try {
-    //   return await authService.saveTutorialCompleted();
-    // } on ApiServiceException catch (_) {
-    //   rethrow;
-    // } on DioException catch (e) {
-    //   throw mapDioExceptionToCustomException(e);
-    // } catch (e) {
-    //   throw GenericException();
-    // }
+  /// Ritorna la lista di pizze per un dato ristorante
+  Future<List<PizzaDto>> fetchPizzasByRestaurant({
+    required int restaurantId,
+  }) async {
+    try {
+      return await dashboardRepository.fetchPizzasByRestaurant(restaurantId);
+    } on ApiServiceException catch (_) {
+      rethrow;
+    } on DioException catch (e) {
+      throw mapDioExceptionToCustomException(e);
+    } catch (e) {
+      throw GenericException();
+    }
   }
 }

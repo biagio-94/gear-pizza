@@ -1,26 +1,22 @@
-import 'package:flutter/foundation.dart' show immutable;
+// dashboard_event.dart
+import 'package:flutter/foundation.dart';
 
 @immutable
 abstract class DashboardEvent {
   const DashboardEvent();
 }
 
-class DashboardEventInitialize extends DashboardEvent {
-  final String username;
-  final int codiceIntermediario;
-  const DashboardEventInitialize(
-      {required this.username, required this.codiceIntermediario});
+// Evento per fetch di tutti i ristoranti
+class FetchRestaurantsEvent extends DashboardEvent {}
+
+// Evento per fetch di un allergene singolo per id
+class FetchAllergenEvent extends DashboardEvent {}
+
+// Evento per fetch delle pizze di un ristorante
+class FetchPizzasEvent extends DashboardEvent {
+  final int restaurantId;
+  const FetchPizzasEvent(this.restaurantId);
 }
 
-class EliminaPreventivoEvent extends DashboardEvent {
-  final int idPreventivo;
-  const EliminaPreventivoEvent({required this.idPreventivo});
-}
-
-class FetchFunzionalitaEvent extends DashboardEvent {
-  const FetchFunzionalitaEvent();
-}
-
-class SetTutorialCompletedEvent extends DashboardEvent {
-  const SetTutorialCompletedEvent();
-}
+// Evento per segnalare tutorial completato
+class SetTutorialCompletedEvent extends DashboardEvent {}

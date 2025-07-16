@@ -84,7 +84,7 @@ class MainRouter {
             routes: [
               GoRoute(
                 path: '/dashboard',
-                builder: (context, state) => HomeScreen(),
+                builder: (context, state) => HomePage(),
                 routes: [
                   ...dashboardRoutes,
                 ],

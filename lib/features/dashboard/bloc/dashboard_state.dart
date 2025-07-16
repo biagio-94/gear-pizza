@@ -1,23 +1,27 @@
+// dashboard_state.dart
 import 'package:flutter/foundation.dart';
+import 'package:gearpizza/features/dashboard/models/alergen_dto.dart';
+import 'package:gearpizza/features/dashboard/models/pizza_dto.dart';
+import 'package:gearpizza/features/dashboard/models/restaurants_dto.dart';
 
 @immutable
 abstract class DashboardState {
   const DashboardState();
 }
 
-class DashboardInitializedState extends DashboardState {
-  final List<String> preventivi;
-  final String username;
-  const DashboardInitializedState({
-    required this.preventivi,
-    required this.username,
-  });
+class DashboardInitial extends DashboardState {}
+
+class RestaurantsLoaded extends DashboardState {
+  final List<RestaurantDto> restaurants;
+  const RestaurantsLoaded(this.restaurants);
 }
 
-class ChooseFunzionalitaState extends DashboardInitializedState {
-  final List<String> funzionalita;
-  const ChooseFunzionalitaState(
-      {required this.funzionalita,
-      required super.preventivi,
-      required super.username});
+class AllergensLoaded extends DashboardState {
+  final List<AllergenDto> allergens;
+  const AllergensLoaded(this.allergens);
+}
+
+class PizzasLoaded extends DashboardState {
+  final List<PizzaDto> pizzas;
+  const PizzasLoaded(this.pizzas);
 }

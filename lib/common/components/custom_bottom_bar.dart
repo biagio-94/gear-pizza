@@ -44,21 +44,12 @@ class CustomBottomBar extends StatelessWidget {
               ),
               BottomNavigationBarItem(
                 icon: Icon(
-                  Icons.fitness_center,
-                  color: selectedIndex == 1
-                      ? colorScheme.secondary
-                      : colorScheme.onSurfaceVariant,
-                ),
-                label: 'Workouts',
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(
                   Icons.chat_bubble_outline,
                   color: selectedIndex == 2
                       ? colorScheme.secondary
                       : colorScheme.onSurfaceVariant,
                 ),
-                label: 'Chat',
+                label: 'Cart',
               ),
               BottomNavigationBarItem(
                 icon: Icon(
@@ -67,7 +58,7 @@ class CustomBottomBar extends StatelessWidget {
                       ? colorScheme.secondary
                       : colorScheme.onSurfaceVariant,
                 ),
-                label: 'Clients',
+                label: 'Profile',
               ),
               BottomNavigationBarItem(
                 icon: Icon(
@@ -76,7 +67,7 @@ class CustomBottomBar extends StatelessWidget {
                       ? colorScheme.secondary
                       : colorScheme.onSurfaceVariant,
                 ),
-                label: 'Altro',
+                label: 'Admin',
               ),
             ],
           ),

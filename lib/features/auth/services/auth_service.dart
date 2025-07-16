@@ -16,6 +16,26 @@ class AuthService {
         _biometricService = biometricService;
 
   /// Registers a user and returns the Firebase [User].
+  Future<AuthGeaPizzaUser?> onStart() async {
+    try {
+      final String? refreshToken = await _repository.getSavedRefreshToken();
+      if (refreshToken != null &&
+          await _repository.isTokenValid(token: refreshToken)) {
+        // If we have a refresh token, we can assume the user is authenticated
+        final AuthGeaPizzaUser user = await _repository.getAuthUser();
+        return user;
+      } else {
+        // No refresh token means no active session
+        return null;
+      }
+    } on AuthServiceException {
+      rethrow;
+    } catch (e) {
+      throw AuthServiceException(e.toString());
+    }
+  }
+
+  /// Registers a user and returns the Firebase [User].
   Future<User> register({
     required String email,
     required String password,
@@ -108,8 +128,7 @@ class AuthService {
 
       if (firebaseUUID != null) {
         // 3. Retrieve existing Firebase user session
-        final AuthGeaPizzaUser user =
-            await getAuthuser(firebaseUUID: firebaseUUID);
+        final AuthGeaPizzaUser user = await getAuthuser();
         return user;
       }
 
@@ -122,47 +141,11 @@ class AuthService {
     }
   }
 
-  Future<AuthGeaPizzaUser> getAuthuser({required String firebaseUUID}) async {
+  Future<AuthGeaPizzaUser> getAuthuser() async {
     try {
       return await _repository.getAuthUser();
     } on AuthServiceException {
       rethrow;
-    } catch (e) {
-      throw AuthServiceException(e.toString());
-    }
-  }
-
-  /// Enables or disables biometric login and stores preference.
-  Future<void> setBiometricEnabled(bool enabled) async {
-    try {
-      if (enabled) {
-        // Before enabling, ensure device and setup
-        final supported = await _biometricService.isDeviceSupported();
-        final setup = await _biometricService.checkBiometricSetup();
-        if (!supported || !setup) {
-          throw AuthServiceException(
-              'Device does not support biometric authentication or not configured');
-        }
-      }
-      await _repository.setBiometricEnabled(enabled);
-    } catch (e) {
-      throw AuthServiceException(e.toString());
-    }
-  }
-
-  /// Checks if biometric login is enabled.
-  Future<bool> isBiometricEnabled() async {
-    try {
-      return await _repository.isBiometricEnabled();
-    } catch (e) {
-      throw AuthServiceException(e.toString());
-    }
-  }
-
-  /// Checks if biometric login is enabled.
-  Future<String?> getSavedEmail() async {
-    try {
-      return await _repository.getSavedEmail();
     } catch (e) {
       throw AuthServiceException(e.toString());
     }
@@ -186,6 +169,8 @@ class AuthService {
   }
 
   Future<bool> isRoleChosen(String uid) async {
+    // In futuro fetchare da tabella users se presente un campo ruolo
+    // o simile che indica se l'utente ha scelto un ruolo
     return true;
   }
 

@@ -5,7 +5,6 @@ import 'package:gearpizza/common/bloc/exception_bloc.dart';
 import 'package:gearpizza/common/bloc/exception_state.dart';
 import 'package:gearpizza/common/bloc/loading_bloc.dart';
 import 'package:gearpizza/common/bloc/loading_state.dart';
-import 'package:gearpizza/common/components/custom_app_bar.dart';
 import 'package:gearpizza/common/components/custom_bottom_bar.dart';
 import 'package:gearpizza/common/components/custom_rounded_container.dart';
 import 'package:gearpizza/common/components/loading/loading_screen.dart';
@@ -35,14 +34,14 @@ class MainRouter {
           authState is AuthPasswordResetEmailSent;
       final bool isGoToRegister = authState is AuthRegisterState ||
           authState is AuthEmailVerificationSent;
-      final bool waitingForBiometrics = authState is AuthWaitingBiometricChoice;
 
       final bool goingToLogin = state.uri.path == '/login' ||
-          state.uri.path == '/biometricsChoice' ||
-          state.uri.path == '/onboarding';
+          state.uri.path == '/register' ||
+          state.uri.path == '/reset-password';
+
+      // 🔒 Se non autenticato e non su login, reindirizza a login
 
       // 🔒 Proteggi schermate per utenti autenticati
-      if (waitingForBiometrics) return '/biometricsChoice';
       if (isGoToRegister) return '/register';
       if (isGoToResetpass) return '/reset-password';
 
@@ -54,18 +53,9 @@ class MainRouter {
       // ✅ Se autenticato, controlla se ha completato l'onboarding
       if (authState is AuthAuthenticated) {
         final isRoleChoosen = authState.isRoleChoosen;
-        final onboardingCompletato = authState.onboardingCompletato;
 
         if (!isRoleChoosen) {
           return '/chooseRole';
-        }
-
-        if (!onboardingCompletato) {
-          return '/onboarding';
-        }
-
-        if (onboardingCompletato && goingToLogin) {
-          return '/dashboard';
         }
       }
 
@@ -91,20 +81,11 @@ class MainRouter {
               ),
             ],
           ),
-          // Workouts branch
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: '/workouts',
-                builder: (context, state) => const Center(),
-              ),
-            ],
-          ),
           // Chats branch
           StatefulShellBranch(
             routes: [
               GoRoute(
-                path: '/chats',
+                path: '/cart',
                 builder: (context, state) => const Center(),
               ),
             ],
@@ -113,7 +94,7 @@ class MainRouter {
           StatefulShellBranch(
             routes: [
               GoRoute(
-                path: '/clients',
+                path: '/profile',
                 builder: (context, state) => const Center(),
               ),
             ],
@@ -201,7 +182,6 @@ class _MainScaffoldState extends State<MainScaffold>
         ),
       ],
       child: Scaffold(
-        appBar: CustomAppBar(),
         body: CustomRoundedContainer(
           child: widget.navigationShell,
         ),

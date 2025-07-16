@@ -1,5 +1,4 @@
 import 'package:go_router/go_router.dart';
-import 'package:gearpizza/features/auth/screens/biometrics_choice.dart';
 import 'package:gearpizza/features/auth/screens/login_screen.dart';
 import 'package:gearpizza/features/auth/screens/register_screen.dart';
 import 'package:gearpizza/features/auth/screens/reset_password.dart';
@@ -26,14 +25,6 @@ final List<GoRoute> authRoutes = [
     pageBuilder: (context, state) {
       return const NoTransitionPage(
         child: ResetPasswordScreen(),
-      );
-    },
-  ),
-  GoRoute(
-    path: '/biometricsChoice',
-    pageBuilder: (context, state) {
-      return const NoTransitionPage(
-        child: BiometricsChoice(),
       );
     },
   ),

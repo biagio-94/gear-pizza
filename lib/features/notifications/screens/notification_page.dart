@@ -5,7 +5,6 @@ import 'package:gearpizza/features/notifications/bloc/notification_bloc.dart';
 import 'package:gearpizza/features/notifications/bloc/notification_event.dart';
 import 'package:gearpizza/features/notifications/bloc/notification_state.dart';
 import 'package:gearpizza/features/notifications/components/notification_tile.dart';
-import 'package:gearpizza/src/generated/l10n/app_localizations.dart';
 
 class NotificationPage extends StatefulWidget {
   const NotificationPage({super.key});
@@ -31,7 +30,7 @@ class _NotificationPageState extends State<NotificationPage> {
           if (notifications.isEmpty) {
             return Center(
               child: Text(
-                AppLocalizations.of(context)!.noNotifications,
+                "Notifications are empty",
                 style: AppTextStyles.mediumBlueText(context),
               ),
             );

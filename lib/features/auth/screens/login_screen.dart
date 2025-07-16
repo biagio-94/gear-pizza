@@ -14,6 +14,7 @@ import 'package:gearpizza/common/utils/show_error_dialog.dart';
 import 'package:gearpizza/features/auth/bloc/auth_bloc.dart';
 import 'package:gearpizza/features/auth/bloc/auth_event.dart';
 import 'package:gearpizza/features/auth/bloc/auth_state.dart';
+import 'package:go_router/go_router.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
@@ -106,20 +107,9 @@ class _LoginScreenState extends State<LoginScreen>
                 ),
                 BlocListener<AuthBloc, AuthState>(
                   listener: (context, state) async {
-                    if (state is AuthUnauthenticatedBiometricPrompt) {
-                      WidgetsBinding.instance.addPostFrameCallback((_) {
-                        setState(() {
-                          _numberController.text = state.email;
-                          isSupported = true;
-                          isActive = true;
-                        });
-                      });
-                      context
-                          .read<AuthBloc>()
-                          .add(const AuthBiometricLoginRequested());
-                    }
-                    if (state is AuthBiometricsChoosed) {
-                      setState(() => isActive = false);
+                    if (state is AuthAuthenticated) {
+                      // Navigate to the next screen after successful login
+                      GoRouter.of(context).pushReplacementNamed('/home');
                     }
                   },
                 ),

@@ -16,8 +16,6 @@ class DirectusUser {
   final String? dataNascita;
   final String? sesso;
   final double? altezza;
-  final int onboardingStep;
-  final bool onboardingComplete;
   final Map<String, dynamic>? onboardingData;
 
   DirectusUser({
@@ -33,8 +31,6 @@ class DirectusUser {
     this.dataNascita,
     this.sesso,
     this.altezza,
-    required this.onboardingStep,
-    required this.onboardingComplete,
     this.onboardingData,
   });
 
@@ -49,8 +45,6 @@ class DirectusUser {
     String? dataNascita,
     String? sesso,
     double? altezza,
-    int? onboardingStep,
-    bool? onboardingComplete,
     Map<String, dynamic>? onboardingData,
   }) {
     return DirectusUser(
@@ -66,8 +60,6 @@ class DirectusUser {
       dataNascita: dataNascita ?? this.dataNascita,
       sesso: sesso ?? this.sesso,
       altezza: altezza ?? this.altezza,
-      onboardingStep: onboardingStep ?? this.onboardingStep,
-      onboardingComplete: onboardingComplete ?? this.onboardingComplete,
       onboardingData: onboardingData ?? this.onboardingData,
     );
   }
@@ -99,8 +91,6 @@ class AuthGeaPizzaUser {
   String? get dataNascita => directusUser.dataNascita;
   String? get sesso => directusUser.sesso;
   double? get altezza => directusUser.altezza;
-  int get onboardingStep => directusUser.onboardingStep;
-  bool get onboardingComplete => directusUser.onboardingComplete;
   Map<String, dynamic>? get onboardingData => directusUser.onboardingData;
 
   // Aggiornamento
@@ -134,8 +124,6 @@ class AuthGeaPizzaUser {
       dataNascita: dataNascita,
       sesso: sesso,
       altezza: altezza,
-      onboardingStep: onboardingStep,
-      onboardingComplete: onboardingComplete,
       onboardingData: onboardingData,
     );
   }

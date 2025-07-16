@@ -7,16 +7,15 @@ import 'package:gearpizza/common/utils/services_setup.dart';
 import 'package:gearpizza/features/auth/models/auth_gear_pizza_user.dart';
 import 'package:gearpizza/features/auth/services/auth_service_exception.dart';
 import 'package:gearpizza/features/auth/services/user_role_service.dart';
+import 'package:jwt_decoder/jwt_decoder.dart';
 
 class AuthRepository {
   final FirebaseAuth _firebaseAuth;
   final GoogleSignIn _googleSignIn;
   final SecureStorageService _secureStorage;
-  final ApiService _apiService;
 
   static const _tokenKey = 'firebase_token';
-  static const _biometricKey = 'biometric_enabled';
-  static const _emailKey = 'user_email';
+  static const _refreshTokenKey = 'refreshToken';
 
   AuthRepository({
     FirebaseAuth? firebaseAuth,
@@ -25,8 +24,7 @@ class AuthRepository {
     ApiService? apiService,
   })  : _firebaseAuth = firebaseAuth ?? FirebaseAuth.instance,
         _googleSignIn = googleSignIn ?? GoogleSignIn(),
-        _secureStorage = secureStorage,
-        _apiService = apiService ?? ApiService();
+        _secureStorage = secureStorage;
 
   Stream<User?> get authStateChanges => _firebaseAuth.authStateChanges();
   User? get currentUser => _firebaseAuth.currentUser;
@@ -115,28 +113,22 @@ class AuthRepository {
       await _firebaseAuth.signOut();
       await _googleSignIn.signOut();
       await clearSavedToken();
-      await clearSavedEmail();
+      await clearSavedRefreshoken();
     } catch (e) {
       throw AuthServiceException(e.toString());
     }
   }
 
-  Future<void> setBiometricEnabled(bool enabled) =>
-      _secureStorage.writeSecureData(_biometricKey, enabled.toString());
-
-  Future<bool> isBiometricEnabled() async {
-    final val = await _secureStorage.readSecureData(_biometricKey);
-    return val?.toLowerCase() == 'true';
-  }
-
   Future<String?> getSavedToken() => _secureStorage.readSecureData(_tokenKey);
-  Future<String?> getSavedEmail() => _secureStorage.readSecureData(_emailKey);
+  Future<String?> getSavedRefreshToken() =>
+      _secureStorage.readSecureData(_refreshTokenKey);
 
   Future<void> clearSavedToken() => _secureStorage.deleteSecureData(_tokenKey);
-  Future<void> clearSavedEmail() => _secureStorage.deleteSecureData(_emailKey);
+  Future<void> clearSavedRefreshoken() =>
+      _secureStorage.deleteSecureData(_refreshTokenKey);
 
   Future<void> _afterFirebaseLogin(String email) async {
-    await _secureStorage.writeSecureData(_emailKey, email);
+    await _secureStorage.writeSecureData(_refreshTokenKey, email);
 
     // final firebaseUid = _firebaseAuth.currentUser?.uid;
     // if (firebaseUid == null) return;
@@ -154,6 +146,18 @@ class AuthRepository {
     // }
   }
 
+  Future<bool> isTokenValid({required String token}) async {
+    return !JwtDecoder.isExpired(token);
+  }
+
+  Future<void> saveToken(String token) async {
+    await _secureStorage.writeSecureData(_tokenKey, token);
+  }
+
+  Future<void> saveRefreshToken(String refreshToken) async {
+    await _secureStorage.writeSecureData(_refreshTokenKey, refreshToken);
+  }
+
   Future<AuthGeaPizzaUser> getAuthUser() async {
     final firebaseUser = _firebaseAuth.currentUser;
     if (firebaseUser == null) {
@@ -161,14 +165,13 @@ class AuthRepository {
     }
 
     final directusUser = DirectusUser(
-        id: "123451245",
-        nome: "nome",
-        cognome: "cognome",
-        email: "email",
-        dataCreazione: DateTime(12),
-        dataAggiornamento: DateTime(12),
-        onboardingStep: 3,
-        onboardingComplete: true);
+      id: "123451245",
+      nome: "nome",
+      cognome: "cognome",
+      email: "email",
+      dataCreazione: DateTime(12),
+      dataAggiornamento: DateTime(12),
+    );
 
     // final role = UserRoleService().fromRoleId(directusUser.ruoloId);
 

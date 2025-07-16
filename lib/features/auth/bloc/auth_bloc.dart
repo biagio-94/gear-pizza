@@ -4,7 +4,6 @@ import 'package:gearpizza/features/auth/models/auth_gear_pizza_user.dart';
 import 'package:gearpizza/features/auth/services/auth_service_exception.dart';
 import 'auth_event.dart';
 import 'auth_state.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:gearpizza/common/bloc/loading_bloc.dart';
 import 'package:gearpizza/common/bloc/exception_bloc.dart';
 import 'package:gearpizza/features/auth/services/auth_service.dart';
@@ -23,23 +22,20 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<AuthPasswordResetRequested>(_onPasswordResetRequested);
     on<AuthGoogleSignInRequested>(_onGoogleSignInRequested);
     on<AuthFacebookSignInRequested>(_onFacebookSignInRequested);
-    on<AuthEnableBiometric>(_onEnableBiometric);
-    on<AuthBiometricLoginRequested>(_onBiometricLoginRequested);
     on<AuthLoggedOut>(_onLoggedOut);
-    on<AuthSkipBiometric>(_onSkipBiometric);
     on<AuthResetPassEvent>(_onGoToResetPass);
     on<AuthregisterEvent>(_onGoToRegister);
     on<AuthRoleConfirmed>(_onRoleConfirmed);
-    on<OnOnboardingEnd>(_onOnbCompletato);
   }
 
   Future<void> _onStarted(AuthStarted event, Emitter<AuthState> emit) async {
     try {
       loadingBloc.showLoading('Checking authentication status...');
-      final bool bioEnabled = await _authService.isBiometricEnabled();
-      final String? email = await _authService.getSavedEmail();
-      if (bioEnabled && email != null) {
-        emit(AuthUnauthenticatedBiometricPrompt(email: email));
+
+      final AuthGeaPizzaUser? user = await _authService.onStart();
+      if (user != null) {
+        final isRoleChosen = await _authService.isRoleChosen(user.firebaseUid!);
+        emit(AuthAuthenticated(user: user, isRoleChoosen: isRoleChosen));
       } else {
         emit(const AuthUnauthenticated());
       }
@@ -56,7 +52,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     try {
       loadingBloc.showLoading('Logging in...');
       await _authService.login(email: event.email, password: event.password);
-      emit(const AuthWaitingBiometricChoice());
+      final AuthGeaPizzaUser user = await _authService.getAuthuser();
+      final isRoleChosen = await _authService.isRoleChosen(user.firebaseUid!);
+      emit(AuthAuthenticated(user: user, isRoleChoosen: isRoleChosen));
     } catch (e) {
       exceptionBloc.throwExceptionState(e.toString());
     } finally {
@@ -106,7 +104,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     try {
       loadingBloc.showLoading('Signing in with Google...');
       await _authService.loginWithGoogle();
-      emit(const AuthWaitingBiometricChoice());
+      final AuthGeaPizzaUser user = await _authService.getAuthuser();
+      final isRoleChosen = await _authService.isRoleChosen(user.firebaseUid!);
+      emit(AuthAuthenticated(user: user, isRoleChoosen: isRoleChosen));
     } on AuthServiceException catch (e) {
       exceptionBloc.throwExceptionState(e.message);
     } catch (e) {
@@ -122,85 +122,13 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     try {
       loadingBloc.showLoading('Signing in with Facebook...');
       await _authService.loginWithFacebook();
-      emit(const AuthWaitingBiometricChoice());
+      final AuthGeaPizzaUser user = await _authService.getAuthuser();
+      final isRoleChosen = await _authService.isRoleChosen(user.firebaseUid!);
+      emit(AuthAuthenticated(user: user, isRoleChoosen: isRoleChosen));
     } catch (e) {
       exceptionBloc.throwExceptionState(e.toString());
     } finally {
       loadingBloc.hideLoading();
-    }
-  }
-
-  Future<void> _onEnableBiometric(
-      AuthEnableBiometric event, Emitter<AuthState> emit) async {
-    try {
-      await _authService.setBiometricEnabled(event.enable);
-
-      if (!event.enable) {
-        await _authService.logout();
-        emit(AuthBiometricsChoosed(isbioAvailable: event.enable));
-      } else {
-        emit(const AuthUnauthenticated());
-      }
-    } catch (e) {
-      exceptionBloc.throwExceptionState(e.toString());
-      emit(const AuthFailure(error: 'Failed to update biometric setting'));
-    }
-  }
-
-  Future<void> _onBiometricLoginRequested(
-      AuthBiometricLoginRequested event, Emitter<AuthState> emit) async {
-    try {
-      loadingBloc.showLoading('Authenticating with biometrics...');
-      final AuthGeaPizzaUser user = await _authService.loginWithBiometric();
-      if (user.firebaseUid != null) {
-        final onboardingDone =
-            await _authService.isOnboardingCompleted(user.firebaseUid!);
-        final isRoleChosen = await _authService.isRoleChosen(user.firebaseUid!);
-        emit(AuthAuthenticated(
-          user: user,
-          onboardingCompletato: onboardingDone,
-          isRoleChoosen: isRoleChosen,
-        ));
-      } else {
-        exceptionBloc.throwExceptionState(
-            "Errore durante l'autenticazione riprova nuovamente");
-      }
-    } catch (e) {
-      exceptionBloc.throwExceptionState(e.toString());
-      emit(const AuthUnauthenticated());
-    } finally {
-      loadingBloc.hideLoading();
-    }
-  }
-
-  Future<void> _onSkipBiometric(
-    AuthSkipBiometric event,
-    Emitter<AuthState> emit,
-  ) async {
-    try {
-      // opzionale: forziamo la disabilitazione della biometria
-      await _authService.setBiometricEnabled(false);
-
-      // recupero l’utente corrente
-      final user = FirebaseAuth.instance.currentUser;
-
-      if (user?.uid != null) {
-        final AuthGeaPizzaUser authuser =
-            await _authService.getAuthuser(firebaseUUID: user!.uid);
-        final onboardingDone =
-            await _authService.isOnboardingCompleted(user.uid);
-        final isRoleChosen = await _authService.isRoleChosen(user.uid);
-        emit(AuthAuthenticated(
-          user: authuser,
-          onboardingCompletato: onboardingDone,
-          isRoleChoosen: isRoleChosen,
-        ));
-      } else {
-        emit(const AuthUnauthenticated());
-      }
-    } catch (e) {
-      exceptionBloc.throwExceptionState(e.toString());
-      emit(const AuthFailure(error: 'Errore durante lo skip biometrico'));
     }
   }
 
@@ -249,28 +177,6 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         emit(
           AuthAuthenticated(
             user: current.user,
-            onboardingCompletato: current.onboardingCompletato,
-            isRoleChoosen: isRoleChosen,
-          ),
-        );
-      }
-    }
-  }
-
-  Future<void> _onOnbCompletato(
-      OnOnboardingEnd event, Emitter<AuthState> emit) async {
-    final current = state;
-    if (current is AuthAuthenticated) {
-      if (current.user.firebaseUid != null) {
-        final isRoleChosen =
-            await _authService.isRoleChosen(current.user.firebaseUid!);
-        final onboardingDone =
-            await _authService.isOnboardingCompleted(current.user.firebaseUid!);
-
-        emit(
-          AuthAuthenticated(
-            user: current.user,
-            onboardingCompletato: onboardingDone,
             isRoleChoosen: isRoleChosen,
           ),
         );

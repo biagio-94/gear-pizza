@@ -18,17 +18,6 @@ class AuthLoginRequested extends AuthEvent {
   const AuthLoginRequested({required this.email, required this.password});
 }
 
-/// Enable/disable biometric
-class AuthEnableBiometric extends AuthEvent {
-  final bool enable;
-  const AuthEnableBiometric(this.enable);
-}
-
-/// Biometric login
-class AuthBiometricLoginRequested extends AuthEvent {
-  const AuthBiometricLoginRequested();
-}
-
 /// Register
 class AuthRegisterRequested extends AuthEvent {
   final String email;
@@ -57,10 +46,6 @@ class AuthLoggedOut extends AuthEvent {
   const AuthLoggedOut();
 }
 
-class AuthSkipBiometric extends AuthEvent {
-  const AuthSkipBiometric();
-}
-
 class AuthResetPassEvent extends AuthEvent {
   const AuthResetPassEvent();
 }
@@ -70,5 +55,3 @@ class AuthregisterEvent extends AuthEvent {
 }
 
 class AuthRoleConfirmed extends AuthEvent {}
-
-class OnOnboardingEnd extends AuthEvent {}

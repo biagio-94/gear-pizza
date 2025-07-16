@@ -1,7 +1,7 @@
 import 'package:intl/intl.dart';
 
 class NotificationEndpoint {
-  static const baseUrl = "/secure/spc4bs/notifiche";
+  static const baseUrl = "/items/notifiche";
   static const updateFCMtoken = "$baseUrl/impostazioni";
   static String getNotifications({
     required DateTime dateFrom,

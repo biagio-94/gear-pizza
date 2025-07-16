@@ -52,7 +52,10 @@ class AuthResetPasswordState extends AuthState {
 }
 
 class AuthRegisterState extends AuthState {
-  const AuthRegisterState();
+  final bool isEmailAlreadyRegistered;
+  const AuthRegisterState({this.isEmailAlreadyRegistered = false});
+  @override
+  List<Object?> get props => [isEmailAlreadyRegistered];
 }
 
 /// Failure

@@ -45,7 +45,7 @@ class CustomButton extends StatelessWidget {
         break;
       case ButtonType.greenFilled:
         backgroundColor = cs.secondary;
-        textColor = cs.onPrimary;
+        textColor = cs.onSecondary;
         break;
       case ButtonType.outlined:
         backgroundColor = Colors.transparent;

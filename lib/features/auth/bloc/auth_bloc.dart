@@ -26,6 +26,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<AuthResetPassEvent>(_onGoToResetPass);
     on<AuthregisterEvent>(_onGoToRegister);
     on<AuthRoleConfirmed>(_onRoleConfirmed);
+    on<AuthRegisterEmailStep>(_onEmailSet);
   }
 
   Future<void> _onStarted(AuthStarted event, Emitter<AuthState> emit) async {
@@ -46,10 +47,30 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     }
   }
 
+  Future<void> _onEmailSet(
+      AuthRegisterEmailStep event, Emitter<AuthState> emit) async {
+    try {
+      loadingBloc.showLoading('Checking authentication status...');
+      final bool isAlreadyRegisterd =
+          await _authService.emailAlreadyExists(email: event.email);
+      if (isAlreadyRegisterd) {
+        emit(const AuthRegisterState());
+      } else {
+        // emit(AuthRegisterEmailStep(email: event.email));
+      }
+    } catch (e) {
+      exceptionBloc.throwExceptionState(e.toString());
+      emit(const AuthFailure(error: 'Initialization failed'));
+    } finally {
+      loadingBloc.hideLoading();
+    }
+  }
+
   Future<void> _onLoginRequested(
       AuthLoginRequested event, Emitter<AuthState> emit) async {
     try {
       loadingBloc.showLoading('Logging in...');
+      //Mock login for testing purposes Directus non consente nemmeno get senza axccess token
       await _authService.login(email: event.email, password: event.password);
       final AuthGeaPizzaUser user = await _authService.getAuthuser();
       final isRoleChosen = await _authService.isRoleChosen(user.firebaseUid!);

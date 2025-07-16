@@ -27,6 +27,16 @@ class AuthService {
     }
   }
 
+  Future<bool> emailAlreadyExists({required String email}) async {
+    try {
+      return await _repository.emailAlreadyExists(email: email);
+    } on LoginException {
+      rethrow;
+    } catch (e) {
+      throw AuthServiceException(e.toString());
+    }
+  }
+
   /// Registers a user and returns the Firebase [User].
   Future<User> register({
     required String email,

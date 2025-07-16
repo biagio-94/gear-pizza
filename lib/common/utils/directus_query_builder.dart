@@ -1,14 +1,13 @@
+// lib/common/utils/directus_query_builder.dart
 import 'dart:convert';
 
 class DirectusQueryBuilder {
   final Map<String, dynamic> _params = {};
 
-  /// Accetta sia String che List<String>
   DirectusQueryBuilder fields(dynamic value) {
     if (value is String) {
       _params['fields'] = value;
     } else if (value is List<String>) {
-      // Directus vuole i campi separati da virgola
       _params['fields'] = value.join(',');
     } else {
       throw ArgumentError('fields() accetta solo String o List<String>');

@@ -25,6 +25,11 @@ class AuthRegisterRequested extends AuthEvent {
   const AuthRegisterRequested({required this.email, required this.password});
 }
 
+class AuthRegisterEmailStep extends AuthEvent {
+  final String email;
+  const AuthRegisterEmailStep({required this.email});
+}
+
 /// Password reset
 class AuthPasswordResetRequested extends AuthEvent {
   final String email;

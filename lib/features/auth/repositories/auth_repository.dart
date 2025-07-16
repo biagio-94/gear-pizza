@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 import 'package:gearpizza/common/services/api_service.dart';
+import 'package:gearpizza/common/utils/directus_query_builder.dart';
 import 'package:gearpizza/common/utils/serializers.dart';
 import 'package:gearpizza/features/auth/api/auth_endpoints.dart';
 import 'package:gearpizza/features/auth/models/login_refresh_request.dart';
@@ -91,6 +92,28 @@ class AuthRepository {
     }
   }
 
+  /// Restituisce `true` se esiste già un utente con [email].
+  Future<bool> emailAlreadyExists({required String email}) async {
+    try {
+      final query = DirectusQueryBuilder().fields(['id']).filter({
+        'email': {'_eq': email},
+      }).limit(1);
+
+      final endpoint = AuthEndpoints.getUserByEmail(queryBuilder: query);
+      final resp = await _apiService.get(endpoint);
+
+      if (resp.statusCode != 200) {
+        throw Exception('Errore verifica email: ${resp.statusCode}');
+      }
+
+      // La Directus SDK/ApiService ti restituisce JSON decodificato in .data
+      final data = (resp.data as Map<String, dynamic>)['data'] as List<dynamic>;
+      return data.isNotEmpty;
+    } catch (e) {
+      throw Exception('Errore durante la verifica email: $e');
+    }
+  }
+
   Future<UserCredential> registerWithEmail({
     required String email,
     required String password,
@@ -112,14 +135,22 @@ class AuthRepository {
     required String password,
   }) async {
     try {
+      // 1) Login a Firebase
       final cred = await _firebaseAuth.signInWithEmailAndPassword(
         email: email,
         password: password,
       );
-      await _afterFirebaseLogin(email);
+
+      // 2) Mock per impossibilità di fare get senza access token
+      // In un'app reale, qui chiamerei un servizio creato a DOC su Directus per autenticarmi con idFirebase o tokenFirebase validatoa backend
+      // e gestiresti i token come nel metodo _afterFirebaseLogin
+      await _afterFirebaseLogin(
+          email: "biagio@gearpizza.it", password: "Q]T%;mG1)R58");
+
       return cred;
     } on FirebaseAuthException catch (e) {
-      throw AuthServiceException(e.message ?? 'Login failed');
+      // login Firebase fallito
+      throw AuthServiceException(e.message ?? 'Login Firebase fallito');
     }
   }
 
@@ -141,7 +172,12 @@ class AuthRepository {
         idToken: googleAuth.idToken,
       );
       final cred = await _firebaseAuth.signInWithCredential(credential);
-      await _afterFirebaseLogin(cred.user?.email ?? '');
+
+      // 2) Mock per impossibilità di fare get senza access token
+      // In un'app reale, qui chiamerei un servizio creato a DOC su Directus per autenticarmi con idFirebase o tokenFirebase validatoa backend
+      // e gestiresti i token come nel metodo _afterFirebaseLogin
+      await _afterFirebaseLogin(
+          email: "biagio@gearpizza.it", password: "Q]T%;mG1)R58");
       return cred;
     } on FirebaseAuthException catch (e) {
       throw AuthServiceException(e.message ?? 'Google sign-in failed');
@@ -163,7 +199,11 @@ class AuthRepository {
       final cred = await _firebaseAuth.signInWithCredential(
         FacebookAuthProvider.credential(result.accessToken!.tokenString),
       );
-      await _afterFirebaseLogin(cred.user?.email ?? '');
+      // 2) Mock per impossibilità di fare get senza access token
+      // In un'app reale, qui chiamerei un servizio creato a DOC su Directus per autenticarmi con idFirebase o tokenFirebase validatoa backend
+      // e gestiresti i token come nel metodo _afterFirebaseLogin
+      await _afterFirebaseLogin(
+          email: "biagio@gearpizza.it", password: "Q]T%;mG1)R58");
       return cred;
     } on FirebaseAuthException catch (e) {
       throw AuthServiceException(e.message ?? 'Facebook sign-in failed');
@@ -189,23 +229,59 @@ class AuthRepository {
   Future<void> clearSavedRefreshoken() =>
       _secureStorage.deleteSecureData(_refreshTokenKey);
 
-  Future<void> _afterFirebaseLogin(String email) async {
-    await _secureStorage.writeSecureData(_refreshTokenKey, email);
+  Future<void> _afterFirebaseLogin({
+    required String email,
+    required String password,
+  }) async {
+    try {
+      // 1) Preparo il payload per il login Directus
+      final loginData = {
+        'email': email,
+        'password': password,
+      };
 
-    // final firebaseUid = _firebaseAuth.currentUser?.uid;
-    // if (firebaseUid == null) return;
+      // 2) Chiamo l’endpoint Directus di login
+      final Response response = await _apiService.post(
+        AuthEndpoints.login, // es. '/auth/login'
+        data: loginData,
+      );
 
-    // final userExists = await _apiService.userExists(firebaseUid: firebaseUid);
+      // 3) Se non ho 200 OK, rollback: logout Firebase + errore
+      if (response.statusCode != 200) {
+        await _firebaseAuth.signOut();
+        throw AuthServiceException(
+          'Directus login fallito: ${response.statusCode}',
+        );
+      }
 
-    // if (!userExists) {
-    //   await _apiService.createUser(
-    //     firebaseUid: firebaseUid,
-    //     email: email,
-    //   );
-    // } else {
-    //   // facoltativo: aggiorna dati utente su Directus se serve
-    //   // await _apiService.updateUser(...);
-    // }
+      // 4) Deserializzo la risposta
+      final loginResp = standardSerializers.deserializeWith(
+        LoginResponse.serializer,
+        response.data,
+      );
+      final accessToken = loginResp?.token;
+      final refreshToken = loginResp?.refreshToken;
+
+      if (accessToken == null || refreshToken == null) {
+        await _firebaseAuth.signOut();
+        throw AuthServiceException('Login Directus: token mancanti');
+      }
+
+      // 5) Imposto i token nell’ApiService e nello storage sicuro
+      setAccessToken(accessToken);
+      setRefreshToken(refreshToken);
+      await saveToken(accessToken);
+      await saveRefreshToken(refreshToken);
+    } on DioException catch (dioErr) {
+      await _firebaseAuth.signOut();
+      throw AuthServiceException(
+        'Errore rete Directus: ${dioErr.message}',
+      );
+    } catch (e) {
+      // qualsiasi altro errore
+      await _firebaseAuth.signOut();
+      throw AuthServiceException('Errore post-login: $e');
+    }
   }
 
   void setAccessToken(String authToken) {
@@ -241,12 +317,13 @@ class AuthRepository {
     if (firebaseUser == null) {
       throw AuthServiceException('Nessun utente autenticato');
     }
+    // Simulazione di un utente Directus, in un'app reale lo otterrei tramire currentUser salvato su tabella Users su directus
 
     final directusUser = DirectusUser(
       id: "123451245",
-      nome: "nome",
-      cognome: "cognome",
-      email: "email",
+      nome: "Biagio",
+      cognome: "Ferro",
+      email: "ferro.biagio@gmail.com",
       dataCreazione: DateTime(12),
       dataAggiornamento: DateTime(12),
     );
@@ -256,7 +333,7 @@ class AuthRepository {
     final authUser = AuthGeaPizzaUser(
       firebaseUser: firebaseUser,
       directusUser: directusUser,
-      role: Roles.admin,
+      role: Roles.user,
     );
 
     if (getIt.isRegistered<AuthGeaPizzaUser>()) {

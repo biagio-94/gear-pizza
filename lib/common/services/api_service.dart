@@ -1,4 +1,5 @@
 import 'dart:convert';
+
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:gearpizza/common/api/endpoints.dart';
@@ -17,15 +18,13 @@ class ApiService {
   String? _refreshToken;
 
   String? get accessToken => _accessToken;
-
   String? get refreshToken => _refreshToken;
 
   void setAccessToken(String token) => _accessToken = token;
-
   void setRefreshToken(String token) => _refreshToken = token;
 
   void _initializeDio() {
-    String baseUrl = BaseUrl.getBaseUrl(kReleaseMode);
+    final baseUrl = BaseUrl.getBaseUrl(kReleaseMode);
 
     _dio = Dio(BaseOptions(
       baseUrl: baseUrl,
@@ -35,36 +34,33 @@ class ApiService {
 
     _dio.interceptors.add(InterceptorsWrapper(
       onRequest: (options, handler) {
+        // Se ho un accessToken lo invio come Bearer
         if (_accessToken != null) {
-          options.headers['auth-token'] = _accessToken;
+          options.headers['Authorization'] = 'Bearer $_accessToken';
         }
         handler.next(options);
       },
       onError: (DioException e, handler) async {
         if (!kReleaseMode) {
-          debugPrint('*** Error ***');
-          debugPrint('uri: ${e.requestOptions.uri}');
-          debugPrint('statusCode: ${e.response?.statusCode}');
-          debugPrint('Error message: ${e.message}');
-
-          // Log completo del corpo della risposta di errore
+          debugPrint('*** Dio Error ***');
+          debugPrint('URI: ${e.requestOptions.uri}');
+          debugPrint('Status: ${e.response?.statusCode}');
+          debugPrint('Message: ${e.message}');
           if (e.response?.data != null) {
-            debugPrint('Error data: ${jsonEncode(e.response?.data)}');
-          } else {
-            debugPrint('Error data: Nessun dato nella risposta di errore.');
+            debugPrint('Payload: ${jsonEncode(e.response!.data)}');
           }
         }
 
-        // if (e.response?.statusCode == 401 &&
-        //     e.response?.requestOptions.uri.path.endsWith("/refresh") == false) {
-        //   final response = await _handleTokenRefresh(e);
-        //   return response != null
-        //       ? handler.resolve(response)
-        //       : handler.reject(e);
-        // }
+        // Se 401 e non sto già facendo il refresh, provo a rinnovare il token
+        final isRefreshCall = e.requestOptions.path.contains('/refresh');
+        if (e.response?.statusCode == 401 && !isRefreshCall) {
+          final retry = await _handleTokenRefresh(e);
+          return retry != null ? handler.resolve(retry) : handler.reject(e);
+        }
 
-        if (e.response != null && e.response?.statusCode == 400 ||
-            e.response?.statusCode == 404) {
+        // Per 400 e 404 voglio semplicemente lasciare passare la response
+        if (e.response != null &&
+            (e.response!.statusCode == 400 || e.response!.statusCode == 404)) {
           handler.resolve(e.response!);
         } else {
           handler.reject(e);
@@ -84,70 +80,62 @@ class ApiService {
     }
   }
 
-  // Future<Response?> _handleTokenRefresh(DioException e) async {
-  //   try {
-  //     if (_refreshToken == null) return null;
+  Future<Response?> _handleTokenRefresh(DioException e) async {
+    try {
+      if (_refreshToken == null) return null;
 
-  //     final request = LoginRefreshRequest((b) => b..refresh = _refreshToken);
-  //     final serializedRefreshRequest = standardSerializers.serializeWith(
-  //         LoginRefreshRequest.serializer, request);
+      // Preparo il body per il refresh
+      final req = LoginRefreshRequest((b) => b..refresh = _refreshToken);
+      final data = standardSerializers.serializeWith(
+          LoginRefreshRequest.serializer, req);
 
-  //     // Invia la richiesta con il corpo serializzato
-  //     final response = await _dio.post(
-  //       AuthEndpoints.refreshToken,
-  //       data: serializedRefreshRequest,
-  //     );
+      final response = await _dio.post(
+        AuthEndpoints.refreshToken,
+        data: data,
+      );
 
-  //     if (response.statusCode == 200) {
-  //       final refreshResponse = standardSerializers.deserializeWith(
-  //           LoginResponse.serializer, response.data);
+      if (response.statusCode == 200) {
+        final refreshResp = standardSerializers.deserializeWith(
+          LoginResponse.serializer,
+          response.data,
+        );
 
-  //       if (refreshResponse == null || refreshResponse.token == null) {
-  //         return null;
-  //       }
+        // Se valido, salvo i token
+        if (refreshResp?.token != null) {
+          setAccessToken(refreshResp!.token!);
+          if (refreshResp.refreshToken != null) {
+            setRefreshToken(refreshResp.refreshToken!);
+          }
 
-  //       setAccessToken(refreshResponse.token!);
-
-  //       if (refreshResponse.refreshToken != null) {
-  //         setRefreshToken(refreshResponse.refreshToken!);
-  //       }
-
-  //       final retryResponse = await _dio
-  //           .fetch(e.requestOptions..headers['auth-token'] = _accessToken);
-
-  //       return retryResponse;
-  //     } else {
-  //       return null;
-  //     }
-  //   } catch (_) {
-  //     return null;
-  //   }
-  // }
-
-  Future<Response> get(String path, {Map<String, dynamic>? queryParams}) async {
-    return _dio.get(path, queryParameters: queryParams);
+          // Rifaccio la chiamata originale con il nuovo bearer
+          final opts = e.requestOptions
+            ..headers['Authorization'] = 'Bearer $_accessToken';
+          return await _dio.fetch(opts);
+        }
+      }
+      return null;
+    } catch (_) {
+      return null;
+    }
   }
 
-  Future<Response> post(String path, {dynamic data}) async {
-    return _dio.post(path, data: data);
-  }
+  Future<Response> get(String path, {Map<String, dynamic>? queryParams}) =>
+      _dio.get(path, queryParameters: queryParams);
 
-  Future<Response> put(String path, {dynamic data}) async {
-    return _dio.put(path, data: jsonEncode(data));
-  }
+  Future<Response> post(String path, {dynamic data}) =>
+      _dio.post(path, data: data);
 
-  Future<Response> delete(String path,
-      {Map<String, dynamic>? queryParams}) async {
-    return _dio.delete(path, queryParameters: queryParams);
-  }
+  Future<Response> put(String path, {dynamic data}) =>
+      _dio.put(path, data: jsonEncode(data));
 
-  Future<Response> patch(String path, {dynamic data}) async {
-    return _dio.patch(path, data: data);
-  }
+  Future<Response> delete(String path, {Map<String, dynamic>? queryParams}) =>
+      _dio.delete(path, queryParameters: queryParams);
 
-  Future<Response> postMultipart(String path, FormData data) async {
-    return _dio.post(path, data: data);
-  }
+  Future<Response> patch(String path, {dynamic data}) =>
+      _dio.patch(path, data: data);
+
+  Future<Response> postMultipart(String path, FormData data) =>
+      _dio.post(path, data: data);
 
   void setTimeouts({Duration? connectTimeout, Duration? receiveTimeout}) {
     _dio.options.connectTimeout = connectTimeout ?? _dio.options.connectTimeout;

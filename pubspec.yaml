@@ -67,7 +67,7 @@ dependencies:
   cloud_functions: ^5.5.2
   pin_code_fields: ^8.0.1
   supabase_codegen: ^1.4.0
-  flutter_doc_scanner: ^0.0.16
+  google_fonts: ^6.2.1
 
 
   flutter:
@@ -145,17 +145,7 @@ flutter:
   # "family" key with the font family name, and a "fonts" key with a
   # list giving the asset and other descriptors for the font. For
   # example:
-  fonts:
-    - family: Sella
-      fonts:
-        - asset: assets/fonts/Sella-Regular.ttf
-        - asset: assets/fonts/Sella-Medium.ttf
-        - asset: assets/fonts/Sella-Bold.ttf
-    - family: SellaStencil
-      fonts:
-        - asset: assets/fonts/SellaStencil-Regular.ttf
-        - asset: assets/fonts/SellaStencil-Medium.ttf
-        - asset: assets/fonts/SellaStencil-Bold.ttf
+  
 
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/custom-fonts/#from-packages

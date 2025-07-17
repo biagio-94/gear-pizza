@@ -17,17 +17,6 @@
       "predeploy": [
         "npm --prefix \"$RESOURCE_DIR\" run lint"
       ]
-    },
-    {
-      "source": "gear_pizza_functions",
-      "codebase": "gear_pizza_functions",
-      "ignore": [
-        "node_modules",
-        ".git",
-        "firebase-debug.log",
-        "firebase-debug.*.log",
-        "*.local"
-      ]
     }
   ],
   "flutter": {

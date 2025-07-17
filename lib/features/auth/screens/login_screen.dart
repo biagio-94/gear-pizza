@@ -36,10 +36,6 @@ class _LoginScreenState extends State<LoginScreen>
 
   bool _showPasswordField = false;
 
-  bool isSupported = false;
-  bool isActive = false;
-  bool isReferente = false;
-
   @override
   void initState() {
     super.initState();
@@ -69,14 +65,32 @@ class _LoginScreenState extends State<LoginScreen>
     _animController.dispose();
     _idFocusNode.dispose();
     _numberController.dispose();
+    _prefixController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
 
+  void _onPressedLogin() {
+    FocusScope.of(context).unfocus();
+    if (_formKey.currentState?.validate() == true) {
+      context.read<AuthBloc>().add(
+            AuthLoginRequested(
+              email: _numberController.text.trim(),
+              password: _passwordController.text,
+            ),
+          );
+    } else {
+      showErrorDialog(context, 'Correggi gli errori nel form.');
+    }
+  }
+
+  void _onContinueAsGuest() {
+    context.read<AuthBloc>().add(const AuthSignAsGuest());
+  }
+
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
+    final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
       backgroundColor: colorScheme.onPrimary,
@@ -106,9 +120,8 @@ class _LoginScreenState extends State<LoginScreen>
                   },
                 ),
                 BlocListener<AuthBloc, AuthState>(
-                  listener: (context, state) async {
+                  listener: (context, state) {
                     if (state is AuthAuthenticated) {
-                      // Navigate to the next screen after successful login
                       GoRouter.of(context).pushReplacementNamed('/home');
                     }
                   },
@@ -129,83 +142,24 @@ class _LoginScreenState extends State<LoginScreen>
                   ),
                   const SizedBox(height: 24),
                   Expanded(
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 24,
-                        vertical: 12,
+                    child: ClipRRect(
+                      borderRadius: const BorderRadius.only(
+                        topLeft: Radius.circular(32),
+                        topRight: Radius.circular(32),
                       ),
-                      decoration: BoxDecoration(
+                      child: Container(
                         color: colorScheme.surface,
-                        borderRadius: const BorderRadius.only(
-                          topLeft: Radius.circular(32),
-                          topRight: Radius.circular(32),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 12,
                         ),
-                      ),
-                      child: SingleChildScrollView(
-                        child: Form(
-                          key: _formKey,
-                          child: BlocBuilder<AuthBloc, AuthState>(
-                            builder: (context, state) {
-                              return Column(
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
-                                  Padding(
-                                    padding:
-                                        const EdgeInsets.symmetric(vertical: 4),
-                                    child: Text(
-                                      'Ti diamo il benvenuto!',
-                                      style: AppTextStyles.h1(context),
-                                    ),
-                                  ),
-                                  Text(
-                                    'Iniziamo col numero di telefono',
-                                    style: AppTextStyles.body(context),
-                                  ),
-                                  PhonePrefixInput(
-                                    prefixController: _prefixController,
-                                    numberController: _numberController,
-                                  ),
-                                  const SizedBox(height: 24),
-                                  CustomButton(
-                                    label: 'Continua con SMS',
-                                    onPressed: _onPressedLogin,
-                                    rounded: true,
-                                    expanded: true,
-                                    type: ButtonType.greenFilled,
-                                  ),
-                                  const SizedBox(height: 24),
-                                  CustomButton(
-                                    label: 'Inizia ad ordinare',
-                                    onPressed: _onPressedLogin,
-                                    rounded: true,
-                                    expanded: true,
-                                    type: ButtonType.yellowFilled,
-                                  ),
-                                  const SizedBox(height: 24),
-                                  CenteredTextDivider(
-                                    text: 'oppure con',
-                                    textStyle: AppTextStyles.bodySmall(context),
-                                    lineColor: Colors.grey,
-                                    lineThickness: 1,
-                                    spacing: 12,
-                                  ),
-                                  const SizedBox(height: 16),
-                                  SocialButtonsGroup(
-                                    onGoogle: () => context
-                                        .read<AuthBloc>()
-                                        .add(const AuthGoogleSignInRequested()),
-                                    onFacebook: () => context
-                                        .read<AuthBloc>()
-                                        .add(
-                                            const AuthFacebookSignInRequested()),
-                                    onEmail: () => context
-                                        .read<AuthBloc>()
-                                        .add(const AuthregisterEvent()),
-                                  ),
-                                ],
-                              );
-                            },
-                          ),
+                        child: _LoginForm(
+                          formKey: _formKey,
+                          prefixController: _prefixController,
+                          numberController: _numberController,
+                          passwordController: _passwordController,
+                          onPressedLogin: _onPressedLogin,
+                          onSignAsGuest: _onContinueAsGuest,
                         ),
                       ),
                     ),
@@ -218,18 +172,96 @@ class _LoginScreenState extends State<LoginScreen>
       ),
     );
   }
+}
 
-  void _onPressedLogin() {
-    FocusScope.of(context).unfocus();
-    if (_formKey.currentState?.validate() == true) {
-      context.read<AuthBloc>().add(
-            AuthLoginRequested(
-              email: _numberController.text.trim(),
-              password: _passwordController.text,
-            ),
+class _LoginForm extends StatelessWidget {
+  const _LoginForm({
+    required this.formKey,
+    required this.prefixController,
+    required this.numberController,
+    required this.passwordController,
+    required this.onPressedLogin,
+    required this.onSignAsGuest,
+  });
+
+  final GlobalKey<FormState> formKey;
+  final TextEditingController prefixController;
+  final TextEditingController numberController;
+  final TextEditingController passwordController;
+  final VoidCallback onPressedLogin;
+  final VoidCallback onSignAsGuest;
+
+  @override
+  Widget build(BuildContext context) {
+    return Form(
+      key: formKey,
+      child: BlocBuilder<AuthBloc, AuthState>(
+        builder: (context, state) {
+          return ListView(
+            padding: EdgeInsets.zero,
+            physics: const BouncingScrollPhysics(),
+            shrinkWrap: true,
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                child: Column(
+                  children: [
+                    Text(
+                      'Ti diamo il benvenuto!',
+                      style: AppTextStyles.h1(context),
+                      textAlign: TextAlign.center,
+                    ),
+                    Text(
+                      'Iniziamo col numero di telefono',
+                      style: AppTextStyles.body(context),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
+              ),
+              PhonePrefixInput(
+                prefixController: prefixController,
+                numberController: numberController,
+              ),
+              const SizedBox(height: 24),
+              CustomButton(
+                label: 'Continua con SMS',
+                onPressed: onPressedLogin,
+                rounded: true,
+                expanded: true,
+                type: ButtonType.greenFilled,
+              ),
+              const SizedBox(height: 24),
+              CustomButton(
+                label: 'Inizia ad ordinare',
+                onPressed: onSignAsGuest,
+                rounded: true,
+                expanded: true,
+                type: ButtonType.yellowFilled,
+              ),
+              const SizedBox(height: 24),
+              CenteredTextDivider(
+                text: 'oppure con',
+                textStyle: AppTextStyles.bodySmall(context),
+                lineColor: Colors.grey,
+                lineThickness: 1,
+                spacing: 12,
+              ),
+              const SizedBox(height: 16),
+              SocialButtonsGroup(
+                onGoogle: () => context
+                    .read<AuthBloc>()
+                    .add(const AuthGoogleSignInRequested()),
+                onFacebook: () => context
+                    .read<AuthBloc>()
+                    .add(const AuthFacebookSignInRequested()),
+                onEmail: () =>
+                    context.read<AuthBloc>().add(const AuthregisterEvent()),
+              ),
+            ],
           );
-    } else {
-      showErrorDialog(context, 'Correggi gli errori nel form.');
-    }
+        },
+      ),
+    );
   }
 }

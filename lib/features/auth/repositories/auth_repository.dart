@@ -57,8 +57,8 @@ class AuthRepository {
     await _secureStorage.writeSecureData(_refreshTokenExpiryKey, isoExpiryDate);
   }
 
-  Future<void> saveIsAdmin(String isAdmin) async {
-    await _secureStorage.writeSecureData(_isAdminKey, isAdmin);
+  Future<void> saveIsAdmin({required bool isAdmin}) async {
+    await _secureStorage.writeSecureData(_isAdminKey, isAdmin.toString());
   }
 
   Future<String?> getSavedToken() => _secureStorage.readSecureData(_tokenKey);
@@ -349,6 +349,10 @@ class AuthRepository {
       // fare il flow guest (token service‑account) dietro le quinte.
       await _afterFirebaseLogin(email: email, password: password);
 
+      //Tutti i login tramite provider esterni (Google, Facebook, ecc.) verranno considerati come admin
+      // per questa versione iniziale, quindi passiamo true di default
+      // Solo "SignAsguest" non lo farà facendo entrare l'utente come guest
+      saveIsAdmin(isAdmin: true);
       return await getAuthUser();
     } on FirebaseAuthException catch (e) {
       // Mappo l’errore Firebase su un’eccezione interna più comprensibile
@@ -372,6 +376,10 @@ class AuthRepository {
       // Simulo avvenuta sincronizzazione con Directus leggere metodo signWithEmail e _afterFirebaseLogin per spiegazioni
       await _afterFirebaseLogin(
           email: "biagio@gearpizza.it", password: 'Q]T%;mG1)R58');
+      //Tutti i login tramite provider esterni (Google, Facebook, ecc.) verranno considerati come admin
+      // per questa versione iniziale, quindi passiamo true di default
+      // Solo "SignAsguest" non lo farà facendo entrare l'utente come guest
+      saveIsAdmin(isAdmin: true);
       return await getAuthUser();
     } on FirebaseAuthException catch (e) {
       throw mapFirebaseExceptionToCustomException(e);
@@ -386,6 +394,32 @@ class AuthRepository {
       }
       final cred = await _firebaseAuth.signInWithCredential(
         FacebookAuthProvider.credential(result.accessToken!.tokenString),
+      );
+      // Simulo avvenuta sincronizzazione con Directus leggere metodo signWithEmail e _afterFirebaseLogin per spiegazioni
+      await _afterFirebaseLogin(
+          email: "biagio@gearpizza.it", password: 'Q]T%;mG1)R58');
+      //Tutti i login tramite provider esterni (Google, Facebook, ecc.) verranno considerati come admin
+      // per questa versione iniziale, quindi passiamo true di default
+      // Solo "SignAsguest" non lo farà facendo entrare l'utente come guest
+      saveIsAdmin(isAdmin: true);
+      return await getAuthUser();
+    } on FirebaseAuthException catch (e) {
+      throw mapFirebaseExceptionToCustomException(e);
+    }
+  }
+
+  Future<AuthGeaPizzaUser> signAsGuest() async {
+    try {
+      final googleUser = await _googleSignIn.signIn();
+      if (googleUser == null) {
+        throw LoginException('Login Google annullato dall’utente');
+      }
+      final googleAuth = await googleUser.authentication;
+      final cred = await _firebaseAuth.signInWithCredential(
+        GoogleAuthProvider.credential(
+          accessToken: googleAuth.accessToken,
+          idToken: googleAuth.idToken,
+        ),
       );
       // Simulo avvenuta sincronizzazione con Directus leggere metodo signWithEmail e _afterFirebaseLogin per spiegazioni
       await _afterFirebaseLogin(

@@ -80,6 +80,21 @@ class AuthService {
     }
   }
 
+  /// Logs as a guest user.
+  Future<AuthGeaPizzaUser> signAsGuest() async {
+    try {
+      return await _repository.signAsGuest();
+    } on AuthServiceException {
+      rethrow;
+    } on ApiServiceException {
+      rethrow;
+    } on DioException {
+      rethrow;
+    } catch (e) {
+      throw GenericAuthException(e.toString());
+    }
+  }
+
   /// Logs in using Facebook OAuth.
   Future<AuthGeaPizzaUser> loginWithFacebook() async {
     try {

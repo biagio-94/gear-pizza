@@ -43,3 +43,7 @@ class AuthLoggedOut extends AuthEvent {
 class AuthregisterEvent extends AuthEvent {
   const AuthregisterEvent();
 }
+
+class AuthSignAsGuest extends AuthEvent {
+  const AuthSignAsGuest();
+}

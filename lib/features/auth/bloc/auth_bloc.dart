@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gearpizza/common/utils/bloc_exception_helper.dart';
+import 'package:gearpizza/features/auth/models/auth_gear_pizza_user.dart';
 import 'package:get_it/get_it.dart';
 import 'package:gearpizza/common/bloc/loading_bloc.dart';
 import 'package:gearpizza/common/bloc/exception_bloc.dart';
@@ -22,9 +23,11 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<AuthFacebookSignInRequested>(_onFacebookSignInRequested);
     on<AuthLoggedOut>(_onLoggedOut);
     on<AuthregisterEvent>(_onGoToRegister);
+    on<AuthSignAsGuest>(_onSignAsGuest);
   }
 
   Future<void> _onStarted(AuthStarted event, Emitter<AuthState> emit) async {
+    // Doc ExceptionHandler dentro il componente BlocExceptionHelper
     await ExecutionHelper.run(
       loadingText: 'Checking authentication status...',
       showLoading: () =>
@@ -32,10 +35,12 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       hideLoading: () => loadingBloc.hideLoading(),
       onError: (msg) => exceptionBloc.throwExceptionState(msg),
       action: () async {
-        final user = await _authService.onStart();
+        final AuthGeaPizzaUser? user = await _authService.onStart();
         if (user != null) {
-          final chosen = await _authService.isRoleChosen(user.firebaseUid!);
-          emit(AuthAuthenticated(user: user, isRoleChoosen: chosen));
+          // Passiamo true di default per isRoleChoosen in questa versione
+          // in futuro potremmo voler verificare se l'utente ha scelto un ruolo ed effettuare un onboarding
+          // dove il ristoratore può creare il suo profilo, pagina pagina prodotti, ecc.
+          emit(AuthAuthenticated(user: user, isRoleChoosen: true));
         } else {
           emit(const AuthUnauthenticated());
         }
@@ -51,10 +56,29 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       hideLoading: () => loadingBloc.hideLoading(),
       onError: (msg) => exceptionBloc.throwExceptionState(msg),
       action: () async {
-        await _authService.login(email: event.email, password: event.password);
-        final user = await _authService.getAuthuser();
-        final chosen = await _authService.isRoleChosen(user.firebaseUid!);
-        emit(AuthAuthenticated(user: user, isRoleChoosen: chosen));
+        final AuthGeaPizzaUser authuser = await _authService.login(
+            email: event.email, password: event.password);
+        // Passiamo true di default per isRoleChoosen in questa versione
+        // in futuro potremmo voler verificare se l'utente ha scelto un ruolo ed effettuare un onboarding
+        // dove il ristoratore può creare il suo profilo, pagina pagina prodotti, ecc.
+        emit(AuthAuthenticated(user: authuser, isRoleChoosen: true));
+      },
+    );
+  }
+
+  Future<void> _onSignAsGuest(
+      AuthSignAsGuest event, Emitter<AuthState> emit) async {
+    await ExecutionHelper.run(
+      loadingText: 'Logging in...',
+      showLoading: () => loadingBloc.showLoading('Logging in...'),
+      hideLoading: () => loadingBloc.hideLoading(),
+      onError: (msg) => exceptionBloc.throwExceptionState(msg),
+      action: () async {
+        final AuthGeaPizzaUser authUser = await _authService.signAsGuest();
+        // Passiamo true di default per isRoleChoosen in questa versione
+        // in futuro potremmo voler verificare se l'utente ha scelto un ruolo ed effettuare un onboarding
+        // dove il ristoratore può creare il suo profilo, pagina pagina prodotti, ecc.
+        emit(AuthAuthenticated(user: authUser, isRoleChoosen: true));
       },
     );
   }
@@ -67,10 +91,11 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       hideLoading: () => loadingBloc.hideLoading(),
       onError: (msg) => exceptionBloc.throwExceptionState(msg),
       action: () async {
-        await _authService.loginWithGoogle();
-        final user = await _authService.getAuthuser();
-        final chosen = await _authService.isRoleChosen(user.firebaseUid!);
-        emit(AuthAuthenticated(user: user, isRoleChoosen: chosen));
+        final AuthGeaPizzaUser authUser = await _authService.loginWithGoogle();
+        // Passiamo true di default per isRoleChoosen in questa versione
+        // in futuro potremmo voler verificare se l'utente ha scelto un ruolo ed effettuare un onboarding
+        // dove il ristoratore può creare il suo profilo, pagina pagina prodotti, ecc.
+        emit(AuthAuthenticated(user: authUser, isRoleChoosen: true));
       },
     );
   }
@@ -83,10 +108,12 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       hideLoading: () => loadingBloc.hideLoading(),
       onError: (msg) => exceptionBloc.throwExceptionState(msg),
       action: () async {
-        await _authService.loginWithFacebook();
-        final user = await _authService.getAuthuser();
-        final chosen = await _authService.isRoleChosen(user.firebaseUid!);
-        emit(AuthAuthenticated(user: user, isRoleChoosen: chosen));
+        final AuthGeaPizzaUser authUser =
+            await _authService.loginWithFacebook();
+        // Passiamo true di default per isRoleChoosen in questa versione
+        // in futuro potremmo voler verificare se l'utente ha scelto un ruolo ed effettuare un onboarding
+        // dove il ristoratore può creare il suo profilo, pagina pagina prodotti, ecc.
+        emit(AuthAuthenticated(user: authUser, isRoleChoosen: true));
       },
     );
   }

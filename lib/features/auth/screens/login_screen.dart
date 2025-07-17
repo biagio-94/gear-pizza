@@ -168,10 +168,18 @@ class _LoginScreenState extends State<LoginScreen>
                                   const SizedBox(height: 24),
                                   CustomButton(
                                     label: 'Continua con SMS',
-                                    width: WideButton.extraWide,
                                     onPressed: _onPressedLogin,
                                     rounded: true,
+                                    expanded: true,
                                     type: ButtonType.greenFilled,
+                                  ),
+                                  const SizedBox(height: 24),
+                                  CustomButton(
+                                    label: 'Inizia ad ordinare',
+                                    onPressed: _onPressedLogin,
+                                    rounded: true,
+                                    expanded: true,
+                                    type: ButtonType.yellowFilled,
                                   ),
                                   const SizedBox(height: 24),
                                   CenteredTextDivider(

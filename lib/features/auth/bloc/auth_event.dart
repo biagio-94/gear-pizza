@@ -25,17 +25,6 @@ class AuthRegisterRequested extends AuthEvent {
   const AuthRegisterRequested({required this.email, required this.password});
 }
 
-class AuthRegisterEmailStep extends AuthEvent {
-  final String email;
-  const AuthRegisterEmailStep({required this.email});
-}
-
-/// Password reset
-class AuthPasswordResetRequested extends AuthEvent {
-  final String email;
-  const AuthPasswordResetRequested({required this.email});
-}
-
 /// Google sign-in
 class AuthGoogleSignInRequested extends AuthEvent {
   const AuthGoogleSignInRequested();
@@ -51,12 +40,6 @@ class AuthLoggedOut extends AuthEvent {
   const AuthLoggedOut();
 }
 
-class AuthResetPassEvent extends AuthEvent {
-  const AuthResetPassEvent();
-}
-
 class AuthregisterEvent extends AuthEvent {
   const AuthregisterEvent();
 }
-
-class AuthRoleConfirmed extends AuthEvent {}

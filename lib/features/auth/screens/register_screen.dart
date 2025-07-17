@@ -138,7 +138,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 // Pulsante sempre in basso
                 CustomButton(
                   label: 'Continua',
-                  width: WideButton.extraWide,
                   disabled: !(_formKey.currentState?.validate() ?? false),
                   onPressed: _submitEmail,
                   rounded: true,

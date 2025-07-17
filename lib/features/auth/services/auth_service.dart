@@ -9,13 +9,11 @@ import 'package:gearpizza/features/auth/services/auth_service_exception.dart';
 /// A higher‑level service to handle authentication flows, including biometrics.
 class AuthService {
   final AuthRepository _repository;
-  final BiometricAuthService _biometricService;
 
   AuthService({
     required AuthRepository repository,
     required BiometricAuthService biometricService,
-  })  : _repository = repository,
-        _biometricService = biometricService;
+  }) : _repository = repository;
 
   /// All’avvio dell’app: delego tutta la logica al repository
   Future<AuthGeaPizzaUser?> onStart() async {
@@ -46,54 +44,16 @@ class AuthService {
     }
   }
 
-  /// Registers a user and returns the Firebase [User].
-  Future<User> register({
-    required String email,
-    required String password,
-  }) async {
-    try {
-      final credential = await _repository.registerWithEmail(
-        email: email,
-        password: password,
-      );
-      return credential.user!;
-    } on AuthServiceException {
-      rethrow;
-    } on ApiServiceException {
-      rethrow;
-    } on DioException {
-      rethrow;
-    } catch (e) {
-      throw GenericAuthException(e.toString());
-    }
-  }
-
   /// Logs in a user with email & password.
-  Future<User> login({
+  Future<AuthGeaPizzaUser> login({
     required String email,
     required String password,
   }) async {
     try {
-      final credential = await _repository.signInWithEmail(
+      return await _repository.signInWithEmail(
         email: email,
         password: password,
       );
-      return credential.user!;
-    } on AuthServiceException {
-      rethrow;
-    } on ApiServiceException {
-      rethrow;
-    } on DioException {
-      rethrow;
-    } catch (e) {
-      throw GenericAuthException(e.toString());
-    }
-  }
-
-  /// Sends a password reset email.
-  Future<void> resetPassword({required String email}) async {
-    try {
-      await _repository.sendPasswordResetEmail(email: email);
     } on AuthServiceException {
       rethrow;
     } on ApiServiceException {
@@ -106,10 +66,9 @@ class AuthService {
   }
 
   /// Logs in using Google OAuth.
-  Future<User> loginWithGoogle() async {
+  Future<AuthGeaPizzaUser> loginWithGoogle() async {
     try {
-      final credential = await _repository.signInWithGoogle();
-      return credential.user!;
+      return await _repository.signInWithGoogle();
     } on AuthServiceException {
       rethrow;
     } on ApiServiceException {
@@ -122,42 +81,9 @@ class AuthService {
   }
 
   /// Logs in using Facebook OAuth.
-  Future<User> loginWithFacebook() async {
+  Future<AuthGeaPizzaUser> loginWithFacebook() async {
     try {
-      final credential = await _repository.signInWithFacebook();
-      return credential.user!;
-    } on AuthServiceException {
-      rethrow;
-    } on ApiServiceException {
-      rethrow;
-    } on DioException {
-      rethrow;
-    } catch (e) {
-      throw GenericAuthException(e.toString());
-    }
-  }
-
-  /// Attempts biometric login.
-  Future<AuthGeaPizzaUser> loginWithBiometric() async {
-    try {
-      final isSupported = await _biometricService.isDeviceSupported();
-      final hasSetup = await _biometricService.checkBiometricSetup();
-      if (!isSupported || !hasSetup) {
-        throw BiometricLoginException();
-      }
-
-      final verified = await _biometricService.authenticateWithBiometrics();
-      if (!verified) {
-        throw BiometricLoginException();
-      }
-
-      final firebaseUUID = FirebaseAuth.instance.currentUser?.uid;
-      if (firebaseUUID != null) {
-        return await getAuthuser();
-      }
-
-      throw LoginException(
-          'Sessione non valida, effettua manualmente il login');
+      return await _repository.signInWithFacebook();
     } on AuthServiceException {
       rethrow;
     } on ApiServiceException {
@@ -198,11 +124,12 @@ class AuthService {
     }
   }
 
-  Future<bool> isOnboardingCompleted(String uid) async {
-    return true;
-  }
-
   Future<bool> isRoleChosen(String uid) async {
+    // Qui potremmo controllare se l'utente ha scelto un ruolo specifico
+    // ad esempio verificando un campo nel database o in secure storage.
+    // Per ora ritorno true come placeholder.
+    // In un'app reale, questa logica dovrebbe essere implementata in modo
+    // da verificare se l'utente ha completato la scelta del ruolo.
     return true;
   }
 

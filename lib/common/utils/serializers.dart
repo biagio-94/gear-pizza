@@ -5,6 +5,7 @@
 // ignore_for_file: unused_import
 
 import 'package:gearpizza/common/utils/date_serializer.dart';
+import 'package:gearpizza/features/auth/models/login_refresh_request.dart';
 import 'package:gearpizza/features/auth/models/login_response.dart';
 import 'package:one_of_serializer/any_of_serializer.dart';
 import 'package:one_of_serializer/one_of_serializer.dart';
@@ -215,6 +216,8 @@ part 'serializers.g.dart';
   Login200Response,
   Login200ResponseData,
   LoginRequest,
+  LoginRefreshRequest,
+  LoginRefreshRequest,
   LogoutRequest,
   Oauth200Response,
   OauthProvider200Response,

@@ -31,15 +31,15 @@ class CustomButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
 
-    // Colori di default
+    // Default colors
     late Color backgroundColor;
     late Color textColor;
     late Color borderColor;
 
     switch (type) {
       case ButtonType.yellowFilled:
-        backgroundColor = cs.primary; // giallo del tema
-        textColor = cs.onPrimary; // testo contrastato
+        backgroundColor = cs.primary;
+        textColor = cs.onPrimary;
         borderColor = Colors.transparent;
         break;
       case ButtonType.greenFilled:
@@ -54,13 +54,9 @@ class CustomButton extends StatelessWidget {
         break;
     }
 
-    // Raggio angoli
     final borderRadius = BorderRadius.circular(rounded ? 100 : 8);
-
-    // Padding fisso (verticale + orizzontale moderato)
     const padding = EdgeInsets.symmetric(vertical: 14, horizontal: 24);
 
-    // Stile base
     final style = ElevatedButton.styleFrom(
       backgroundColor:
           disabled ? cs.onSurface.withOpacity(0.12) : backgroundColor,
@@ -68,13 +64,13 @@ class CustomButton extends StatelessWidget {
       padding: padding,
       shape: RoundedRectangleBorder(
         side: BorderSide(
-            color: disabled ? cs.onSurface.withOpacity(0.12) : borderColor),
+          color: disabled ? cs.onSurface.withOpacity(0.12) : borderColor,
+        ),
         borderRadius: borderRadius,
       ),
       elevation: type == ButtonType.outlined ? 0 : null,
     );
 
-    // Testo
     final buttonText = uppercase ? label.toUpperCase() : label;
     final textStyle = TextStyle(
       fontSize: AppFontSizes.buttonText,
@@ -82,24 +78,26 @@ class CustomButton extends StatelessWidget {
       color: disabled ? cs.onSurface.withOpacity(0.38) : textColor,
     );
 
-    // Contenuto del bottone
-    final child = icon != null
-        ? Row(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(icon, size: 24, color: textStyle.color),
-              const SizedBox(width: 8),
-              Flexible(child: Text(buttonText, style: textStyle)),
-            ],
-          )
-        : Flexible(child: Text(buttonText, style: textStyle));
+    // Build the content without wrapping Flexible outside a Flex
+    Widget childContent;
+    if (icon != null) {
+      childContent = Row(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, size: 24, color: textStyle.color),
+          const SizedBox(width: 8),
+          Text(buttonText, style: textStyle),
+        ],
+      );
+    } else {
+      childContent = Text(buttonText, style: textStyle);
+    }
 
-    // Se expanded == true, il bottone occupa tutta la larghezza disponibile
     final button = ElevatedButton(
       onPressed: disabled ? null : onPressed,
       style: style,
-      child: child,
+      child: childContent,
     );
 
     return expanded ? SizedBox(width: double.infinity, child: button) : button;

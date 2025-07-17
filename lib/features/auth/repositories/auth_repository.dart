@@ -410,17 +410,8 @@ class AuthRepository {
 
   Future<AuthGeaPizzaUser> signAsGuest() async {
     try {
-      final googleUser = await _googleSignIn.signIn();
-      if (googleUser == null) {
-        throw LoginException('Login Google annullato dall’utente');
-      }
-      final googleAuth = await googleUser.authentication;
-      final cred = await _firebaseAuth.signInWithCredential(
-        GoogleAuthProvider.credential(
-          accessToken: googleAuth.accessToken,
-          idToken: googleAuth.idToken,
-        ),
-      );
+      // Simulo un accesso come guest con un utente di test
+      // Non asegno quindi il Ruolo Admin alla sua utenza ( VEDI getAuthUser )
       // Simulo avvenuta sincronizzazione con Directus leggere metodo signWithEmail e _afterFirebaseLogin per spiegazioni
       await _afterFirebaseLogin(
           email: "biagio@gearpizza.it", password: 'Q]T%;mG1)R58');

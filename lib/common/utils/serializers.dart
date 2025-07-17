@@ -5,8 +5,6 @@
 // ignore_for_file: unused_import
 
 import 'package:gearpizza/common/utils/date_serializer.dart';
-import 'package:gearpizza/features/auth/models/login_refresh_request.dart';
-import 'package:gearpizza/features/auth/models/login_response.dart';
 import 'package:one_of_serializer/any_of_serializer.dart';
 import 'package:one_of_serializer/one_of_serializer.dart';
 import 'package:built_collection/built_collection.dart';
@@ -216,8 +214,6 @@ part 'serializers.g.dart';
   Login200Response,
   Login200ResponseData,
   LoginRequest,
-  LoginRefreshRequest,
-  LoginRefreshRequest,
   LogoutRequest,
   Oauth200Response,
   OauthProvider200Response,
@@ -250,7 +246,6 @@ part 'serializers.g.dart';
   RefreshRequest,
   Relations,
   Roles,
-  LoginResponse,
   RolesChildrenInner,
   RolesParent,
   RolesUsersInner,
@@ -270,6 +265,7 @@ part 'serializers.g.dart';
   UpdateItemsPizzasAllergens200Response,
   UpdateItemsRestaurants200Response,
   UpdateItemsRestaurantsRequest,
+  RefreshRequest,
   UpdatePresetRequest,
   UpdatePresetRequestFiltersInner,
   UpdatePresetsRequest,

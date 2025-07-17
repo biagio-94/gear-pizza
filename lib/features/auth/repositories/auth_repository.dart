@@ -3,9 +3,9 @@ import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
+import 'package:gearpizza/common/models/refresh_request.dart';
 import 'package:gearpizza/common/services/api_service_exception.dart';
 import 'package:gearpizza/common/utils/exception_handler.dart';
-import 'package:gearpizza/features/auth/models/login_refresh_request.dart';
 import 'package:gearpizza/features/auth/services/user_role_service.dart';
 import 'package:get_it/get_it.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -119,9 +119,9 @@ class AuthRepository {
       }
 
       final refreshRequest =
-          LoginRefreshRequest((b) => b..refresh = savedRefresh);
+          RefreshRequest((b) => b..refreshToken = savedRefresh);
       final serializedRequest = standardSerializers.serializeWith(
-        LoginRefreshRequest.serializer,
+        RefreshRequest.serializer,
         refreshRequest,
       );
 
@@ -159,9 +159,6 @@ class AuthRepository {
       await saveRefreshExpiry(newExpiry.toIso8601String());
 
       return await getAuthUser();
-    } on DioException catch (e) {
-      // mappo l'errore Dio in un'eccezione custom
-      throw mapDioExceptionToCustomException(e);
     } on AuthServiceException {
       rethrow;
     } catch (e) {

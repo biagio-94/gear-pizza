@@ -3,10 +3,10 @@ import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:gearpizza/common/api/endpoints.dart';
+import 'package:gearpizza/common/models/login200_response.dart';
+import 'package:gearpizza/common/models/refresh_request.dart';
 import 'package:gearpizza/common/utils/serializers.dart';
 import 'package:gearpizza/features/auth/api/auth_endpoints.dart';
-import 'package:gearpizza/features/auth/models/login_refresh_request.dart';
-import 'package:gearpizza/features/auth/models/login_response.dart';
 
 class ApiService {
   ApiService() {
@@ -85,9 +85,9 @@ class ApiService {
       if (_refreshToken == null) return null;
 
       // Preparo il body per il refresh
-      final req = LoginRefreshRequest((b) => b..refresh = _refreshToken);
-      final data = standardSerializers.serializeWith(
-          LoginRefreshRequest.serializer, req);
+      final req = RefreshRequest((b) => b..refreshToken = _refreshToken);
+      final data =
+          standardSerializers.serializeWith(RefreshRequest.serializer, req);
 
       final response = await _dio.post(
         AuthEndpoints.refreshToken,
@@ -96,22 +96,32 @@ class ApiService {
 
       if (response.statusCode == 200) {
         final refreshResp = standardSerializers.deserializeWith(
-          LoginResponse.serializer,
+          Login200Response.serializer,
           response.data,
         );
 
-        // Se valido, salvo i token
-        if (refreshResp?.token != null) {
-          setAccessToken(refreshResp!.token!);
-          if (refreshResp.refreshToken != null) {
-            setRefreshToken(refreshResp.refreshToken!);
-          }
+        final tokens = refreshResp?.data;
+        final accessToken = tokens?.accessToken;
+        final refreshToken = tokens?.refreshToken;
 
-          // Rifaccio la chiamata originale con il nuovo bearer
-          final opts = e.requestOptions
-            ..headers['Authorization'] = 'Bearer $_accessToken';
-          return await _dio.fetch(opts);
+        // Se l'access token è assente, non posso proseguire
+        if (accessToken == null || accessToken.isEmpty) {
+          throw Exception(
+              'Access token non presente o vuoto nella risposta di refresh.');
         }
+
+        // Salvo i token in modo sicuro
+        setAccessToken(accessToken);
+
+        if (refreshToken?.isNotEmpty == true) {
+          setRefreshToken(refreshToken!);
+        }
+
+        // Ricrea la richiesta originale con il nuovo token
+        final updatedRequest = e.requestOptions
+          ..headers['Authorization'] = 'Bearer $accessToken';
+
+        return await _dio.fetch(updatedRequest);
       }
       return null;
     } catch (_) {

@@ -116,13 +116,6 @@ class _LoginScreenState extends State<LoginScreen>
                     }
                   },
                 ),
-                BlocListener<AuthBloc, AuthState>(
-                  listener: (context, state) {
-                    if (state is AuthAuthenticated) {
-                      GoRouter.of(context).pushReplacementNamed('/home');
-                    }
-                  },
-                ),
               ],
               child: Column(
                 children: [

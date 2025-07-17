@@ -2,6 +2,7 @@ import 'package:cloud_functions/cloud_functions.dart'
     show FirebaseFunctionsException, FirebaseFunctions;
 import 'package:dio/dio.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
 import 'package:gearpizza/common/services/api_service_exception.dart';
 import 'package:gearpizza/common/services/biometric_auth_service.dart';
 import 'package:gearpizza/features/auth/models/auth_gear_pizza_user.dart';
@@ -159,32 +160,46 @@ class AuthService {
     }
   }
 
-  /// Invia OTP al numero di telefono via Twilio Verify
   Future<void> sendOtp({required String phone}) async {
+    debugPrint('>> sendOtp: phone = $phone');
+    // 1) Normalize E.164: rimuovi spazi, trattini, parentesi e assicurati del '+'
+    var normalized = phone.trim().replaceAll(RegExp(r'[\s\-\(\)]'), '');
+
+    debugPrint('>> sendOtp: normalized phone = $phone');
+
+    if (!normalized.startsWith('+')) {
+      normalized = '+$normalized';
+    }
+
+    // Debug log (rimuovi in produzione)
+    debugPrint('>> sendOtp: normalized phone = $normalized');
+
     try {
       final callable = _functions.httpsCallable('sendOtp');
-      final response = await callable.call(<String, dynamic>{
-        'phone': phone,
-      });
+      final payload = {'phone': phone};
+
+      final response = await callable.call(payload);
 
       final data = response.data as Map<String, dynamic>;
       if (data['success'] == true) {
-        // OTP inviato correttamente
-        return;
+        return; // OTP inviato
       } else {
         throw Exception('Invio OTP fallito');
       }
-    } on FirebaseFunctionsException catch (_) {
-      throw Exception(
-          'Qualcosa è andato storto durante la verifica OTP, riprova più tardi.');
-    } on AuthServiceException {
-      rethrow;
-    } on ApiServiceException {
-      rethrow;
-    } on DioException {
-      rethrow;
+    } on FirebaseFunctionsException catch (e) {
+      // Se Twilio risponde un errore custom, lo trovi in e.message
+      debugPrint(
+          '⚠️ sendOtp FirebaseFunctionsException: ${e.code}, ${e.message}');
+      throw Exception(e.message?.contains('Numero di telefono mancante') == true
+          ? 'Numero di telefono non valido.'
+          : 'Errore lato server, riprova più tardi.');
+    } on DioException catch (e) {
+      // Gestione errori di rete
+      debugPrint('⚠️ sendOtp DioException: ${e.message}');
+      throw Exception('Connessione fallita, controlla la tua rete.');
     } catch (e) {
-      throw GenericAuthException(e.toString());
+      debugPrint('⚠️ sendOtp GenericException: $e');
+      throw GenericAuthException('Qualcosa è andato storto: ${e.toString()}');
     }
   }
 
@@ -195,16 +210,22 @@ class AuthService {
   }) async {
     try {
       final callable = _functions.httpsCallable('verifyOtp');
-      final response = await callable.call(<String, dynamic>{
+      final response = await callable.call({
         'phone': phone,
         'otp': otp,
       });
 
       final data = response.data as Map<String, dynamic>;
-      if (data['success'] == true && data['token'] != null) {
-        // ritorna il custom token da utilizzare per il signInWithCustomToken
+      if (data['success'] == true) {
+        // Se ti serve il token:
+        final token = data['token'] as String?;
+        if (token != null) {
+          // login Firebase
+          await FirebaseAuth.instance.signInWithCustomToken(token);
+        }
         return true;
       } else {
+        // OTP non valido o errore di sistema
         return false;
       }
     } on FirebaseFunctionsException catch (_) {

@@ -61,7 +61,26 @@ class AuthRegisterState extends AuthState {
 class AuthOtpSentState extends AuthState {
   final String phoneNumber;
   final String? errorMessage;
-  const AuthOtpSentState({required this.phoneNumber, this.errorMessage});
+
+  const AuthOtpSentState({
+    required this.phoneNumber,
+    this.errorMessage,
+  });
+
+  AuthOtpSentState copyWith({
+    String? phoneNumber,
+    String? errorMessage,
+    bool resetError = false,
+  }) {
+    return AuthOtpSentState(
+      phoneNumber: phoneNumber ?? this.phoneNumber,
+      errorMessage: resetError ? null : errorMessage ?? this.errorMessage,
+    );
+  }
+
   @override
-  List<Object?> get props => [phoneNumber];
+  List<Object?> get props => [
+        phoneNumber,
+        errorMessage,
+      ];
 }

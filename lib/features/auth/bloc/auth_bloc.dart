@@ -26,6 +26,12 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<AuthSignAsGuest>(_onSignAsGuest);
     on<AuthSendOtp>(_onSendOtp);
     on<AuthVerifyOtp>(_onVerifyOtp);
+    on<AuthClearOtpError>((event, emit) {
+      final current = state;
+      if (current is AuthOtpSentState && current.errorMessage != null) {
+        emit(current.copyWith(errorMessage: null));
+      }
+    });
   }
 
   Future<void> _onStarted(AuthStarted event, Emitter<AuthState> emit) async {
@@ -151,7 +157,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   }
 
   Future<void> _onVerifyOtp(
-      AuthVerifyOtp event, Emitter<AuthState> emit) async {
+    AuthVerifyOtp event,
+    Emitter<AuthState> emit,
+  ) async {
     await ExecutionHelper.run(
       loadingText: 'Verifying OTP...',
       showLoading: () => loadingBloc.showLoading('Verifying OTP...'),
@@ -162,16 +170,23 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           phone: event.phoneNumber,
           otp: event.otpCode,
         );
+
         if (isVerified) {
           final AuthGeaPizzaUser authUser = await _authService.signWithOTP();
-          // Passiamo true di default per isRoleChoosen in questa versione
-          // in futuro potremmo voler verificare se l'utente ha scelto un ruolo ed effettuare un onboarding
-          // dove il ristoratore può creare il suo profilo, pagina pagina prodotti, ecc.
           emit(AuthAuthenticated(user: authUser, isRoleChoosen: true));
         } else {
-          emit(AuthOtpSentState(
+          // Se già sei in AuthOtpSentState (hai inviato l'OTP), fai copyWith:
+          final current = state;
+          if (current is AuthOtpSentState) {
+            emit(current.copyWith(
+              errorMessage: 'OTP verification failed. Please try again.',
+            ));
+          } else {
+            emit(AuthOtpSentState(
               phoneNumber: event.phoneNumber,
-              errorMessage: 'OTP verification failed. Please try again.'));
+              errorMessage: 'OTP verification failed. Please try again.',
+            ));
+          }
         }
       },
     );

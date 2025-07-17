@@ -76,13 +76,17 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final authState = context.watch<AuthBloc>().state;
-    // Se non siamo nello stato AuthOtpSentState, torniamo una schermata vuota o di caricamento
     if (authState is! AuthOtpSentState) {
       return Scaffold(
         body: Center(child: CircularProgressIndicator()),
       );
     }
     final phoneNumber = authState.phoneNumber;
+    final primary = theme.primaryColor;
+    final accent = theme.colorScheme.secondary;
+    final background = theme.colorScheme.surface;
+    final border = theme.dividerColor;
+    final errorCol = theme.colorScheme.error;
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -145,7 +149,7 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
                   length: 4,
                   autoFocus: true,
                   animationType: AnimationType.fade,
-                  cursorColor: theme.primaryColor,
+                  cursorColor: accent,
                   keyboardType: TextInputType.number,
                   errorAnimationController: _errorController,
                   pinTheme: PinTheme(
@@ -153,23 +157,38 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
                     borderRadius: BorderRadius.circular(8),
                     fieldHeight: 60,
                     fieldWidth: 60,
-                    activeFillColor: Colors.white,
-                    selectedColor: theme.primaryColor,
-                    activeColor: Colors.grey,
-                    inactiveColor: Colors.grey[300]!,
+                    inactiveColor: border,
+                    selectedColor: accent,
+                    activeColor: primary,
+                    inactiveFillColor: background,
+                    selectedFillColor: background,
+                    activeFillColor: background,
+                    errorBorderColor: errorCol,
                   ),
                   animationDuration: const Duration(milliseconds: 300),
                   enableActiveFill: true,
                   onChanged: (value) {
-                    setState(() {
-                      _currentOtp = value;
-                    });
+                    // 1) Aggiorni il valore locale
+                    setState(() => _currentOtp = value);
+                    // 2) Se c’era un messaggio di errore, fai partire l’evento per rimuoverlo
+                    if (value.isNotEmpty) {
+                      context.read<AuthBloc>().add(AuthClearOtpError());
+                    }
                   },
                   onCompleted: (_) {
                     _submitOtp(phoneNumber);
                   },
                 ),
                 const SizedBox(height: 24),
+                // 2) Messaggio di errore (rosso) se presente
+                if (authState.errorMessage != null)
+                  Text(
+                    authState.errorMessage!,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: theme.colorScheme.error,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                 TextButton(
                   onPressed: _isResendEnabled
                       ? () => _onResendPressed(phoneNumber)

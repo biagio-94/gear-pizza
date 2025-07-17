@@ -58,3 +58,5 @@ class AuthVerifyOtp extends AuthEvent {
   final String otpCode;
   const AuthVerifyOtp({required this.phoneNumber, required this.otpCode});
 }
+
+class AuthClearOtpError extends AuthEvent {}

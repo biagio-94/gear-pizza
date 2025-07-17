@@ -455,7 +455,7 @@ class AuthRepository {
   /// che può essere usato in tutta l'app per accedere ai dati utente
   /// potendo variare UI e permessi in base al ruolo.
   Future<AuthGeaPizzaUser> getAuthUser() async {
-    final firebaseUser = _firebaseAuth.currentUser;
+    final firebaseUser = FirebaseAuth.instance.currentUser;
     if (firebaseUser == null) {
       throw NotFoundException('Nessun utente autenticato');
     }
@@ -466,7 +466,7 @@ class AuthRepository {
       id: 'id-demo',
       nome: 'Demo',
       cognome: 'User',
-      email: firebaseUser.email!,
+      email: firebaseUser.email ?? "",
       dataCreazione: DateTime.now(),
       dataAggiornamento: DateTime.now(),
     );

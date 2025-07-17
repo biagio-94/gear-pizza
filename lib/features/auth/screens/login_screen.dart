@@ -14,7 +14,7 @@ import 'package:gearpizza/common/utils/show_error_dialog.dart';
 import 'package:gearpizza/features/auth/bloc/auth_bloc.dart';
 import 'package:gearpizza/features/auth/bloc/auth_event.dart';
 import 'package:gearpizza/features/auth/bloc/auth_state.dart';
-import 'package:go_router/go_router.dart';
+import 'package:lottie/lottie.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
@@ -77,7 +77,18 @@ class _LoginScreenState extends State<LoginScreen>
   void _onPressedLogin() {
     final prefix = normalizePrefix(_prefixController.text);
     final number = _numberController.text.trim();
+
+    // Esegui la validazione: ad esempio, controlla che non siano vuoti
+    if (prefix.isEmpty || number.isEmpty) {
+      // Mostra un messaggio di errore (puoi usare uno Snackbar, dialog, ecc.)
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Inserisci un numero di telefono valido')),
+      );
+      return; // Interrompe l'esecuzione
+    }
+
     final phoneNumber = '$prefix$number'.replaceAll(RegExp(r'[\s\-\(\)]'), '');
+
     context.read<AuthBloc>().add(AuthSendOtp(phoneNumber: phoneNumber));
   }
 
@@ -101,7 +112,7 @@ class _LoginScreenState extends State<LoginScreen>
                     if (state.status == LoadingStatus.loading) {
                       LoadingScreen().show(
                         context: context,
-                        text: state.loadingText ?? 'Attendi un attimo...',
+                        text: state.loadingText ?? 'Attendi...',
                         showLogoAnimation: false,
                       );
                     } else {
@@ -117,43 +128,51 @@ class _LoginScreenState extends State<LoginScreen>
                   },
                 ),
               ],
-              child: Column(
-                children: [
-                  const SizedBox(height: 40),
-                  FadeTransition(
-                    opacity: _logoAnimation,
-                    child: Center(
-                      child: Image.asset(
-                        'assets/icon/gearPizzaIcon.png',
-                        width: 120,
-                        height: 120,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  Expanded(
-                    child: ClipRRect(
-                      borderRadius: const BorderRadius.only(
-                        topLeft: Radius.circular(32),
-                        topRight: Radius.circular(32),
-                      ),
-                      child: Container(
-                        color: colorScheme.surface,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 24,
-                          vertical: 12,
+              child: BlocBuilder<AuthBloc, AuthState>(
+                builder: (context, state) {
+                  if (state is AuthStartLoading) {
+                    return const _FullScreenLoader();
+                  } else {
+                    return Column(
+                      children: [
+                        const SizedBox(height: 40),
+                        FadeTransition(
+                          opacity: _logoAnimation,
+                          child: Center(
+                            child: Image.asset(
+                              'assets/icon/gearPizzaIcon.png',
+                              width: 120,
+                              height: 120,
+                            ),
+                          ),
                         ),
-                        child: _LoginForm(
-                          formKey: _formKey,
-                          prefixController: _prefixController,
-                          numberController: _numberController,
-                          onPressedLogin: _onPressedLogin,
-                          onSignAsGuest: _onContinueAsGuest,
+                        const SizedBox(height: 24),
+                        Expanded(
+                          child: ClipRRect(
+                            borderRadius: const BorderRadius.only(
+                              topLeft: Radius.circular(32),
+                              topRight: Radius.circular(32),
+                            ),
+                            child: Container(
+                              color: colorScheme.surface,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 24,
+                                vertical: 12,
+                              ),
+                              child: _LoginForm(
+                                formKey: _formKey,
+                                prefixController: _prefixController,
+                                numberController: _numberController,
+                                onPressedLogin: _onPressedLogin,
+                                onSignAsGuest: _onContinueAsGuest,
+                              ),
+                            ),
+                          ),
                         ),
-                      ),
-                    ),
-                  ),
-                ],
+                      ],
+                    );
+                  }
+                },
               ),
             ),
           ),
@@ -248,6 +267,28 @@ class _LoginForm extends StatelessWidget {
             ],
           );
         },
+      ),
+    );
+  }
+}
+
+class _FullScreenLoader extends StatelessWidget {
+  const _FullScreenLoader();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black45,
+      body: Center(
+        child: SizedBox(
+          width: 250,
+          height: 250,
+          child: Lottie.asset(
+            'assets/animations/scooterAnimation.json',
+            fit: BoxFit.contain,
+            repeat: true,
+          ),
+        ),
       ),
     );
   }

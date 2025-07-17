@@ -39,6 +39,7 @@ class LoadingScreen {
     final newStream = StreamController<String>();
     final state = Overlay.of(context);
     final size = MediaQuery.of(context).size;
+    final colorScheme = Theme.of(context).colorScheme;
 
     final overlay = showLogoAnimation
         ? OverlayEntry(
@@ -54,7 +55,7 @@ class LoadingScreen {
                         children: [
                           const SizedBox(height: 10),
                           Lottie.asset(
-                            'assets/animations/loadingAnimation.json',
+                            'assets/animations/scooterAnimation.json',
                             width: size.width * 0.8,
                           ),
                           const SizedBox(height: 20),
@@ -68,7 +69,7 @@ class LoadingScreen {
                                   snapshot.data ?? text,
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
-                                    color: Theme.of(context).primaryColor,
+                                    color: colorScheme.onPrimary,
                                     fontSize: 16,
                                     fontWeight: FontWeight.bold,
                                   ),
@@ -109,7 +110,7 @@ class LoadingScreen {
                           children: [
                             const SizedBox(height: 10),
                             CircularProgressIndicator(
-                              color: Theme.of(context).primaryColor,
+                              color: colorScheme.onPrimary,
                             ),
                             const SizedBox(height: 20),
                             StreamBuilder<String>(
@@ -122,7 +123,7 @@ class LoadingScreen {
                                     snapshot.data ?? text,
                                     textAlign: TextAlign.center,
                                     style: TextStyle(
-                                      color: Theme.of(context).primaryColor,
+                                      color: colorScheme.onPrimary,
                                       fontSize: 16,
                                       fontWeight: FontWeight.w400,
                                     ),

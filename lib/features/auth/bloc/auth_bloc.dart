@@ -37,6 +37,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   Future<void> _onStarted(AuthStarted event, Emitter<AuthState> emit) async {
     // Doc ExceptionHandler dentro il componente BlocExceptionHelper
     await ExecutionHelper.run(
+      showLoading: () => loadingBloc.showLoading('Stiamo arrivando...'),
+      hideLoading: () => loadingBloc.hideLoading(),
       onError: (msg) => exceptionBloc.throwExceptionState(msg),
       action: () async {
         emit(const AuthStartLoading());

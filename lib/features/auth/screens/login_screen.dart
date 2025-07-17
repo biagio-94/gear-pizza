@@ -14,7 +14,6 @@ import 'package:gearpizza/common/utils/show_error_dialog.dart';
 import 'package:gearpizza/features/auth/bloc/auth_bloc.dart';
 import 'package:gearpizza/features/auth/bloc/auth_event.dart';
 import 'package:gearpizza/features/auth/bloc/auth_state.dart';
-import 'package:lottie/lottie.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
@@ -106,75 +105,66 @@ class _LoginScreenState extends State<LoginScreen>
         children: [
           SafeArea(
             child: MultiBlocListener(
-              listeners: [
-                BlocListener<LoadingBloc, LoadingState>(
-                  listener: (_, state) {
-                    if (state.status == LoadingStatus.loading) {
-                      LoadingScreen().show(
-                        context: context,
-                        text: state.loadingText ?? 'Attendi...',
-                        showLogoAnimation: false,
-                      );
-                    } else {
-                      LoadingScreen().hide();
-                    }
-                  },
-                ),
-                BlocListener<ExceptionBloc, ExceptionState>(
-                  listener: (_, state) {
-                    if (state.message.isNotEmpty) {
-                      showErrorDialog(context, state.message);
-                    }
-                  },
-                ),
-              ],
-              child: BlocBuilder<AuthBloc, AuthState>(
-                builder: (context, state) {
-                  if (state is AuthStartLoading) {
-                    return const _FullScreenLoader();
-                  } else {
-                    return Column(
-                      children: [
-                        const SizedBox(height: 40),
-                        FadeTransition(
-                          opacity: _logoAnimation,
-                          child: Center(
-                            child: Image.asset(
-                              'assets/icon/gearPizzaIcon.png',
-                              width: 120,
-                              height: 120,
-                            ),
+                listeners: [
+                  BlocListener<LoadingBloc, LoadingState>(
+                    listener: (_, state) {
+                      if (state.status == LoadingStatus.loading) {
+                        LoadingScreen().show(
+                          context: context,
+                          text: state.loadingText ?? 'Attendi...',
+                          showLogoAnimation: true,
+                        );
+                      } else {
+                        LoadingScreen().hide();
+                      }
+                    },
+                  ),
+                  BlocListener<ExceptionBloc, ExceptionState>(
+                    listener: (_, state) {
+                      if (state.message.isNotEmpty) {
+                        showErrorDialog(context, state.message);
+                      }
+                    },
+                  ),
+                ],
+                child: Column(
+                  children: [
+                    const SizedBox(height: 40),
+                    FadeTransition(
+                      opacity: _logoAnimation,
+                      child: Center(
+                        child: Image.asset(
+                          'assets/icon/gearPizzaIcon.png',
+                          width: 120,
+                          height: 120,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    Expanded(
+                      child: ClipRRect(
+                        borderRadius: const BorderRadius.only(
+                          topLeft: Radius.circular(32),
+                          topRight: Radius.circular(32),
+                        ),
+                        child: Container(
+                          color: colorScheme.surface,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 24,
+                            vertical: 12,
+                          ),
+                          child: _LoginForm(
+                            formKey: _formKey,
+                            prefixController: _prefixController,
+                            numberController: _numberController,
+                            onPressedLogin: _onPressedLogin,
+                            onSignAsGuest: _onContinueAsGuest,
                           ),
                         ),
-                        const SizedBox(height: 24),
-                        Expanded(
-                          child: ClipRRect(
-                            borderRadius: const BorderRadius.only(
-                              topLeft: Radius.circular(32),
-                              topRight: Radius.circular(32),
-                            ),
-                            child: Container(
-                              color: colorScheme.surface,
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 24,
-                                vertical: 12,
-                              ),
-                              child: _LoginForm(
-                                formKey: _formKey,
-                                prefixController: _prefixController,
-                                numberController: _numberController,
-                                onPressedLogin: _onPressedLogin,
-                                onSignAsGuest: _onContinueAsGuest,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    );
-                  }
-                },
-              ),
-            ),
+                      ),
+                    ),
+                  ],
+                )),
           ),
         ],
       ),
@@ -267,28 +257,6 @@ class _LoginForm extends StatelessWidget {
             ],
           );
         },
-      ),
-    );
-  }
-}
-
-class _FullScreenLoader extends StatelessWidget {
-  const _FullScreenLoader();
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.black45,
-      body: Center(
-        child: SizedBox(
-          width: 250,
-          height: 250,
-          child: Lottie.asset(
-            'assets/animations/scooterAnimation.json',
-            fit: BoxFit.contain,
-            repeat: true,
-          ),
-        ),
       ),
     );
   }

@@ -1,11 +1,12 @@
 import 'package:dio/dio.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:gearpizza/common/services/api_service_exception.dart';
 import 'package:gearpizza/common/services/biometric_auth_service.dart';
 import 'package:gearpizza/features/auth/models/auth_gear_pizza_user.dart';
 import 'package:gearpizza/features/auth/repositories/auth_repository.dart';
 import 'package:gearpizza/features/auth/services/auth_service_exception.dart';
 
-/// A higher-level service to handle authentication flows, including biometrics.
+/// A higher‑level service to handle authentication flows, including biometrics.
 class AuthService {
   final AuthRepository _repository;
   final BiometricAuthService _biometricService;
@@ -20,20 +21,28 @@ class AuthService {
   Future<AuthGeaPizzaUser?> onStart() async {
     try {
       return await _repository.onStart();
-    } on LoginException {
-      rethrow; // sessione scaduta
+    } on AuthServiceException {
+      rethrow;
+    } on ApiServiceException {
+      rethrow;
+    } on DioException {
+      rethrow;
     } catch (e) {
-      throw AuthServiceException(e.toString());
+      throw GenericAuthException(e.toString());
     }
   }
 
   Future<bool> emailAlreadyExists({required String email}) async {
     try {
       return await _repository.emailAlreadyExists(email: email);
-    } on LoginException {
+    } on AuthServiceException {
+      rethrow;
+    } on ApiServiceException {
+      rethrow;
+    } on DioException {
       rethrow;
     } catch (e) {
-      throw AuthServiceException(e.toString());
+      throw GenericAuthException(e.toString());
     }
   }
 
@@ -50,8 +59,12 @@ class AuthService {
       return credential.user!;
     } on AuthServiceException {
       rethrow;
+    } on ApiServiceException {
+      rethrow;
+    } on DioException {
+      rethrow;
     } catch (e) {
-      throw AuthServiceException(e.toString());
+      throw GenericAuthException(e.toString());
     }
   }
 
@@ -68,8 +81,12 @@ class AuthService {
       return credential.user!;
     } on AuthServiceException {
       rethrow;
+    } on ApiServiceException {
+      rethrow;
+    } on DioException {
+      rethrow;
     } catch (e) {
-      throw AuthServiceException(e.toString());
+      throw GenericAuthException(e.toString());
     }
   }
 
@@ -79,8 +96,12 @@ class AuthService {
       await _repository.sendPasswordResetEmail(email: email);
     } on AuthServiceException {
       rethrow;
+    } on ApiServiceException {
+      rethrow;
+    } on DioException {
+      rethrow;
     } catch (e) {
-      throw AuthServiceException(e.toString());
+      throw GenericAuthException(e.toString());
     }
   }
 
@@ -91,8 +112,12 @@ class AuthService {
       return credential.user!;
     } on AuthServiceException {
       rethrow;
+    } on ApiServiceException {
+      rethrow;
+    } on DioException {
+      rethrow;
     } catch (e) {
-      throw AuthServiceException(e.toString());
+      throw GenericAuthException(e.toString());
     }
   }
 
@@ -103,43 +128,44 @@ class AuthService {
       return credential.user!;
     } on AuthServiceException {
       rethrow;
+    } on ApiServiceException {
+      rethrow;
+    } on DioException {
+      rethrow;
     } catch (e) {
-      throw AuthServiceException(e.toString());
+      throw GenericAuthException(e.toString());
     }
   }
 
-  /// Attempts biometric login. If biometrics succeed, returns the
-  /// current Firebase user session without re-entering credentials.
+  /// Attempts biometric login.
   Future<AuthGeaPizzaUser> loginWithBiometric() async {
     try {
-      // 1. Ensure device supports and is configured
       final isSupported = await _biometricService.isDeviceSupported();
       final hasSetup = await _biometricService.checkBiometricSetup();
       if (!isSupported || !hasSetup) {
-        throw AuthServiceException('Biometric authentication not available');
+        throw BiometricLoginException();
       }
 
-      // 2. Prompt biometric authentication
       final verified = await _biometricService.authenticateWithBiometrics();
       if (!verified) {
-        throw AuthServiceException('Biometric authentication failed');
+        throw BiometricLoginException();
       }
 
-      // 3. Retrieve existing Firebase user session
       final firebaseUUID = FirebaseAuth.instance.currentUser?.uid;
-
       if (firebaseUUID != null) {
-        // 3. Retrieve existing Firebase user session
-        final AuthGeaPizzaUser user = await getAuthuser();
-        return user;
+        return await getAuthuser();
       }
 
-      // 4. Session expired or no active session
-      throw AuthServiceException('Session expired, please login manually');
+      throw LoginException(
+          'Sessione non valida, effettua manualmente il login');
     } on AuthServiceException {
       rethrow;
+    } on ApiServiceException {
+      rethrow;
+    } on DioException {
+      rethrow;
     } catch (e) {
-      throw AuthServiceException(e.toString());
+      throw GenericAuthException(e.toString());
     }
   }
 
@@ -148,8 +174,12 @@ class AuthService {
       return await _repository.getAuthUser();
     } on AuthServiceException {
       rethrow;
+    } on ApiServiceException {
+      rethrow;
+    } on DioException {
+      rethrow;
     } catch (e) {
-      throw AuthServiceException(e.toString());
+      throw GenericAuthException(e.toString());
     }
   }
 
@@ -157,12 +187,14 @@ class AuthService {
   Future<void> logout() async {
     try {
       await _repository.signOut();
-      // Clear any biometric token if needed
-      await _repository.clearSavedToken();
     } on AuthServiceException {
       rethrow;
+    } on ApiServiceException {
+      rethrow;
+    } on DioException {
+      rethrow;
     } catch (e) {
-      throw AuthServiceException(e.toString());
+      throw GenericAuthException(e.toString());
     }
   }
 
@@ -171,8 +203,6 @@ class AuthService {
   }
 
   Future<bool> isRoleChosen(String uid) async {
-    // In futuro fetchare da tabella users se presente un campo ruolo
-    // o simile che indica se l'utente ha scelto un ruolo
     return true;
   }
 

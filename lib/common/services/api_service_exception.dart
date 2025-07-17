@@ -20,8 +20,10 @@ class TimeoutException extends ApiServiceException {
 }
 
 class UnauthorizedException extends ApiServiceException {
-  UnauthorizedException(
-      [super.message = 'La sessione è scaduta. Riprova ad accedere.']);
+  UnauthorizedException([
+    super.message =
+        'Sessione scaduta o credenziali non valide. Effettua nuovamente il login.',
+  ]);
 }
 
 class ServerException extends ApiServiceException {

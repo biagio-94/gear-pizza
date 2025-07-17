@@ -1,5 +1,7 @@
 import 'package:dio/dio.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:gearpizza/common/services/api_service_exception.dart';
+import 'package:gearpizza/features/auth/services/auth_service_exception.dart';
 
 ApiServiceException mapDioExceptionToCustomException(DioException e) {
   ApiServiceException exception;
@@ -30,4 +32,32 @@ ApiServiceException mapDioExceptionToCustomException(DioException e) {
       exception = GenericException();
   }
   return exception;
+}
+
+/// Mappa le eccezioni di FirebaseAuth in eccezioni di tipo AuthServiceException
+AuthServiceException mapFirebaseExceptionToCustomException(
+  FirebaseAuthException e,
+) {
+  switch (e.code) {
+    case 'invalid-email':
+      return BadRequestException();
+    case 'user-disabled':
+      return GenericAuthException();
+    case 'user-not-found':
+      return NotFoundException();
+    case 'wrong-password':
+      return BadRequestException();
+    case 'too-many-requests':
+      return LoginException(
+        'Troppe richieste. Riprova più tardi.',
+      );
+    case 'operation-not-allowed':
+      return LoginException(
+        'Metodo di accesso non abilitato.',
+      );
+    case 'network-request-failed':
+      return GenericAuthException();
+    default:
+      return GenericAuthException();
+  }
 }

@@ -60,15 +60,6 @@ class CustomBottomBar extends StatelessWidget {
                 ),
                 label: 'Profile',
               ),
-              BottomNavigationBarItem(
-                icon: Icon(
-                  Icons.more_horiz,
-                  color: selectedIndex == 4
-                      ? colorScheme.secondary
-                      : colorScheme.onSurfaceVariant,
-                ),
-                label: 'Admin',
-              ),
             ],
           ),
         ),

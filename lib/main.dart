@@ -4,6 +4,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:gearpizza/features/dashboard/bloc/dashboard_bloc.dart';
+import 'package:gearpizza/features/dashboard/services/dashboard_service.dart';
 import 'package:gearpizza/l10n/app_localizations.dart';
 import 'package:get_it/get_it.dart';
 import 'package:gearpizza/common/bloc/exception_bloc.dart';
@@ -69,6 +71,10 @@ class MyApp extends StatelessWidget {
         BlocProvider(
           create: (context) => GetIt.instance<NotificationBloc>(),
         ),
+        BlocProvider(
+            create: (context) => DashboardBloc(
+                  GetIt.I<DashboardService>(),
+                )),
       ],
       child: Builder(
         builder: (context) {

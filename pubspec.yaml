@@ -49,6 +49,7 @@ dependencies:
   tflite_flutter: ^0.11.0
   permission_handler: ^11.3.1
   device_info_plus: ^11.3.3
+  package_info_plus: ^8.3.0
   android_id: ^0.4.0
   app_settings: ^6.1.1
   image: ^4.0.17

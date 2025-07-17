@@ -8,6 +8,7 @@ import 'package:gearpizza/common/components/custom_button.dart';
 import 'package:gearpizza/common/components/custom_input.dart';
 import 'package:gearpizza/common/components/loading/loading_screen.dart';
 import 'package:gearpizza/common/utils/show_error_dialog.dart';
+import 'package:gearpizza/features/auth/bloc/auth_bloc.dart';
 import 'package:gearpizza/features/auth/bloc/auth_event.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -31,11 +32,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   void _submitEmail() {
     FocusScope.of(context).unfocus();
-    if (_formKey.currentState?.validate() ?? false) {
-      AuthLoginRequested(
-        email: _emailController.text.trim(),
-        password: _passwordController.text,
-      );
+    if (_formKey.currentState?.validate() == true) {
+      debugPrint('Email: ${_emailController.text}');
+      context.read<AuthBloc>().add(AuthLoginRequested(
+            email: _emailController.text.trim(),
+            password: _passwordController.text,
+          ));
     }
   }
 

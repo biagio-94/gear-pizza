@@ -5,6 +5,7 @@
 // ignore_for_file: unused_import
 
 import 'package:gearpizza/common/utils/date_serializer.dart';
+import 'package:gearpizza/features/auth/models/login_response.dart';
 import 'package:one_of_serializer/any_of_serializer.dart';
 import 'package:one_of_serializer/one_of_serializer.dart';
 import 'package:built_collection/built_collection.dart';
@@ -246,6 +247,7 @@ part 'serializers.g.dart';
   RefreshRequest,
   Relations,
   Roles,
+  LoginResponse,
   RolesChildrenInner,
   RolesParent,
   RolesUsersInner,

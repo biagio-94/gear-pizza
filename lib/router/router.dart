@@ -57,6 +57,10 @@ class MainRouter {
         if (!isRoleChoosen) {
           return '/chooseRole';
         }
+        if (isRoleChoosen) {
+          return '/dashboard';
+        }
+        return null;
       }
 
       return null;

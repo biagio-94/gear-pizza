@@ -57,11 +57,3 @@ class AuthRegisterState extends AuthState {
   @override
   List<Object?> get props => [isEmailAlreadyRegistered];
 }
-
-/// Failure
-class AuthFailure extends AuthState {
-  final String error;
-  const AuthFailure({required this.error});
-  @override
-  List<Object?> get props => [error];
-}

@@ -1,12 +1,12 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:gearpizza/common/utils/bloc_exception_helper.dart';
 import 'package:get_it/get_it.dart';
-import 'package:gearpizza/features/auth/models/auth_gear_pizza_user.dart';
-import 'package:gearpizza/features/auth/services/auth_service_exception.dart';
-import 'auth_event.dart';
-import 'auth_state.dart';
 import 'package:gearpizza/common/bloc/loading_bloc.dart';
 import 'package:gearpizza/common/bloc/exception_bloc.dart';
 import 'package:gearpizza/features/auth/services/auth_service.dart';
+
+import 'auth_event.dart';
+import 'auth_state.dart';
 
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final AuthService _authService;
@@ -17,6 +17,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       : _authService = authService,
         super(const AuthInitial()) {
     on<AuthStarted>(_onStarted);
+    on<AuthRegisterEmailStep>(_onEmailSet);
     on<AuthLoginRequested>(_onLoginRequested);
     on<AuthRegisterRequested>(_onRegisterRequested);
     on<AuthPasswordResetRequested>(_onPasswordResetRequested);
@@ -26,181 +27,152 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<AuthResetPassEvent>(_onGoToResetPass);
     on<AuthregisterEvent>(_onGoToRegister);
     on<AuthRoleConfirmed>(_onRoleConfirmed);
-    on<AuthRegisterEmailStep>(_onEmailSet);
   }
 
   Future<void> _onStarted(AuthStarted event, Emitter<AuthState> emit) async {
-    try {
-      loadingBloc.showLoading('Checking authentication status...');
-      final AuthGeaPizzaUser? user = await _authService.onStart();
-      if (user != null) {
-        final isRoleChosen = await _authService.isRoleChosen(user.firebaseUid!);
-        emit(AuthAuthenticated(user: user, isRoleChoosen: isRoleChosen));
-      } else {
-        emit(const AuthUnauthenticated());
-      }
-    } catch (e) {
-      exceptionBloc.throwExceptionState(e.toString());
-      emit(const AuthFailure(error: 'Initialization failed'));
-    } finally {
-      loadingBloc.hideLoading();
-    }
+    await ExecutionHelper.run(
+      loadingText: 'Checking authentication status...',
+      showLoading: () =>
+          loadingBloc.showLoading('Checking authentication status...'),
+      hideLoading: () => loadingBloc.hideLoading(),
+      onError: (msg) => exceptionBloc.throwExceptionState(msg),
+      action: () async {
+        final user = await _authService.onStart();
+        if (user != null) {
+          final chosen = await _authService.isRoleChosen(user.firebaseUid!);
+          emit(AuthAuthenticated(user: user, isRoleChoosen: chosen));
+        } else {
+          emit(const AuthUnauthenticated());
+        }
+      },
+    );
   }
 
   Future<void> _onEmailSet(
       AuthRegisterEmailStep event, Emitter<AuthState> emit) async {
-    try {
-      loadingBloc.showLoading('Checking authentication status...');
-      final bool isAlreadyRegisterd =
-          await _authService.emailAlreadyExists(email: event.email);
-      if (isAlreadyRegisterd) {
-        emit(const AuthRegisterState());
-      } else {
-        // emit(AuthRegisterEmailStep(email: event.email));
-      }
-    } catch (e) {
-      exceptionBloc.throwExceptionState(e.toString());
-      emit(const AuthFailure(error: 'Initialization failed'));
-    } finally {
-      loadingBloc.hideLoading();
-    }
+    await ExecutionHelper.run(
+      loadingText: 'Verifying email...',
+      showLoading: () => loadingBloc.showLoading('Verifying email...'),
+      hideLoading: () => loadingBloc.hideLoading(),
+      onError: (msg) => exceptionBloc.throwExceptionState(msg),
+      action: () async {
+        final exists =
+            await _authService.emailAlreadyExists(email: event.email);
+        if (exists) emit(const AuthRegisterState());
+      },
+    );
   }
 
   Future<void> _onLoginRequested(
       AuthLoginRequested event, Emitter<AuthState> emit) async {
-    try {
-      loadingBloc.showLoading('Logging in...');
-      //Mock login for testing purposes Directus non consente nemmeno get senza axccess token
-      await _authService.login(email: event.email, password: event.password);
-      final AuthGeaPizzaUser user = await _authService.getAuthuser();
-      final isRoleChosen = await _authService.isRoleChosen(user.firebaseUid!);
-      emit(AuthAuthenticated(user: user, isRoleChoosen: isRoleChosen));
-    } catch (e) {
-      exceptionBloc.throwExceptionState(e.toString());
-    } finally {
-      loadingBloc.hideLoading();
-    }
+    await ExecutionHelper.run(
+      loadingText: 'Logging in...',
+      showLoading: () => loadingBloc.showLoading('Logging in...'),
+      hideLoading: () => loadingBloc.hideLoading(),
+      onError: (msg) => exceptionBloc.throwExceptionState(msg),
+      action: () async {
+        await _authService.login(email: event.email, password: event.password);
+        final user = await _authService.getAuthuser();
+        final chosen = await _authService.isRoleChosen(user.firebaseUid!);
+        emit(AuthAuthenticated(user: user, isRoleChoosen: chosen));
+      },
+    );
   }
 
   Future<void> _onRegisterRequested(
-    AuthRegisterRequested event,
-    Emitter<AuthState> emit,
-  ) async {
-    try {
-      loadingBloc.showLoading('Registrazione in corso…');
-      // 1) registro l’utente
-      final user = await _authService.register(
-        email: event.email,
-        password: event.password,
-      );
-      // 2) invio mail di verifica
-      await user.sendEmailVerification();
-      // 3) emetto uno stato che UI/BlocListener può intercettare
-      emit(const AuthEmailVerificationSent());
-    } catch (e) {
-      exceptionBloc.throwExceptionState(e.toString());
-    } finally {
-      loadingBloc.hideLoading();
-    }
+      AuthRegisterRequested event, Emitter<AuthState> emit) async {
+    await ExecutionHelper.run(
+      loadingText: 'Registering...',
+      showLoading: () => loadingBloc.showLoading('Registering...'),
+      hideLoading: () => loadingBloc.hideLoading(),
+      onError: (msg) => exceptionBloc.throwExceptionState(msg),
+      action: () async {
+        final user = await _authService.register(
+          email: event.email,
+          password: event.password,
+        );
+        await user.sendEmailVerification();
+        emit(const AuthEmailVerificationSent());
+      },
+    );
   }
 
   Future<void> _onPasswordResetRequested(
       AuthPasswordResetRequested event, Emitter<AuthState> emit) async {
-    try {
-      loadingBloc.showLoading('Sending password reset email...');
-      await _authService.resetPassword(email: event.email);
-      emit(const AuthPasswordResetEmailSent());
-    } catch (e) {
-      exceptionBloc.throwExceptionState(e.toString());
-    } finally {
-      loadingBloc.hideLoading();
-    }
+    await ExecutionHelper.run(
+      loadingText: 'Sending reset email...',
+      showLoading: () => loadingBloc.showLoading('Sending reset email...'),
+      hideLoading: () => loadingBloc.hideLoading(),
+      onError: (msg) => exceptionBloc.throwExceptionState(msg),
+      action: () async {
+        await _authService.resetPassword(email: event.email);
+        emit(const AuthPasswordResetEmailSent());
+      },
+    );
   }
 
   Future<void> _onGoogleSignInRequested(
-    AuthGoogleSignInRequested event,
-    Emitter<AuthState> emit,
-  ) async {
-    try {
-      loadingBloc.showLoading('Signing in with Google...');
-      await _authService.loginWithGoogle();
-      final AuthGeaPizzaUser user = await _authService.getAuthuser();
-      final isRoleChosen = await _authService.isRoleChosen(user.firebaseUid!);
-      emit(AuthAuthenticated(user: user, isRoleChoosen: isRoleChosen));
-    } on AuthServiceException catch (e) {
-      exceptionBloc.throwExceptionState(e.message);
-    } catch (e) {
-      final msg = e.toString();
-      exceptionBloc.throwExceptionState(msg);
-    } finally {
-      loadingBloc.hideLoading();
-    }
+      AuthGoogleSignInRequested event, Emitter<AuthState> emit) async {
+    await ExecutionHelper.run(
+      loadingText: 'Signing in with Google...',
+      showLoading: () => loadingBloc.showLoading('Signing in with Google...'),
+      hideLoading: () => loadingBloc.hideLoading(),
+      onError: (msg) => exceptionBloc.throwExceptionState(msg),
+      action: () async {
+        await _authService.loginWithGoogle();
+        final user = await _authService.getAuthuser();
+        final chosen = await _authService.isRoleChosen(user.firebaseUid!);
+        emit(AuthAuthenticated(user: user, isRoleChoosen: chosen));
+      },
+    );
   }
 
   Future<void> _onFacebookSignInRequested(
       AuthFacebookSignInRequested event, Emitter<AuthState> emit) async {
-    try {
-      loadingBloc.showLoading('Signing in with Facebook...');
-      await _authService.loginWithFacebook();
-      final AuthGeaPizzaUser user = await _authService.getAuthuser();
-      final isRoleChosen = await _authService.isRoleChosen(user.firebaseUid!);
-      emit(AuthAuthenticated(user: user, isRoleChoosen: isRoleChosen));
-    } catch (e) {
-      exceptionBloc.throwExceptionState(e.toString());
-    } finally {
-      loadingBloc.hideLoading();
-    }
+    await ExecutionHelper.run(
+      loadingText: 'Signing in with Facebook...',
+      showLoading: () => loadingBloc.showLoading('Signing in with Facebook...'),
+      hideLoading: () => loadingBloc.hideLoading(),
+      onError: (msg) => exceptionBloc.throwExceptionState(msg),
+      action: () async {
+        await _authService.loginWithFacebook();
+        final user = await _authService.getAuthuser();
+        final chosen = await _authService.isRoleChosen(user.firebaseUid!);
+        emit(AuthAuthenticated(user: user, isRoleChoosen: chosen));
+      },
+    );
   }
 
   Future<void> _onLoggedOut(
       AuthLoggedOut event, Emitter<AuthState> emit) async {
-    try {
-      loadingBloc.showLoading('Logging out...');
-      await _authService.logout();
-      emit(const AuthUnauthenticated());
-    } catch (e) {
-      exceptionBloc.throwExceptionState(e.toString());
-    } finally {
-      loadingBloc.hideLoading();
-    }
+    await ExecutionHelper.run(
+      loadingText: 'Logging out...',
+      showLoading: () => loadingBloc.showLoading('Logging out...'),
+      hideLoading: () => loadingBloc.hideLoading(),
+      onError: (msg) => exceptionBloc.throwExceptionState(msg),
+      action: () async {
+        await _authService.logout();
+        emit(const AuthUnauthenticated());
+      },
+    );
   }
 
   Future<void> _onGoToResetPass(
       AuthResetPassEvent event, Emitter<AuthState> emit) async {
-    try {
-      emit(const AuthResetPasswordState());
-    } catch (e) {
-      exceptionBloc.throwExceptionState(e.toString());
-    } finally {
-      loadingBloc.hideLoading();
-    }
+    emit(const AuthResetPasswordState());
   }
 
   Future<void> _onGoToRegister(
       AuthregisterEvent event, Emitter<AuthState> emit) async {
-    try {
-      emit(const AuthRegisterState());
-    } catch (e) {
-      exceptionBloc.throwExceptionState(e.toString());
-    } finally {
-      loadingBloc.hideLoading();
-    }
+    emit(const AuthRegisterState());
   }
 
   Future<void> _onRoleConfirmed(
       AuthRoleConfirmed event, Emitter<AuthState> emit) async {
     final current = state;
-    if (current is AuthAuthenticated) {
-      if (current.user.firebaseUid != null) {
-        final isRoleChosen =
-            await _authService.isRoleChosen(current.user.firebaseUid!);
-        emit(
-          AuthAuthenticated(
-            user: current.user,
-            isRoleChoosen: isRoleChosen,
-          ),
-        );
-      }
+    if (current is AuthAuthenticated && current.user.firebaseUid != null) {
+      final chosen = await _authService.isRoleChosen(current.user.firebaseUid!);
+      emit(AuthAuthenticated(user: current.user, isRoleChoosen: chosen));
     }
   }
 }

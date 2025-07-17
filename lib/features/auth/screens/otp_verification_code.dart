@@ -90,10 +90,6 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
 
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        title: const Text('Verifica OTP'),
-        backgroundColor: theme.primaryColor,
-      ),
       body: SafeArea(
         child: MultiBlocListener(
           listeners: [

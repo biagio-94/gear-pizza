@@ -5,8 +5,10 @@ import 'package:flutter/foundation.dart';
 import 'package:gearpizza/common/api/endpoints.dart';
 import 'package:gearpizza/common/models/login200_response.dart';
 import 'package:gearpizza/common/models/refresh_request.dart';
+import 'package:gearpizza/common/services/secure_storage_service.dart';
 import 'package:gearpizza/common/utils/serializers.dart';
 import 'package:gearpizza/features/auth/api/auth_endpoints.dart';
+import 'package:get_it/get_it.dart';
 
 class ApiService {
   ApiService() {
@@ -54,10 +56,9 @@ class ApiService {
         final status = e.response?.statusCode;
         final path = e.requestOptions.uri.path;
         final isRefreshEndpoint = path.endsWith("/refresh");
-        final hasRetried = e.requestOptions.extra["retried"] == true;
 
         // 1) Se 401, non siamo già sulla rotta di refresh e non abbiamo già fatto retry → provo a rinnovare
-        if (status == 401 && !isRefreshEndpoint && !hasRetried) {
+        if (status == 401 && !isRefreshEndpoint) {
           final retryResponse = await _handleTokenRefresh(e);
           if (retryResponse != null) {
             return handler.resolve(retryResponse);
@@ -121,8 +122,10 @@ class ApiService {
         // Salvo i token in modo sicuro
         setAccessToken(accessToken);
 
-        if (refreshToken?.isNotEmpty == true) {
+        if (refreshToken?.isNotEmpty == true && tokens?.expires != null) {
           setRefreshToken(refreshToken!);
+          await saveNewRefreshInfo(
+              refreshToken: refreshToken, expiresMs: tokens!.expires!);
         }
 
         // Ricrea la richiesta originale con il nuovo token
@@ -154,6 +157,15 @@ class ApiService {
 
   Future<Response> postMultipart(String path, FormData data) =>
       _dio.post(path, data: data);
+
+  Future<void> saveNewRefreshInfo(
+      {required String refreshToken, required int expiresMs}) async {
+    final expiryDate = DateTime.now().add(Duration(milliseconds: expiresMs));
+    await GetIt.instance<SecureStorageService>()
+        .writeSecureData('refreshTokenExpiry', expiryDate.toIso8601String());
+    await GetIt.instance<SecureStorageService>()
+        .writeSecureData('refreshToken', refreshToken);
+  }
 
   void setTimeouts({Duration? connectTimeout, Duration? receiveTimeout}) {
     _dio.options.connectTimeout = connectTimeout ?? _dio.options.connectTimeout;

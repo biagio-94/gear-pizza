@@ -11,7 +11,6 @@ import 'package:gearpizza/common/services/secure_storage_service.dart';
 import 'package:gearpizza/features/auth/repositories/auth_repository.dart';
 import 'package:gearpizza/features/auth/services/auth_service.dart';
 import 'package:gearpizza/features/auth/services/user_role_service.dart';
-import 'package:gearpizza/features/notifications/repositories/notification_repository.dart';
 import '../../features/dashboard/repositories/dashboard_repository.dart';
 import '../../features/dashboard/services/dashboard_service.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -30,8 +29,6 @@ Future<void> setupServiceLocator() async {
   getIt.registerLazySingleton<LocalAuthentication>(() => LocalAuthentication());
 
   getIt.registerLazySingleton<ApiService>(() => ApiService());
-  getIt.registerLazySingleton<NotificationRepository>(
-      () => NotificationRepository(GetIt.instance<ApiService>()));
 
   if (!getIt.isRegistered<SecureStorageService>()) {
     getIt.registerLazySingleton<SecureStorageService>(

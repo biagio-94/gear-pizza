@@ -159,6 +159,10 @@ class AuthRepository {
       await saveRefreshExpiry(newExpiry.toIso8601String());
 
       return await getAuthUser();
+    } on DioException catch (e) {
+      throw mapDioExceptionToCustomException(e);
+    } on FirebaseAuthException catch (e) {
+      throw mapFirebaseExceptionToCustomException(e);
     } on AuthServiceException {
       rethrow;
     } catch (e) {

@@ -18,7 +18,6 @@ import 'package:gearpizza/common/utils/services_setup.dart';
 import 'package:gearpizza/features/auth/bloc/auth_bloc.dart';
 import 'package:gearpizza/features/auth/bloc/auth_event.dart';
 import 'package:gearpizza/features/auth/services/auth_service.dart';
-import 'package:gearpizza/features/notifications/bloc/notification_bloc.dart';
 import 'package:gearpizza/router/router.dart';
 
 void main() async {
@@ -67,9 +66,6 @@ class MyApp extends StatelessWidget {
         ),
         BlocProvider(
           create: (context) => GetIt.instance<ExceptionBloc>(),
-        ),
-        BlocProvider(
-          create: (context) => GetIt.instance<NotificationBloc>(),
         ),
         BlocProvider(
             create: (context) => DashboardBloc(

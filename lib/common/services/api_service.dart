@@ -51,20 +51,28 @@ class ApiService {
           }
         }
 
-        // Se 401 e non sto già facendo il refresh, provo a rinnovare il token
-        final isRefreshCall = e.requestOptions.path.contains('/refresh');
-        if (e.response?.statusCode == 401 && !isRefreshCall) {
-          final retry = await _handleTokenRefresh(e);
-          return retry != null ? handler.resolve(retry) : handler.reject(e);
+        final status = e.response?.statusCode;
+        final path = e.requestOptions.uri.path;
+        final isRefreshEndpoint = path.endsWith("/refresh");
+        final hasRetried = e.requestOptions.extra["retried"] == true;
+
+        // 1) Se 401, non siamo già sulla rotta di refresh e non abbiamo già fatto retry → provo a rinnovare
+        if (status == 401 && !isRefreshEndpoint && !hasRetried) {
+          final retryResponse = await _handleTokenRefresh(e);
+          if (retryResponse != null) {
+            return handler.resolve(retryResponse);
+          } else {
+            return handler.reject(e);
+          }
         }
 
-        // Per 400 e 404 voglio semplicemente lasciare passare la response
-        if (e.response != null &&
-            (e.response!.statusCode == 400 || e.response!.statusCode == 404)) {
-          handler.resolve(e.response!);
-        } else {
-          handler.reject(e);
+        // 2) Per 400 e 404 voglio semplicemente lasciare passare la response
+        if (e.response != null && (status == 400 || status == 404)) {
+          return handler.resolve(e.response!);
         }
+
+        // 3) Altrimenti rilancio l’errore
+        return handler.reject(e);
       },
     ));
 

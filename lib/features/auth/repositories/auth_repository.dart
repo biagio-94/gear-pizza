@@ -408,6 +408,21 @@ class AuthRepository {
     }
   }
 
+  Future<AuthGeaPizzaUser> signWithOTP() async {
+    try {
+      // Simulo avvenuta sincronizzazione con Directus leggere metodo signWithEmail e _afterFirebaseLogin per spiegazioni
+      await _afterFirebaseLogin(
+          email: "biagio@gearpizza.it", password: 'Q]T%;mG1)R58');
+      //Tutti i login tramite provider esterni (Google, Facebook, ecc.) verranno considerati come admin
+      // per questa versione iniziale, quindi passiamo true di default
+      // Solo "SignAsguest" non lo farà facendo entrare l'utente come guest
+      saveIsAdmin(isAdmin: true);
+      return await getAuthUser();
+    } on FirebaseAuthException catch (e) {
+      throw mapFirebaseExceptionToCustomException(e);
+    }
+  }
+
   Future<AuthGeaPizzaUser> signAsGuest() async {
     try {
       // Simulo un accesso come guest con un utente di test

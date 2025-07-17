@@ -47,3 +47,14 @@ class AuthregisterEvent extends AuthEvent {
 class AuthSignAsGuest extends AuthEvent {
   const AuthSignAsGuest();
 }
+
+class AuthSendOtp extends AuthEvent {
+  final String phoneNumber;
+  const AuthSendOtp({required this.phoneNumber});
+}
+
+class AuthVerifyOtp extends AuthEvent {
+  final String phoneNumber;
+  final String otpCode;
+  const AuthVerifyOtp({required this.phoneNumber, required this.otpCode});
+}

@@ -28,7 +28,6 @@ class _LoginScreenState extends State<LoginScreen>
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _numberController = TextEditingController();
   final TextEditingController _prefixController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
   final FocusNode _idFocusNode = FocusNode();
 
   late final AnimationController _animController;
@@ -66,22 +65,20 @@ class _LoginScreenState extends State<LoginScreen>
     _idFocusNode.dispose();
     _numberController.dispose();
     _prefixController.dispose();
-    _passwordController.dispose();
     super.dispose();
   }
 
+  String normalizePrefix(String p) {
+    p = p.trim();
+    if (!p.startsWith('+')) p = '+$p';
+    return p;
+  }
+
   void _onPressedLogin() {
-    FocusScope.of(context).unfocus();
-    if (_formKey.currentState?.validate() == true) {
-      context.read<AuthBloc>().add(
-            AuthLoginRequested(
-              email: _numberController.text.trim(),
-              password: _passwordController.text,
-            ),
-          );
-    } else {
-      showErrorDialog(context, 'Correggi gli errori nel form.');
-    }
+    final prefix = normalizePrefix(_prefixController.text);
+    final number = _numberController.text.trim();
+    final phoneNumber = '$prefix$number'.replaceAll(RegExp(r'[\s\-\(\)]'), '');
+    context.read<AuthBloc>().add(AuthSendOtp(phoneNumber: phoneNumber));
   }
 
   void _onContinueAsGuest() {
@@ -157,7 +154,6 @@ class _LoginScreenState extends State<LoginScreen>
                           formKey: _formKey,
                           prefixController: _prefixController,
                           numberController: _numberController,
-                          passwordController: _passwordController,
                           onPressedLogin: _onPressedLogin,
                           onSignAsGuest: _onContinueAsGuest,
                         ),
@@ -179,7 +175,6 @@ class _LoginForm extends StatelessWidget {
     required this.formKey,
     required this.prefixController,
     required this.numberController,
-    required this.passwordController,
     required this.onPressedLogin,
     required this.onSignAsGuest,
   });
@@ -187,7 +182,6 @@ class _LoginForm extends StatelessWidget {
   final GlobalKey<FormState> formKey;
   final TextEditingController prefixController;
   final TextEditingController numberController;
-  final TextEditingController passwordController;
   final VoidCallback onPressedLogin;
   final VoidCallback onSignAsGuest;
 

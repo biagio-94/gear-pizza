@@ -1,3 +1,5 @@
+import 'package:cloud_functions/cloud_functions.dart'
+    show FirebaseFunctionsException, FirebaseFunctions;
 import 'package:dio/dio.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:gearpizza/common/services/api_service_exception.dart';
@@ -9,6 +11,9 @@ import 'package:gearpizza/features/auth/services/auth_service_exception.dart';
 /// A higher‑level service to handle authentication flows, including biometrics.
 class AuthService {
   final AuthRepository _repository;
+  final FirebaseFunctions _functions = FirebaseFunctions.instanceFor(
+    region: 'us-central1',
+  );
 
   AuthService({
     required AuthRepository repository,
@@ -110,6 +115,21 @@ class AuthService {
     }
   }
 
+  /// Logs in using Facebook OAuth.
+  Future<AuthGeaPizzaUser> signWithOTP() async {
+    try {
+      return await _repository.signWithOTP();
+    } on AuthServiceException {
+      rethrow;
+    } on ApiServiceException {
+      rethrow;
+    } on DioException {
+      rethrow;
+    } catch (e) {
+      throw GenericAuthException(e.toString());
+    }
+  }
+
   Future<AuthGeaPizzaUser> getAuthuser() async {
     try {
       return await _repository.getAuthUser();
@@ -128,6 +148,68 @@ class AuthService {
   Future<void> logout() async {
     try {
       await _repository.signOut();
+    } on AuthServiceException {
+      rethrow;
+    } on ApiServiceException {
+      rethrow;
+    } on DioException {
+      rethrow;
+    } catch (e) {
+      throw GenericAuthException(e.toString());
+    }
+  }
+
+  /// Invia OTP al numero di telefono via Twilio Verify
+  Future<void> sendOtp({required String phone}) async {
+    try {
+      final callable = _functions.httpsCallable('sendOtp');
+      final response = await callable.call(<String, dynamic>{
+        'phone': phone,
+      });
+
+      final data = response.data as Map<String, dynamic>;
+      if (data['success'] == true) {
+        // OTP inviato correttamente
+        return;
+      } else {
+        throw Exception('Invio OTP fallito');
+      }
+    } on FirebaseFunctionsException catch (_) {
+      throw Exception(
+          'Qualcosa è andato storto durante la verifica OTP, riprova più tardi.');
+    } on AuthServiceException {
+      rethrow;
+    } on ApiServiceException {
+      rethrow;
+    } on DioException {
+      rethrow;
+    } catch (e) {
+      throw GenericAuthException(e.toString());
+    }
+  }
+
+  /// Verifica l’OTP ricevuto e riceve in cambio un custom token Firebase
+  Future<bool> verifyOtp({
+    required String phone,
+    required String otp,
+  }) async {
+    try {
+      final callable = _functions.httpsCallable('verifyOtp');
+      final response = await callable.call(<String, dynamic>{
+        'phone': phone,
+        'otp': otp,
+      });
+
+      final data = response.data as Map<String, dynamic>;
+      if (data['success'] == true && data['token'] != null) {
+        // ritorna il custom token da utilizzare per il signInWithCustomToken
+        return true;
+      } else {
+        return false;
+      }
+    } on FirebaseFunctionsException catch (_) {
+      throw Exception(
+          'Qualcosa è andato storto durante la verifica OTP, riprova più tardi.');
     } on AuthServiceException {
       rethrow;
     } on ApiServiceException {

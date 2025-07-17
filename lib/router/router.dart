@@ -35,6 +35,8 @@ class MainRouter {
       final bool isGoToRegister = authState is AuthRegisterState ||
           authState is AuthEmailVerificationSent;
 
+      final bool isOtpVerify = authState is AuthOtpSentState;
+
       final bool goingToLogin = state.uri.path == '/login' ||
           state.uri.path == '/register' ||
           state.uri.path == '/reset-password';
@@ -44,6 +46,7 @@ class MainRouter {
       // 🔒 Proteggi schermate per utenti autenticati
       if (isGoToRegister) return '/register';
       if (isGoToResetpass) return '/reset-password';
+      if (isOtpVerify) return '/otp-verification';
 
       // 🔁 Se non autenticato e non già su login, torna a login
       if ((!isAuth && !goingToLogin) || authState is AuthUnauthenticated) {

@@ -57,3 +57,11 @@ class AuthRegisterState extends AuthState {
   @override
   List<Object?> get props => [isEmailAlreadyRegistered];
 }
+
+class AuthOtpSentState extends AuthState {
+  final String phoneNumber;
+  final String? errorMessage;
+  const AuthOtpSentState({required this.phoneNumber, this.errorMessage});
+  @override
+  List<Object?> get props => [phoneNumber];
+}

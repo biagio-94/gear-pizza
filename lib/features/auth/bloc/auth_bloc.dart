@@ -24,6 +24,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<AuthLoggedOut>(_onLoggedOut);
     on<AuthregisterEvent>(_onGoToRegister);
     on<AuthSignAsGuest>(_onSignAsGuest);
+    on<AuthSendOtp>(_onSendOtp);
+    on<AuthVerifyOtp>(_onVerifyOtp);
   }
 
   Future<void> _onStarted(AuthStarted event, Emitter<AuthState> emit) async {
@@ -128,6 +130,49 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       action: () async {
         await _authService.logout();
         emit(const AuthUnauthenticated());
+      },
+    );
+  }
+
+  Future<void> _onSendOtp(AuthSendOtp event, Emitter<AuthState> emit) async {
+    await ExecutionHelper.run(
+      loadingText: 'Sending OTP...',
+      showLoading: () => loadingBloc.showLoading('Sending OTP...'),
+      hideLoading: () => loadingBloc.hideLoading(),
+      onError: (msg) => exceptionBloc.throwExceptionState(msg),
+      action: () async {
+        await _authService.sendOtp(phone: event.phoneNumber);
+        emit(AuthOtpSentState(
+          phoneNumber: event.phoneNumber,
+          errorMessage: null,
+        ));
+      },
+    );
+  }
+
+  Future<void> _onVerifyOtp(
+      AuthVerifyOtp event, Emitter<AuthState> emit) async {
+    await ExecutionHelper.run(
+      loadingText: 'Verifying OTP...',
+      showLoading: () => loadingBloc.showLoading('Verifying OTP...'),
+      hideLoading: () => loadingBloc.hideLoading(),
+      onError: (msg) => exceptionBloc.throwExceptionState(msg),
+      action: () async {
+        final bool isVerified = await _authService.verifyOtp(
+          phone: event.phoneNumber,
+          otp: event.otpCode,
+        );
+        if (isVerified) {
+          final AuthGeaPizzaUser authUser = await _authService.signWithOTP();
+          // Passiamo true di default per isRoleChoosen in questa versione
+          // in futuro potremmo voler verificare se l'utente ha scelto un ruolo ed effettuare un onboarding
+          // dove il ristoratore può creare il suo profilo, pagina pagina prodotti, ecc.
+          emit(AuthAuthenticated(user: authUser, isRoleChoosen: true));
+        } else {
+          emit(AuthOtpSentState(
+              phoneNumber: event.phoneNumber,
+              errorMessage: 'OTP verification failed. Please try again.'));
+        }
       },
     );
   }

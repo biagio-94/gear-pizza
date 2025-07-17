@@ -1,3 +1,4 @@
+import 'package:gearpizza/features/auth/screens/otp_verification_code.dart';
 import 'package:go_router/go_router.dart';
 import 'package:gearpizza/features/auth/screens/login_screen.dart';
 import 'package:gearpizza/features/auth/screens/register_screen.dart';
@@ -16,6 +17,14 @@ final List<GoRoute> authRoutes = [
     pageBuilder: (context, state) {
       return const NoTransitionPage(
         child: RegisterScreen(),
+      );
+    },
+  ),
+  GoRoute(
+    path: '/otp-verification',
+    pageBuilder: (context, state) {
+      return const NoTransitionPage(
+        child: OtpVerificationScreen(),
       );
     },
   ),

@@ -1,17 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:gearpizza/features/dashboard/components/restaurants_allergens_filters.dart';
 import 'package:go_router/go_router.dart';
-import 'package:gearpizza/common/components/pizza_card.dart';
-import 'package:gearpizza/common/utils/image_download_helper.dart';
 import 'package:gearpizza/common/styles/text_styles.dart';
 import 'package:gearpizza/features/dashboard/bloc/dashboard_bloc.dart';
 import 'package:gearpizza/features/dashboard/bloc/dashboard_event.dart';
-import 'package:gearpizza/features/dashboard/bloc/dashboard_state.dart';
+import 'package:gearpizza/features/dashboard/components/restaurant_detail_app_bar.dart';
+import 'package:gearpizza/features/dashboard/components/restaurants_allergens_filters.dart';
+import 'package:gearpizza/features/dashboard/components/restaurant_products_list.dart';
 
+/// Pagina di dettaglio del ristorante:
+/// - Mostro l'AppBar con immagine e nome
+/// - Includo i filtri degli allergeni (pinned)
+/// - Visualizzo il titolo "Menu Pizze"
+/// - Renderizzo la griglia di pizze con loading e empty state
 class RestaurantDetailPage extends StatefulWidget {
   final int restaurantId;
+
+  /// Ricevo l'id del ristorante per avviare il fetch dei dati
   const RestaurantDetailPage({Key? key, required this.restaurantId})
       : super(key: key);
 
@@ -20,36 +26,45 @@ class RestaurantDetailPage extends StatefulWidget {
 }
 
 class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
+  // Altezza espansa dell'AppBar
+  static const double _appBarExpandedHeight = 150;
+  // Soglia per determinare quando l'AppBar collassa
+  static const double _collapseThreshold =
+      _appBarExpandedHeight - kToolbarHeight;
+
   final ScrollController _scrollController = ScrollController();
   bool _isCollapsed = false;
 
   @override
   void initState() {
     super.initState();
-    _scrollController.addListener(_scrollListener);
-    // Dispatch di due fetch: dettagli + pizze
-    context.read<DashboardBloc>().add(FetchPizzasEvent(widget.restaurantId));
-  }
-
-  void _scrollListener() {
-    if (!_scrollController.hasClients) return;
-    const collapseThreshold = 150.0 - kToolbarHeight;
-    final isCollapsedNow = _scrollController.offset > collapseThreshold;
-    if (isCollapsedNow != _isCollapsed) {
-      setState(() => _isCollapsed = isCollapsedNow);
-    }
+    // Imposto listener su scroll per aggiornare lo stato collapsato
+    _scrollController.addListener(_onScroll);
+    // Dispatch degli eventi iniziali (fetch pizze e allergeni)
+    final bloc = context.read<DashboardBloc>();
+    bloc.add(FetchPizzasEvent(widget.restaurantId));
+    bloc.add(FetchAllergenEvent());
   }
 
   @override
   void dispose() {
+    // Rimuovo listener e distruggo il controller
+    _scrollController.removeListener(_onScroll);
     _scrollController.dispose();
     super.dispose();
   }
 
+  /// Controllo offset per aggiornare [_isCollapsed]
+  void _onScroll() {
+    if (!_scrollController.hasClients) return;
+    final collapsed = _scrollController.offset > _collapseThreshold;
+    if (collapsed != _isCollapsed) {
+      setState(() => _isCollapsed = collapsed);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: const SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
@@ -61,62 +76,21 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
         body: CustomScrollView(
           controller: _scrollController,
           slivers: [
-            // SliverAppBar – restaurant details
-            BlocBuilder<DashboardBloc, DashboardState>(
-              buildWhen: (prev, curr) => curr is PizzasLoaded,
-              builder: (context, state) {
-                if (state is PizzasLoaded) {
-                  final restaurant = state.restaurant;
-                  return SliverAppBar(
-                    expandedHeight: 150,
-                    pinned: true,
-                    elevation: 0,
-                    backgroundColor: theme.colorScheme.primary,
-                    stretch: true,
-                    leading: IconButton(
-                      icon: Icon(
-                        Icons.arrow_back,
-                        color: _isCollapsed
-                            ? theme.colorScheme.onSurface
-                            : theme.colorScheme.surface,
-                      ),
-                      onPressed: () => context.pop(),
-                    ),
-                    flexibleSpace: FlexibleSpaceBar(
-                      title: _isCollapsed
-                          ? Text(restaurant.name)
-                          : const SizedBox(),
-                      collapseMode: CollapseMode.parallax,
-                      background: Stack(
-                        fit: StackFit.expand,
-                        children: [
-                          if (restaurant.coverImageUrl != null)
-                            ImageDownloadHelper.loadNetworkImage(
-                              restaurant.coverImageUrl!,
-                              fit: BoxFit.cover,
-                              width: double.infinity,
-                            )
-                          else
-                            Container(color: Colors.grey[300]),
-                          Container(color: Colors.black26),
-                        ],
-                      ),
-                    ),
-                  );
-                } else {
-                  return const SliverFillRemaining(
-                    child: Center(child: CircularProgressIndicator()),
-                  );
-                }
+            // 1) AppBar con dettaglio ristorante
+            RestaurantDetailAppBar(
+              isCollapsed: _isCollapsed,
+              onPop: () => context.pop(),
+            ),
+
+            // 2) Filtri allergeni (pinned subito dopo l'AppBar)
+            RestaurantsAllergensFilters(
+              label: 'Hai qualche intolleranza?',
+              onAllergenSelected: (allergen) {
+                // Posso reagire al cambio filtro qui o nel Bloc
               },
             ),
 
-            // Barra filtri orizzontale “pinned” subito dopo l’AppBar
-            RestaurantsAllergensFilters(
-              label: 'Hai qualche intolleranza ?',
-            ),
-
-            // Sliver: “Menu Pizze” header
+            // 3) Header titolo "Menu Pizze"
             SliverPadding(
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
               sliver: SliverToBoxAdapter(
@@ -127,49 +101,15 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
               ),
             ),
 
-            // SliverGrid – pizzas
-            BlocBuilder<DashboardBloc, DashboardState>(
-              buildWhen: (prev, curr) => curr is PizzasLoaded,
-              builder: (context, state) {
-                if (state is PizzasLoaded) {
-                  final pizzas = state.pizzas;
-                  if (pizzas.isEmpty) {
-                    return const SliverFillRemaining(
-                      child: Center(child: Text("Nessuna pizza disponibile")),
-                    );
-                  }
-                  return SliverPadding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    sliver: SliverGrid(
-                      gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2,
-                        mainAxisSpacing: 12,
-                        crossAxisSpacing: 12,
-                        childAspectRatio: 0.7,
-                      ),
-                      delegate: SliverChildBuilderDelegate(
-                        (context, index) {
-                          final pizza = pizzas[index];
-                          return PizzaCard(
-                            pizza: pizza,
-                            onTap: () {
-                              // Gestisci tap sulla pizza
-                            },
-                          );
-                        },
-                        childCount: pizzas.length,
-                      ),
-                    ),
-                  );
-                } else {
-                  return const SliverFillRemaining(
-                    child: Center(child: CircularProgressIndicator()),
-                  );
-                }
+            // 4) Lista pizze: griglia con loading e empty state
+            RestaurantProductsList(
+              onPizzaTap: (pizza) {
+                // Navigo ai dettagli della pizza selezionata
+                // e.g. context.pushNamed('pizzaDetail', params: {...});
               },
             ),
 
+            // 5) Padding di fondo per evitare overlap con bottom bar
             const SliverPadding(padding: EdgeInsets.only(bottom: 16)),
           ],
         ),

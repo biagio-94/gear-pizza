@@ -10,7 +10,7 @@ abstract class DashboardEvent {
 class FetchRestaurantsEvent extends DashboardEvent {}
 
 // Evento per fetch di tutti i ristoranti
-class fetchAllFilters extends DashboardEvent {}
+class FetchAllFilters extends DashboardEvent {}
 
 // Evento per fetch di un allergene singolo per id
 class FetchAllergenEvent extends DashboardEvent {}

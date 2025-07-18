@@ -19,7 +19,7 @@ class _HomePageState extends State<HomePage> {
     super.initState();
     final bloc = context.read<DashboardBloc>();
     bloc.add(FetchAllergenEvent());
-    bloc.add(fetchAllFilters());
+    bloc.add(FetchAllFilters());
     bloc.add(FetchRestaurantsEvent());
   }
 

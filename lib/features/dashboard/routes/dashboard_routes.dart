@@ -8,7 +8,7 @@ final List<GoRoute> dashboardRoutes = [
     name: 'restaurantDetail',
     builder: (context, state) {
       final id = state.pathParameters['restaurantId']!;
-      return RestaurantDetailPage(restaurantId: id);
+      return RestaurantDetailPage(restaurantId: int.tryParse(id) ?? 3);
     },
     routes: [
       GoRoute(

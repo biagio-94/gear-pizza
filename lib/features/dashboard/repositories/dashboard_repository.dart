@@ -1,10 +1,6 @@
 import 'package:dio/dio.dart';
-import 'package:flutter/foundation.dart';
-import 'package:gearpizza/common/api/endpoints.dart';
 import 'package:gearpizza/common/models/items_allergens.dart';
-import 'package:gearpizza/common/models/items_pizzas.dart';
 import 'package:gearpizza/common/models/read_items_allergens200_response.dart';
-import 'package:gearpizza/common/models/read_items_pizzas200_response.dart';
 import 'package:gearpizza/common/utils/directus_query_builder.dart';
 import 'package:gearpizza/common/utils/exception_handler.dart';
 import 'package:gearpizza/common/utils/serializers.dart';
@@ -46,6 +42,49 @@ class DashboardRepository {
       return rawData
           .map((item) => RestaurantDto.fromMap(item as Map<String, dynamic>))
           .toList();
+    } on DioException catch (e) {
+      throw mapDioExceptionToCustomException(e);
+    } on DashboardServiceException {
+      rethrow;
+    } catch (e) {
+      throw DashboardServiceException('Errore imprevisto fetch ristoranti: $e');
+    }
+  }
+
+  Future<RestaurantDto> fetchRestaurantById({required int restaurantId}) async {
+    try {
+      final qb = DirectusQueryBuilder()
+        ..fields([
+          'id',
+          'name',
+          'cover_image.*',
+          'owner.first_name',
+          'owner.last_name',
+          'pizzas'
+        ])
+        ..populate(['cover_image', 'owner'])
+        ..filter({
+          'id': {'_eq': restaurantId}
+        });
+
+      final endpoint = DashboardEndpoints.getRestaurants(queryBuilder: qb);
+      final resp = await _apiService.get(endpoint);
+
+      if (resp.statusCode != 200) {
+        throw FetchRestaurantsException();
+      }
+
+      final List<dynamic> rawData = resp.data['data'] ?? [];
+
+      if (rawData.isEmpty) {
+        throw FetchRestaurantsException(
+            'Ristorante non trovato per id: $restaurantId');
+      }
+
+      // Prendo solo il primo elemento e lo trasformo in RestaurantDto
+      final restaurant =
+          RestaurantDto.fromMap(rawData.first as Map<String, dynamic>);
+      return restaurant;
     } on DioException catch (e) {
       throw mapDioExceptionToCustomException(e);
     } on DashboardServiceException {
@@ -112,37 +151,38 @@ class DashboardRepository {
     }
   }
 
-  Future<List<PizzaDto>> fetchPizzasByRestaurant(int restaurantId) async {
+  Future<List<PizzaDto>> fetchPizzaByrestaurantId(int restaurantId) async {
     try {
-      final query = DirectusQueryBuilder().fields(<String>['*']).filter({
-        'restaurant': {'_eq': restaurantId}
-      });
-      final endpoint = DashboardEndpoints.getPizzas(queryBuilder: query);
+      final qb = DirectusQueryBuilder()
+        ..fields([
+          '*',
+          'allergens.id',
+          'cover_image.id',
+          'cover_image.filename_download',
+        ])
+        ..populate(['allergens', 'cover_image'])
+        ..filter({
+          'restaurant': {'_eq': restaurantId}
+        });
+
+      final endpoint = DashboardEndpoints.getPizzas(queryBuilder: qb);
       final resp = await _apiService.get(endpoint);
 
       if (resp.statusCode != 200) {
         throw FetchPizzasException();
       }
 
-      final parsed = standardSerializers.deserializeWith(
-        ReadItemsPizzas200Response.serializer,
-        resp.data,
-      );
-      final builtList = parsed?.data?.toList() ?? [];
+      final List<dynamic> rawData = resp.data['data'] ?? [];
 
-      return builtList.map((item) {
-        final raw = standardSerializers.serializeWith(
-          ItemsPizzas.serializer,
-          item,
-        ) as Map<String, dynamic>;
-        return PizzaDto.fromMap(raw);
-      }).toList();
+      return rawData
+          .map((item) => PizzaDto.fromMap(item as Map<String, dynamic>))
+          .toList();
     } on DioException catch (e) {
       throw mapDioExceptionToCustomException(e);
     } on DashboardServiceException {
       rethrow;
     } catch (e) {
-      throw DashboardServiceException('Errore imprevisto fetch ristoranti: $e');
+      throw DashboardServiceException('Errore imprevisto fetch pizze: $e');
     }
   }
 }

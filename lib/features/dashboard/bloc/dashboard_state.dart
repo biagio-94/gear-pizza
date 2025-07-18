@@ -28,6 +28,7 @@ class FiltersLoaded extends DashboardState {
 }
 
 class PizzasLoaded extends DashboardState {
+  final RestaurantDto restaurant;
   final List<PizzaDto> pizzas;
-  const PizzasLoaded(this.pizzas);
+  const PizzasLoaded({required this.pizzas, required this.restaurant});
 }

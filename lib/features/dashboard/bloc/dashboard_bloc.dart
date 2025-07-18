@@ -1,5 +1,6 @@
 // dashboard_bloc.dart
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:gearpizza/features/dashboard/models/restaurants_dto.dart';
 import 'package:get_it/get_it.dart';
 import 'package:gearpizza/common/bloc/loading_bloc.dart';
 import 'package:gearpizza/common/bloc/exception_bloc.dart';
@@ -63,9 +64,11 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
     on<FetchPizzasEvent>((event, emit) async {
       loadingBloc.showLoading('Caricamento pizze...');
       try {
-        final pizzas = await dashboardService.fetchPizzasByRestaurant(
+        final pizzas = await dashboardService.fetchPizzaByrestaurantId(
             restaurantId: event.restaurantId);
-        emit(PizzasLoaded(pizzas));
+        final RestaurantDto restaurant = await dashboardService
+            .fetchRestaurantById(restaurantId: event.restaurantId);
+        emit(PizzasLoaded(pizzas: pizzas, restaurant: restaurant));
       } on ApiServiceException catch (e) {
         exceptionBloc.throwExceptionState(e.message);
       } catch (e) {

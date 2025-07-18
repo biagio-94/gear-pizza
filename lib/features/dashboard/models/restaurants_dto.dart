@@ -30,10 +30,6 @@ class RestaurantDto {
 
   factory RestaurantDto.fromMap(Map<String, dynamic> map) {
     final imageFilename = map['cover_image']?['filename_disk'];
-    final imageUrl = imageFilename != null
-        ? '${BaseUrl.getBaseUrl(kReleaseMode)}assets/$imageFilename'
-        : null;
-
     final ownerFirstname = map['owner']?['first_name'] ?? '';
     final ownerLastname = map['owner']?['last_name'] ?? '';
 
@@ -51,12 +47,10 @@ class RestaurantDto {
         .where((id) => id != 0)
         .toList();
 
-    debugPrint("imageUrl $imageUrl");
-
     return RestaurantDto(
       id: map['id']?.toInt() ?? 0,
       name: map['name'] ?? '',
-      coverImageUrl: imageUrl,
+      coverImageUrl: imageFilename,
       ownerName: "$ownerFirstname $ownerLastname",
       pizzaId: pizzaIds,
     );

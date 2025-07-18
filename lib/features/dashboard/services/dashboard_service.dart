@@ -27,6 +27,20 @@ class DashboardService {
     }
   }
 
+  // Ritorno un ristorante recuperandolo per id
+  Future<RestaurantDto> fetchRestaurantById({required int restaurantId}) async {
+    try {
+      return await dashboardRepository.fetchRestaurantById(
+          restaurantId: restaurantId);
+    } on ApiServiceException catch (_) {
+      rethrow;
+    } on DioException catch (e) {
+      throw mapDioExceptionToCustomException(e);
+    } catch (e) {
+      throw GenericException();
+    }
+  }
+
   /// Ritorna la lista di filtri mock per i ristoranti
   Future<List<FiltersDto>> fetchAllFilters() async {
     try {
@@ -54,11 +68,11 @@ class DashboardService {
   }
 
   /// Ritorna la lista di pizze per un dato ristorante
-  Future<List<PizzaDto>> fetchPizzasByRestaurant({
+  Future<List<PizzaDto>> fetchPizzaByrestaurantId({
     required int restaurantId,
   }) async {
     try {
-      return await dashboardRepository.fetchPizzasByRestaurant(restaurantId);
+      return await dashboardRepository.fetchPizzaByrestaurantId(restaurantId);
     } on ApiServiceException catch (_) {
       rethrow;
     } on DioException catch (e) {

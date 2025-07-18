@@ -1,13 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:gearpizza/features/dashboard/components/restaurants_allergens_filters.dart';
 import 'package:go_router/go_router.dart';
-import 'package:gearpizza/common/styles/text_styles.dart';
+import 'package:gearpizza/common/components/pizza_card.dart';
 import 'package:gearpizza/common/utils/image_download_helper.dart';
-import 'package:gearpizza/features/dashboard/models/pizza_dto.dart';
-import 'package:gearpizza/features/dashboard/models/restaurants_dto.dart';
+import 'package:gearpizza/common/styles/text_styles.dart';
+import 'package:gearpizza/features/dashboard/bloc/dashboard_bloc.dart';
+import 'package:gearpizza/features/dashboard/bloc/dashboard_event.dart';
+import 'package:gearpizza/features/dashboard/bloc/dashboard_state.dart';
 
 class RestaurantDetailPage extends StatefulWidget {
-  final String restaurantId;
+  final int restaurantId;
   const RestaurantDetailPage({Key? key, required this.restaurantId})
       : super(key: key);
 
@@ -23,13 +27,14 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
   void initState() {
     super.initState();
     _scrollController.addListener(_scrollListener);
+    // Dispatch di due fetch: dettagli + pizze
+    context.read<DashboardBloc>().add(FetchPizzasEvent(widget.restaurantId));
   }
 
   void _scrollListener() {
     if (!_scrollController.hasClients) return;
-    // Quando l’AppBar si “stringe” fino all’altezza della toolbar
-    const collapseThreshold = 150.0 - kToolbarHeight; // ≃94
-    final bool isCollapsedNow = _scrollController.offset > collapseThreshold;
+    const collapseThreshold = 150.0 - kToolbarHeight;
+    final isCollapsedNow = _scrollController.offset > collapseThreshold;
     if (isCollapsedNow != _isCollapsed) {
       setState(() => _isCollapsed = isCollapsedNow);
     }
@@ -56,39 +61,62 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
         body: CustomScrollView(
           controller: _scrollController,
           slivers: [
-            SliverAppBar(
-              expandedHeight: 150,
-              pinned: true,
-              elevation: 0,
-              backgroundColor: _isCollapsed
-                  ? theme.colorScheme.primary
-                  : theme.colorScheme.primary,
-              stretch: true,
-              leading: IconButton(
-                icon: Icon(
-                  Icons.arrow_back,
-                  color: _isCollapsed
-                      ? theme.colorScheme.onSurface
-                      : theme.colorScheme.surface,
-                ),
-                onPressed: () => context.pop(),
-              ),
-              // Titolo visibile solo quando l'app bar è collassata
-              flexibleSpace: FlexibleSpaceBar(
-                title: _isCollapsed ? Text("Gelateria Romana") : null,
-                collapseMode: CollapseMode.parallax,
-                background: Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    ImageDownloadHelper.loadNetworkImage(
-                      "https://www.gelateriaromana.com/source/home/5.jpg",
-                      fit: BoxFit.cover,
+            // SliverAppBar – restaurant details
+            BlocBuilder<DashboardBloc, DashboardState>(
+              buildWhen: (prev, curr) => curr is PizzasLoaded,
+              builder: (context, state) {
+                if (state is PizzasLoaded) {
+                  final restaurant = state.restaurant;
+                  return SliverAppBar(
+                    expandedHeight: 150,
+                    pinned: true,
+                    elevation: 0,
+                    backgroundColor: theme.colorScheme.primary,
+                    stretch: true,
+                    leading: IconButton(
+                      icon: Icon(
+                        Icons.arrow_back,
+                        color: _isCollapsed
+                            ? theme.colorScheme.onSurface
+                            : theme.colorScheme.surface,
+                      ),
+                      onPressed: () => context.pop(),
                     ),
-                    Container(color: Colors.black26),
-                  ],
-                ),
-              ),
+                    flexibleSpace: FlexibleSpaceBar(
+                      title: _isCollapsed
+                          ? Text(restaurant.name)
+                          : const SizedBox(),
+                      collapseMode: CollapseMode.parallax,
+                      background: Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          if (restaurant.coverImageUrl != null)
+                            ImageDownloadHelper.loadNetworkImage(
+                              restaurant.coverImageUrl!,
+                              fit: BoxFit.cover,
+                              width: double.infinity,
+                            )
+                          else
+                            Container(color: Colors.grey[300]),
+                          Container(color: Colors.black26),
+                        ],
+                      ),
+                    ),
+                  );
+                } else {
+                  return const SliverFillRemaining(
+                    child: Center(child: CircularProgressIndicator()),
+                  );
+                }
+              },
             ),
+
+            // Barra filtri orizzontale “pinned” subito dopo l’AppBar
+            RestaurantsAllergensFilters(
+              label: 'Hai qualche intolleranza ?',
+            ),
+
+            // Sliver: “Menu Pizze” header
             SliverPadding(
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
               sliver: SliverToBoxAdapter(
@@ -98,58 +126,50 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
                 ),
               ),
             ),
-            SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              sliver: SliverGrid(
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  mainAxisSpacing: 12,
-                  crossAxisSpacing: 12,
-                  childAspectRatio: 0.7,
-                ),
-                delegate: SliverChildBuilderDelegate((context, index) {
-                  return GestureDetector(
-                    child: Card(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
+
+            // SliverGrid – pizzas
+            BlocBuilder<DashboardBloc, DashboardState>(
+              buildWhen: (prev, curr) => curr is PizzasLoaded,
+              builder: (context, state) {
+                if (state is PizzasLoaded) {
+                  final pizzas = state.pizzas;
+                  if (pizzas.isEmpty) {
+                    return const SliverFillRemaining(
+                      child: Center(child: Text("Nessuna pizza disponibile")),
+                    );
+                  }
+                  return SliverPadding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    sliver: SliverGrid(
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        mainAxisSpacing: 12,
+                        crossAxisSpacing: 12,
+                        childAspectRatio: 0.7,
                       ),
-                      clipBehavior: Clip.antiAlias,
-                      elevation: 3,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          Expanded(
-                            child: Image.network(
-                              "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a3/Eq_it-na_pizza-margherita_sep2005_sml.jpg/960px-Eq_it-na_pizza-margherita_sep2005_sml.jpg",
-                              fit: BoxFit.cover,
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  "Margherita",
-                                  style: AppTextStyles.bodyLarge(context),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  '€11.90',
-                                  style: AppTextStyles.body(context),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
+                      delegate: SliverChildBuilderDelegate(
+                        (context, index) {
+                          final pizza = pizzas[index];
+                          return PizzaCard(
+                            pizza: pizza,
+                            onTap: () {
+                              // Gestisci tap sulla pizza
+                            },
+                          );
+                        },
+                        childCount: pizzas.length,
                       ),
                     ),
                   );
-                }, childCount: 4),
-              ),
+                } else {
+                  return const SliverFillRemaining(
+                    child: Center(child: CircularProgressIndicator()),
+                  );
+                }
+              },
             ),
+
             const SliverPadding(padding: EdgeInsets.only(bottom: 16)),
           ],
         ),

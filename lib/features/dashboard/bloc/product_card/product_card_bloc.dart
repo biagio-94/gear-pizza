@@ -2,7 +2,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'product_card_event.dart';
 import 'product_card_state.dart';
 
-/// Bloc to manage quantities per product card
+/// Bloc to manage quantities per product card and total price
 class ProductCardBloc extends Bloc<ProductCardEvent, ProductCardState> {
   ProductCardBloc() : super(const NoProductSelectedState()) {
     on<AddProductEvent>(_onAddProduct);
@@ -14,14 +14,20 @@ class ProductCardBloc extends Bloc<ProductCardEvent, ProductCardState> {
     Emitter<ProductCardState> emit,
   ) async {
     final currentState = state;
-    // derive existing quantities
     final quantities = <int, int>{};
+    double subtotal = 0.0;
+
     if (currentState is ProductSelectedState) {
       quantities.addAll(currentState.productsQuantity);
+      subtotal = currentState.totalPrice;
     }
-    // increment for event.productId
+
+    // increment quantity
     quantities[event.productId] = (quantities[event.productId] ?? 0) + 1;
-    emit(ProductSelectedState(productsQuantity: quantities));
+    // update subtotal
+    subtotal += event.productPrice;
+    emit(ProductSelectedState(
+        productsQuantity: quantities, totalPrice: subtotal));
   }
 
   Future<void> _onRemoveProduct(
@@ -31,16 +37,22 @@ class ProductCardBloc extends Bloc<ProductCardEvent, ProductCardState> {
     final currentState = state;
     if (currentState is ProductSelectedState) {
       final quantities = Map<int, int>.from(currentState.productsQuantity);
+      double subtotal = currentState.totalPrice;
+
       final currentQty = quantities[event.productId] ?? 0;
       if (currentQty > 1) {
         quantities[event.productId] = currentQty - 1;
-      } else {
+        subtotal -= event.productPrice;
+      } else if (currentQty == 1) {
         quantities.remove(event.productId);
+        subtotal -= event.productPrice;
       }
+
       if (quantities.isEmpty) {
         emit(const NoProductSelectedState());
       } else {
-        emit(ProductSelectedState(productsQuantity: quantities));
+        emit(ProductSelectedState(
+            productsQuantity: quantities, totalPrice: subtotal));
       }
     }
   }

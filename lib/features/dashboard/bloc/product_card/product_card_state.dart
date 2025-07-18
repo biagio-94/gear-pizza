@@ -12,5 +12,12 @@ class NoProductSelectedState extends ProductCardState {
 class ProductSelectedState extends ProductCardState {
   /// Map of productId to quantity
   final Map<int, int> productsQuantity;
-  const ProductSelectedState({required this.productsQuantity});
+
+  /// Total subtotal across all products
+  final double totalPrice;
+
+  const ProductSelectedState({
+    required this.productsQuantity,
+    required this.totalPrice,
+  });
 }

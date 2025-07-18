@@ -119,7 +119,9 @@ class PizzaCard extends StatelessWidget {
                                       onPressed: () {
                                         context.read<ProductCardBloc>().add(
                                               RemoveProductEvent(
-                                                  productId: pizza.id),
+                                                productId: pizza.id,
+                                                productPrice: pizza.price,
+                                              ),
                                             );
                                       },
                                     ),
@@ -134,7 +136,9 @@ class PizzaCard extends StatelessWidget {
                                       onPressed: () {
                                         context.read<ProductCardBloc>().add(
                                               AddProductEvent(
-                                                  productId: pizza.id),
+                                                productId: pizza.id,
+                                                productPrice: pizza.price,
+                                              ),
                                             );
                                       },
                                     ),

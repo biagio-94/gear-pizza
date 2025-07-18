@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:gearpizza/common/styles/colors_schemes.dart';
+import 'package:gearpizza/features/dashboard/bloc/product_card/product_card_bloc.dart';
+import 'package:gearpizza/features/dashboard/bloc/product_card/product_card_state.dart';
 import 'package:go_router/go_router.dart';
 import 'package:gearpizza/common/styles/text_styles.dart';
 import 'package:gearpizza/features/dashboard/bloc/dashboard_bloc.dart';
@@ -113,6 +116,36 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
             const SliverPadding(padding: EdgeInsets.only(bottom: 16)),
           ],
         ),
+        floatingActionButton: BlocBuilder<ProductCardBloc, ProductCardState>(
+          builder: (context, state) {
+            if (state is! ProductSelectedState) return const SizedBox.shrink();
+            final total = state.totalPrice;
+            final colors = Theme.of(context).colorScheme;
+
+            return SizedBox(
+              width: MediaQuery.of(context).size.width * 0.8,
+              height: 56, // altezza consigliata per maggiore rotondità
+              child: FloatingActionButton.extended(
+                onPressed: () {/* checkout */},
+                backgroundColor: colors.secondary,
+                foregroundColor: colors.onSecondary,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(28), // più arrotondato
+                ),
+                label: Center(
+                  child: Text(
+                    'Al carrello · €${total.toStringAsFixed(2)}',
+                    style: AppTextStyles.bodyLarge(context).copyWith(
+                      color: AppColors.darkOnSurface,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+            );
+          },
+        ),
+        floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       ),
     );
   }

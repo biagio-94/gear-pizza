@@ -81,4 +81,24 @@ class DashboardService {
       throw GenericException();
     }
   }
+
+  /// Ritorna la lista di pizze che NON contengono gli allergeni indicati
+  Future<List<PizzaDto>> fetchPizzasExcludingAllergens({
+    required int restaurantId,
+    required List<int> excludedAllergenIds,
+  }) async {
+    try {
+      return await dashboardRepository
+          .fetchPizzaByrestaurantIdExcludingAllergens(
+        restaurantId: restaurantId,
+        excludedAllergenIds: excludedAllergenIds,
+      );
+    } on ApiServiceException catch (_) {
+      rethrow;
+    } on DioException catch (e) {
+      throw mapDioExceptionToCustomException(e);
+    } catch (_) {
+      throw GenericException();
+    }
+  }
 }

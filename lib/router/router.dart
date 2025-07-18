@@ -174,7 +174,7 @@ class _MainScaffoldState extends State<MainScaffold>
               LoadingScreen().show(
                 context: context,
                 text: state.loadingText ?? 'Attendi un attimo',
-                showLogoAnimation: false,
+                showLogoAnimation: true,
               );
             } else {
               LoadingScreen().hide();

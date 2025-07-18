@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/material.dart';
 import 'package:gearpizza/common/models/items_allergens.dart';
 import 'package:gearpizza/common/models/read_items_allergens200_response.dart';
 import 'package:gearpizza/common/utils/directus_query_builder.dart';
@@ -156,11 +157,15 @@ class DashboardRepository {
       final qb = DirectusQueryBuilder()
         ..fields([
           '*',
-          'allergens.id',
           'cover_image.id',
           'cover_image.filename_download',
+          'allergens.allergens_id.id',
+          'allergens.allergens_id.name',
         ])
-        ..populate(['allergens', 'cover_image'])
+        ..populate([
+          'cover_image',
+          'allergens.allergens_id',
+        ])
         ..filter({
           'restaurant': {'_eq': restaurantId}
         });
@@ -183,6 +188,28 @@ class DashboardRepository {
       rethrow;
     } catch (e) {
       throw DashboardServiceException('Errore imprevisto fetch pizze: $e');
+    }
+  }
+
+  Future<List<PizzaDto>> fetchPizzaByrestaurantIdExcludingAllergens({
+    required int restaurantId,
+    required List<int> excludedAllergenIds,
+  }) async {
+    try {
+      // 1. Fai il fetch completo
+      final allPizzas = await fetchPizzaByrestaurantId(restaurantId);
+
+      // 2. Filtro client-side: escludi pizze che contengono allergeni esclusi, non ho trovato ( almeno in tempo )
+      // un modo per fare query many-to-many
+      final filteredPizzas = allPizzas.where((pizza) {
+        final allergenIds = pizza.allergens.map((a) => a.id).toSet();
+        return allergenIds.intersection(excludedAllergenIds.toSet()).isEmpty;
+      }).toList();
+
+      return filteredPizzas;
+    } catch (e) {
+      throw DashboardServiceException(
+          'Errore nel filtrare pizze per allergeni: $e');
     }
   }
 }

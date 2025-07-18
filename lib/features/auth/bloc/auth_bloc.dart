@@ -76,8 +76,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   Future<void> _onSignAsGuest(
       AuthSignAsGuest event, Emitter<AuthState> emit) async {
     await ExecutionHelper.run(
-      loadingText: 'Logging in...',
-      showLoading: () => loadingBloc.showLoading('Logging in...'),
+      loadingText: 'Stiamo arrivando...',
+      showLoading: () => loadingBloc.showLoading('Stiamo arrivando...'),
       hideLoading: () => loadingBloc.hideLoading(),
       onError: (msg) => exceptionBloc.throwExceptionState(msg),
       action: () async {

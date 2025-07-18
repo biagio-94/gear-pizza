@@ -24,6 +24,8 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
     on<FetchAllFilters>(_onFetchFilters);
     // Fetch delle pizze per un ristorante specifico
     on<FetchPizzasEvent>(_onFetchPizzasByRestaurant);
+    // Fetch delle pizze per allergeni esclusi
+    on<FetchByAllergensEvent>(_onFetchByAllergens);
   }
 
   Future<void> _onFetchRestaurants(
@@ -87,6 +89,35 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
           restaurantId: event.restaurantId,
         );
         emit(PizzasLoaded(pizzas: pizzas, restaurant: restaurant));
+      },
+    );
+  }
+
+  Future<void> _onFetchByAllergens(
+    FetchByAllergensEvent event,
+    Emitter<DashboardState> emit,
+  ) async {
+    await ExecutionHelper.run(
+      onError: (msg) => exceptionBloc.throwExceptionState(msg),
+      action: () async {
+        final currentState = state;
+
+        // Recupera il ristorante corrente da uno stato precedente
+        if (currentState is PizzasLoaded) {
+          final restaurant = currentState.restaurant;
+
+          // Chiamata al repository con ristorante e allergeni da escludere
+          final pizzas = await _dashboardService.fetchPizzasExcludingAllergens(
+            restaurantId: restaurant.id,
+            excludedAllergenIds: event.selectedAllergenIds,
+          );
+
+          // Emetti lo stato aggiornato
+          emit(PizzasLoaded(
+            restaurant: restaurant,
+            pizzas: pizzas,
+          ));
+        }
       },
     );
   }

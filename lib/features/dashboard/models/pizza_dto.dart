@@ -35,9 +35,10 @@ class PizzaDto {
     final imageUrl = map['cover_image']?['id'];
 
     final allergenList = map['allergens'] as List<dynamic>? ?? [];
-    final parsedAllergens = allergenList
-        .map((a) => AllergenDto.fromMap(a as Map<String, dynamic>))
-        .toList();
+    final parsedAllergens = allergenList.map((a) {
+      final allergenMap = a['allergens_id'];
+      return AllergenDto.fromMap(allergenMap);
+    }).toList();
 
     return PizzaDto(
       id: map['id']?.toInt() ?? 0,

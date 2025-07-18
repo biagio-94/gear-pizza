@@ -1,13 +1,12 @@
 import 'dart:convert';
-import 'package:flutter/foundation.dart';
-import 'package:gearpizza/common/api/endpoints.dart';
+import 'dart:math';
 import 'package:gearpizza/features/dashboard/models/alergen_dto.dart';
 
 class PizzaDto {
   final int id;
   final String name;
   final String? description;
-  final double? price;
+  final double price;
   final String? coverImageUrl;
   final List<AllergenDto> allergens;
 
@@ -15,7 +14,7 @@ class PizzaDto {
     required this.id,
     required this.name,
     this.description,
-    this.price,
+    required this.price,
     this.coverImageUrl,
     this.allergens = const [],
   });
@@ -40,11 +39,25 @@ class PizzaDto {
       return AllergenDto.fromMap(allergenMap);
     }).toList();
 
+    // Prezzo casuale tra 7.00 e 16.00 incluso con due decimali
+    double generateRandomPrice() {
+      final rng = Random(map['id'] ?? DateTime.now().millisecondsSinceEpoch);
+      final min = 7.0;
+      final max = 16.0;
+      double raw = min + rng.nextDouble() * (max - min);
+      // arrotonda a due decimali
+      return (raw * 100).round() / 100;
+    }
+
+    double priceValue = map['price'] != null
+        ? (map['price'] as num).toDouble()
+        : generateRandomPrice();
+
     return PizzaDto(
       id: map['id']?.toInt() ?? 0,
       name: map['name'] ?? '',
       description: map['description'],
-      price: map['price']?.toDouble(),
+      price: priceValue,
       coverImageUrl: imageUrl,
       allergens: parsedAllergens,
     );

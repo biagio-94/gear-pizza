@@ -49,9 +49,6 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Glovo Home', style: TextStyle(fontSize: 24)),
-      ),
       body: Column(
         children: [
           SizedBox(
@@ -104,9 +101,6 @@ class _HomePageState extends State<HomePage> {
                     itemBuilder: (ctx, i) {
                       return RestaurantCard(
                         restaurant: restaurants[i],
-                        onTapPizza: (pizza) {
-                          // opzionale: azione quando selezioni una pizza
-                        },
                       );
                     },
                   );

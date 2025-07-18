@@ -1,20 +1,21 @@
 import 'dart:convert';
 
-import 'package:gearpizza/features/dashboard/models/pizza_dto.dart';
+import 'package:flutter/foundation.dart';
+import 'package:gearpizza/common/api/endpoints.dart';
 
 class RestaurantDto {
   final int id;
   final String name;
   final String? coverImageUrl;
   final String ownerName;
-  final List<PizzaDto> pizzas;
+  final List<int> pizzaId;
 
   RestaurantDto({
     required this.id,
     required this.name,
     this.coverImageUrl,
     required this.ownerName,
-    required this.pizzas,
+    required this.pizzaId,
   });
 
   Map<String, dynamic> toMap() {
@@ -23,30 +24,41 @@ class RestaurantDto {
       'name': name,
       'coverImageUrl': coverImageUrl,
       'ownerName': ownerName,
-      'pizzas': pizzas.map((x) => x.toMap()).toList(),
+      'pizzaId': pizzaId,
     };
   }
 
   factory RestaurantDto.fromMap(Map<String, dynamic> map) {
+    final imageFilename = map['cover_image']?['filename_disk'];
+    final imageUrl = imageFilename != null
+        ? '${BaseUrl.getBaseUrl(kReleaseMode)}assets/$imageFilename'
+        : null;
+
+    final ownerFirstname = map['owner']?['first_name'] ?? '';
+    final ownerLastname = map['owner']?['last_name'] ?? '';
+
+    final pizzaList = map['pizzas'] as List<dynamic>? ?? [];
+    final pizzaIds = pizzaList
+        .map((e) {
+          if (e is Map && e['id'] != null) {
+            return e['id'] as int;
+          } else if (e is int) {
+            return e;
+          } else {
+            return 0;
+          }
+        })
+        .where((id) => id != 0)
+        .toList();
+
+    debugPrint("imageUrl $imageUrl");
+
     return RestaurantDto(
       id: map['id']?.toInt() ?? 0,
       name: map['name'] ?? '',
-      coverImageUrl: map['coverImageUrl'],
-      ownerName: map['ownerName'] ?? '',
-      pizzas:
-          List<PizzaDto>.from(map['pizzas']?.map((x) => PizzaDto.fromMap(x))),
-    );
-  }
-  factory RestaurantDto.fromDirectus(Map<String, dynamic> map) {
-    return RestaurantDto(
-      id: map['id']?.toInt() ?? 0,
-      name: map['name'] ?? '',
-      coverImageUrl: map['cover_image']?['url'],
-      ownerName: map['owner']?['first_name'] ?? '',
-      pizzas: (map['pizzas'] as List<dynamic>?)
-              ?.map((e) => PizzaDto.fromMap(e as Map<String, dynamic>))
-              .toList() ??
-          [],
+      coverImageUrl: imageUrl,
+      ownerName: "$ownerFirstname $ownerLastname",
+      pizzaId: pizzaIds,
     );
   }
 
@@ -54,9 +66,4 @@ class RestaurantDto {
 
   factory RestaurantDto.fromJson(String source) =>
       RestaurantDto.fromMap(json.decode(source));
-
-  /// da lista raw Directus a List<RestaurantDto>
-  static List<RestaurantDto> listFromDirectus(List<dynamic> list) => list
-      .map((e) => RestaurantDto.fromDirectus(e as Map<String, dynamic>))
-      .toList();
 }

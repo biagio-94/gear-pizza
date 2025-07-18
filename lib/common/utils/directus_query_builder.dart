@@ -1,4 +1,3 @@
-// lib/common/utils/directus_query_builder.dart
 import 'dart:convert';
 
 class DirectusQueryBuilder {
@@ -11,6 +10,17 @@ class DirectusQueryBuilder {
       _params['fields'] = value.join(',');
     } else {
       throw ArgumentError('fields() accetta solo String o List<String>');
+    }
+    return this;
+  }
+
+  DirectusQueryBuilder populate(dynamic value) {
+    if (value is String) {
+      _params['populate'] = value;
+    } else if (value is List<String>) {
+      _params['populate'] = value.join(',');
+    } else {
+      throw ArgumentError('populate() accetta solo String o List<String>');
     }
     return this;
   }
@@ -46,7 +56,10 @@ class DirectusQueryBuilder {
   }
 
   String _encodeValue(dynamic value) {
-    if (value is Map || value is List) {
+    if (value is List<String>) {
+      // Per evitare JSON encoding: usiamo join
+      return value.join(',');
+    } else if (value is Map || value is List) {
       return jsonEncode(value);
     }
     return value.toString();

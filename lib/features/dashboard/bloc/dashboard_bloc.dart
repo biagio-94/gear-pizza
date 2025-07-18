@@ -34,12 +34,7 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
       loadingBloc.showLoading('Caricamento allergene...');
       try {
         final allergen = await dashboardService.fetchAllAllergens();
-        if (allergen != null) {
-          emit(AllergensLoaded(allergen));
-        } else {
-          final msg = 'Allergene non trovato';
-          exceptionBloc.throwExceptionState(msg);
-        }
+        emit(AllergensLoaded(allergen));
       } on ApiServiceException catch (e) {
         exceptionBloc.throwExceptionState(e.message);
       } catch (e) {

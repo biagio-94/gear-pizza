@@ -457,9 +457,7 @@ class AuthRepository {
   /// potendo variare UI e permessi in base al ruolo.
   Future<AuthGeaPizzaUser> getAuthUser() async {
     final firebaseUser = FirebaseAuth.instance.currentUser;
-    if (firebaseUser == null) {
-      throw NotFoundException('Nessun utente autenticato');
-    }
+
     // Simulo un DirectusUser per il momento
     // In un'app reale dovremmo fare una chiamata a Directus per recuperare
     // i dettagli dell'utente autenticato
@@ -467,7 +465,7 @@ class AuthRepository {
       id: 'id-demo',
       nome: 'Demo',
       cognome: 'User',
-      email: firebaseUser.email ?? "",
+      email: firebaseUser?.email ?? "",
       dataCreazione: DateTime.now(),
       dataAggiornamento: DateTime.now(),
     );
@@ -480,7 +478,6 @@ class AuthRepository {
     final isAdmin = storedIsAdmin?.toLowerCase() == 'true';
 
     final authUser = AuthGeaPizzaUser(
-      firebaseUser: firebaseUser,
       directusUser: directusUser,
       role: isAdmin ? Roles.admin : Roles.user,
     );

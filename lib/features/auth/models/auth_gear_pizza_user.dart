@@ -1,4 +1,3 @@
-import 'package:firebase_auth/firebase_auth.dart' as fb;
 import 'package:gearpizza/features/auth/services/user_role_service.dart';
 
 /// Modello che rappresenta l'utente da Directus.
@@ -66,14 +65,11 @@ class DirectusUser {
 }
 
 class AuthGeaPizzaUser {
-  final fb.User firebaseUser;
-
   /// Qui sostituisci `UsersRow` con `DirectusUser`
   DirectusUser directusUser;
   Roles? role;
 
   AuthGeaPizzaUser({
-    required this.firebaseUser,
     required this.directusUser,
     this.role,
   });

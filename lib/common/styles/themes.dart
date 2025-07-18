@@ -27,10 +27,6 @@ final ThemeData lightTheme = ThemeData(
   appBarTheme: AppBarTheme(
     backgroundColor: lightColorScheme.primary,
     foregroundColor: lightColorScheme.onPrimary,
-    systemOverlayStyle: SystemUiOverlayStyle(
-      statusBarColor: lightColorScheme.primary,
-      statusBarIconBrightness: Brightness.light,
-    ),
     elevation: 0,
     iconTheme: IconThemeData(color: lightColorScheme.onPrimary),
     titleTextStyle: GoogleFonts.inter(
@@ -165,10 +161,6 @@ final ThemeData darkTheme = ThemeData(
   appBarTheme: AppBarTheme(
     backgroundColor: darkColorScheme.primary,
     foregroundColor: darkColorScheme.onPrimary,
-    systemOverlayStyle: SystemUiOverlayStyle(
-      statusBarColor: darkColorScheme.primary,
-      statusBarIconBrightness: Brightness.light,
-    ),
     elevation: 0,
     iconTheme: IconThemeData(color: darkColorScheme.onPrimary),
     titleTextStyle: GoogleFonts.inter(

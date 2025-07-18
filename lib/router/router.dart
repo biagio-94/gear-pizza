@@ -6,7 +6,6 @@ import 'package:gearpizza/common/bloc/exception_state.dart';
 import 'package:gearpizza/common/bloc/loading_bloc.dart';
 import 'package:gearpizza/common/bloc/loading_state.dart';
 import 'package:gearpizza/common/components/custom_bottom_bar.dart';
-import 'package:gearpizza/common/components/custom_rounded_container.dart';
 import 'package:gearpizza/common/components/loading/loading_screen.dart';
 import 'package:gearpizza/common/utils/show_error_dialog.dart';
 import 'package:gearpizza/common/utils/streams_to_listenable.dart';
@@ -192,9 +191,7 @@ class _MainScaffoldState extends State<MainScaffold>
         ),
       ],
       child: Scaffold(
-        body: CustomRoundedContainer(
-          child: widget.navigationShell,
-        ),
+        body: widget.navigationShell,
         bottomNavigationBar: CustomBottomBar(
           selectedIndex: _currentIndex,
           onItemTapped: _onItemTapped,

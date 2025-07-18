@@ -1,5 +1,5 @@
 import 'package:gearpizza/features/dashboard/screens/pizza_detail_page.dart';
-import 'package:gearpizza/features/dashboard/screens/restaurant_page.dart';
+import 'package:gearpizza/features/dashboard/screens/restaurant_page_detail.dart';
 import 'package:go_router/go_router.dart';
 
 final List<GoRoute> dashboardRoutes = [
@@ -8,7 +8,7 @@ final List<GoRoute> dashboardRoutes = [
     name: 'restaurantDetail',
     builder: (context, state) {
       final id = state.pathParameters['restaurantId']!;
-      return RestaurantsPage(restaurantid: id);
+      return RestaurantDetailPage(restaurantId: id);
     },
     routes: [
       GoRoute(

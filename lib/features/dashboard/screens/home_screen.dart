@@ -32,44 +32,46 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Scaffold(
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          HomeFiltersBar(),
-          // 2) Ristoranti con ExpansionTile
-          Padding(
-            padding: const EdgeInsets.only(top: 20, left: 20),
-            child: Text(
-              'I nostri ristoranti',
-              textAlign: TextAlign.left,
-              style: theme.textTheme.headlineSmall
-                  ?.copyWith(fontWeight: FontWeight.bold),
+    return SafeArea(
+      child: Scaffold(
+        body: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            HomeFiltersBar(),
+            // 2) Ristoranti con ExpansionTile
+            Padding(
+              padding: const EdgeInsets.only(top: 20, left: 20),
+              child: Text(
+                'I nostri ristoranti',
+                textAlign: TextAlign.left,
+                style: theme.textTheme.headlineSmall
+                    ?.copyWith(fontWeight: FontWeight.bold),
+              ),
             ),
-          ),
-          Expanded(
-            child: BlocBuilder<DashboardBloc, DashboardState>(
-              buildWhen: (_, s) => s is RestaurantsLoaded,
-              builder: (context, state) {
-                if (state is RestaurantsLoaded) {
-                  final List<RestaurantDto> restaurants = state.restaurants;
-                  return ListView.separated(
-                    padding: const EdgeInsets.all(16),
-                    itemCount: restaurants.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 12),
-                    itemBuilder: (ctx, i) {
-                      return RestaurantCard(
-                        restaurant: restaurants[i],
-                      );
-                    },
-                  );
-                } else {
-                  return const Center(child: CircularProgressIndicator());
-                }
-              },
+            Expanded(
+              child: BlocBuilder<DashboardBloc, DashboardState>(
+                buildWhen: (_, s) => s is RestaurantsLoaded,
+                builder: (context, state) {
+                  if (state is RestaurantsLoaded) {
+                    final List<RestaurantDto> restaurants = state.restaurants;
+                    return ListView.separated(
+                      padding: const EdgeInsets.all(16),
+                      itemCount: restaurants.length,
+                      separatorBuilder: (_, __) => const SizedBox(height: 12),
+                      itemBuilder: (ctx, i) {
+                        return RestaurantCard(
+                          restaurant: restaurants[i],
+                        );
+                      },
+                    );
+                  } else {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                },
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

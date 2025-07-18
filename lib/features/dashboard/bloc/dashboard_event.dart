@@ -21,5 +21,8 @@ class FetchPizzasEvent extends DashboardEvent {
   const FetchPizzasEvent(this.restaurantId);
 }
 
-// Evento per segnalare tutorial completato
-class SetTutorialCompletedEvent extends DashboardEvent {}
+/// Evento per filtro per allergeni selezionati
+class FetchByAllergensEvent extends DashboardEvent {
+  final List<int> selectedAllergenIds;
+  const FetchByAllergensEvent(this.selectedAllergenIds);
+}

@@ -1,4 +1,3 @@
-// dashboard_state.dart
 import 'package:flutter/foundation.dart';
 import 'package:gearpizza/features/dashboard/models/alergen_dto.dart';
 import 'package:gearpizza/features/dashboard/models/filters_dto.dart';
@@ -27,8 +26,20 @@ class FiltersLoaded extends DashboardState {
   const FiltersLoaded(this.filters);
 }
 
+class AllergensSelectionChanged extends DashboardState {
+  final List<AllergenDto> selected;
+  const AllergensSelectionChanged(this.selected);
+}
+
 class PizzasLoaded extends DashboardState {
   final RestaurantDto restaurant;
   final List<PizzaDto> pizzas;
-  const PizzasLoaded({required this.pizzas, required this.restaurant});
+
+  /// Lista degli allergeni correntemente applicati al filtro
+  final List<int> selectedAllergenIds;
+  const PizzasLoaded({
+    required this.pizzas,
+    required this.restaurant,
+    this.selectedAllergenIds = const [],
+  });
 }

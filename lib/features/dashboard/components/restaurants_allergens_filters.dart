@@ -1,5 +1,3 @@
-// lib/common/components/restaurants_allergens_filters.dart
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gearpizza/features/dashboard/models/alergen_dto.dart';
@@ -7,18 +5,14 @@ import 'package:gearpizza/features/dashboard/bloc/dashboard_bloc.dart';
 import 'package:gearpizza/features/dashboard/bloc/dashboard_event.dart';
 import 'package:gearpizza/features/dashboard/bloc/dashboard_state.dart';
 
-/// Un SliverPersistentHeader “pinned” che:
-/// 1) Dispa tches FetchAllergenEvent in initState
-/// 2) Ascolta AllergensLoaded per mostrare i ChoiceChip
-/// 3) Espone onAllergenSelected quando cambia il filtro
 class RestaurantsAllergensFilters extends StatefulWidget {
   final String label;
-  final ValueChanged<AllergenDto>? onAllergenSelected;
+  final ValueChanged<List<AllergenDto>>? onSelectionChanged;
 
   const RestaurantsAllergensFilters({
     Key? key,
     required this.label,
-    this.onAllergenSelected,
+    this.onSelectionChanged,
   }) : super(key: key);
 
   @override
@@ -28,20 +22,16 @@ class RestaurantsAllergensFilters extends StatefulWidget {
 
 class _RestaurantsAllergensFiltersState
     extends State<RestaurantsAllergensFilters> {
-  late AllergenDto _selectedFilter;
+  final Set<AllergenDto> _selectedFilters = {};
 
   @override
   void initState() {
     super.initState();
-    // default “Tutti”
-    _selectedFilter = AllergenDto(id: 0, name: 'Tutti');
-    // dispatch per caricare gli allergeni la prima volta
     context.read<DashboardBloc>().add(FetchAllergenEvent());
   }
 
   @override
   Widget build(BuildContext context) {
-    // Calcolo dell’altezza: label (24) + spazio (4) + chips row (56)
     const totalHeight = 24.0 + 4.0 + 56.0;
 
     return SliverPersistentHeader(
@@ -51,11 +41,10 @@ class _RestaurantsAllergensFiltersState
         maxExtent: totalHeight,
         child: Container(
           color: Theme.of(context).scaffoldBackgroundColor,
-          padding: const EdgeInsets.only(top: 8, bottom: 8),
+          padding: const EdgeInsets.symmetric(vertical: 8),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Label sopra alle chip
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Text(
@@ -67,36 +56,63 @@ class _RestaurantsAllergensFiltersState
                 ),
               ),
               const SizedBox(height: 4),
-              // BlocBuilder per attendere AllergensLoaded
               Expanded(
                 child: BlocBuilder<DashboardBloc, DashboardState>(
                   buildWhen: (_, curr) => curr is AllergensLoaded,
                   builder: (context, state) {
                     if (state is AllergensLoaded) {
-                      // Prepara la lista con “Tutti” + allergeni
-                      final all =
-                          [AllergenDto(id: 0, name: 'Tutti')] + state.allergens;
+                      final allergensList = state.allergens;
+                      final allOptions = [
+                        AllergenDto(id: 0, name: 'Tutti'),
+                        ...allergensList
+                      ];
+
                       return ListView.separated(
                         scrollDirection: Axis.horizontal,
                         padding: const EdgeInsets.symmetric(horizontal: 16),
                         separatorBuilder: (_, __) => const SizedBox(width: 8),
-                        itemCount: all.length,
+                        itemCount: allOptions.length,
                         itemBuilder: (context, idx) {
-                          final allergen = all[idx];
-                          final selected = allergen.id == _selectedFilter.id;
+                          final allergen = allOptions[idx];
+                          final isSelected = allergen.id == 0
+                              ? _selectedFilters.length == allergensList.length
+                              : _selectedFilters.contains(allergen);
+
                           return ChoiceChip(
                             label: Text(allergen.name),
-                            selected: selected,
+                            selected: isSelected,
                             onSelected: (_) {
-                              setState(() => _selectedFilter = allergen);
-                              widget.onAllergenSelected?.call(allergen);
+                              setState(() {
+                                if (allergen.id == 0) {
+                                  // Toggle: seleziona tutti o deseleziona tutti
+                                  if (_selectedFilters.length <
+                                      allergensList.length) {
+                                    _selectedFilters
+                                      ..clear()
+                                      ..addAll(allergensList);
+                                  } else {
+                                    _selectedFilters.clear();
+                                  }
+                                } else {
+                                  if (!_selectedFilters.remove(allergen)) {
+                                    _selectedFilters.add(allergen);
+                                  }
+                                }
+                              });
+                              widget.onSelectionChanged
+                                  ?.call(_selectedFilters.toList());
+
+                              final ids =
+                                  _selectedFilters.map((a) => a.id).toList();
+                              context
+                                  .read<DashboardBloc>()
+                                  .add(FetchByAllergensEvent(ids));
                             },
                           );
                         },
                       );
-                    } else {
-                      return const Center(child: CircularProgressIndicator());
                     }
+                    return const Center(child: CircularProgressIndicator());
                   },
                 ),
               ),

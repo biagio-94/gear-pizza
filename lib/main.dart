@@ -81,15 +81,31 @@ class MyApp extends StatelessWidget {
 
           return BlocBuilder<ThemeCubit, ThemeState>(
             builder: (context, state) {
-              debugPrint("state is: $state");
+              final isLight = state is LightThemeState;
+
               return MaterialApp.router(
-                theme: state is LightThemeState ? lightTheme : darkTheme,
+                theme: isLight ? lightTheme : darkTheme,
                 routeInformationProvider: router.routeInformationProvider,
                 routeInformationParser: router.routeInformationParser,
                 routerDelegate: router.routerDelegate,
                 localizationsDelegates: AppLocalizations.localizationsDelegates,
                 supportedLocales: AppLocalizations.supportedLocales,
                 debugShowCheckedModeBanner: false,
+                builder: (context, child) {
+                  final cs = Theme.of(context).colorScheme;
+                  SystemChrome.setSystemUIOverlayStyle(
+                    SystemUiOverlayStyle(
+                      statusBarColor: cs.surface,
+                      statusBarIconBrightness:
+                          isLight ? Brightness.dark : Brightness.light,
+                      systemNavigationBarColor: cs.surface,
+                      systemNavigationBarIconBrightness:
+                          isLight ? Brightness.dark : Brightness.light,
+                    ),
+                  );
+
+                  return child!;
+                },
               );
             },
           );

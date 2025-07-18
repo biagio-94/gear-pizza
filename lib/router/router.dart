@@ -19,7 +19,10 @@ import 'package:gearpizza/features/dashboard/screens/home_screen.dart';
 
 class MainRouter {
   final AuthBloc authBloc;
-  final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+  final _rootNavigatorKey = GlobalKey<NavigatorState>();
+  final _dashboardNavigatorKey = GlobalKey<NavigatorState>();
+  final _cartNavigatorKey = GlobalKey<NavigatorState>();
+  final _profileNavigatorKey = GlobalKey<NavigatorState>();
 
   MainRouter({required this.authBloc});
 
@@ -28,42 +31,35 @@ class MainRouter {
     refreshListenable: StreamToListenable([authBloc.stream]),
     redirect: (context, state) {
       final authState = authBloc.state;
+      final isAuth = authState is AuthAuthenticated;
+      final isRoleChoosen = isAuth && (authState).isRoleChoosen;
 
-      final bool isAuth = authState is AuthAuthenticated;
-      final bool isGoToResetpass = authState is AuthResetPasswordState ||
-          authState is AuthPasswordResetEmailSent;
-      final bool isGoToRegister = authState is AuthRegisterState ||
-          authState is AuthEmailVerificationSent;
+      final path = state.uri.path;
 
-      final bool isOtpVerify = authState is AuthOtpSentState;
-
-      final bool goingToLogin = state.uri.path == '/login' ||
-          state.uri.path == '/register' ||
-          state.uri.path == '/reset-password';
-
-      // 🔒 Se non autenticato e non su login, reindirizza a login
-
-      // 🔒 Proteggi schermate per utenti autenticati
-      if (isGoToRegister) return '/register';
-      if (isGoToResetpass) return '/reset-password';
-      if (isOtpVerify) return '/otp-verification';
-
-      // 🔁 Se non autenticato e non già su login, torna a login
-      if ((!isAuth && !goingToLogin) || authState is AuthUnauthenticated) {
+      // 1) Se non autenticato, vai sempre a /login (a meno che non sia già in register/reset/otp)
+      final onAuthScreens = path == '/login' ||
+          path == '/register' ||
+          path == '/reset-password' ||
+          path == '/otp-verification';
+      if (!isAuth && !onAuthScreens) {
         return '/login';
       }
 
-      // ✅ Se autenticato, controlla se ha completato l'onboarding
-      if (authState is AuthAuthenticated) {
-        final isRoleChoosen = authState.isRoleChoosen;
-
-        if (!isRoleChoosen) {
-          return '/chooseRole';
-        }
-        if (isRoleChoosen) {
+      // 3) Se autenticato e onboarding completato:
+      if (isAuth && isRoleChoosen) {
+        // Blocca l'accesso alle auth-screens rimandando a /dashboard
+        if (onAuthScreens) {
           return '/dashboard';
         }
-        return null;
+        // Altrimenti, se chiedo /dashboard, /cart o /profile (o altre pagine interne),
+        // lascio che il router gestisca normalmente la navigazione:
+        if (path.startsWith('/dashboard') ||
+            path == '/cart' ||
+            path == '/profile') {
+          return null;
+        }
+        // Se provi a digitare un path non riconosciuto, fallback a /dashboard:
+        return '/dashboard';
       }
 
       return null;
@@ -73,11 +69,13 @@ class MainRouter {
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) => MainScaffold(
           navigationShell: navigationShell,
-          navigatorKey: navigatorKey,
+          navigatorKey: _rootNavigatorKey,
         ),
         branches: [
           // Dashboard branch
           StatefulShellBranch(
+            navigatorKey: _dashboardNavigatorKey,
+            initialLocation: '/dashboard',
             routes: [
               GoRoute(
                 path: '/dashboard',
@@ -90,19 +88,23 @@ class MainRouter {
           ),
           // Chats branch
           StatefulShellBranch(
+            navigatorKey: _cartNavigatorKey,
+            initialLocation: '/cart',
             routes: [
               GoRoute(
                 path: '/cart',
-                builder: (context, state) => const Center(),
+                builder: (context, state) => Scaffold(body: const Center()),
               ),
             ],
           ),
           // Clients branch
           StatefulShellBranch(
+            navigatorKey: _profileNavigatorKey,
+            initialLocation: '/profile',
             routes: [
               GoRoute(
                 path: '/profile',
-                builder: (context, state) => const Center(),
+                builder: (context, state) => Scaffold(body: const Center()),
               ),
             ],
           ),
@@ -133,6 +135,7 @@ class _MainScaffoldState extends State<MainScaffold>
 
   int get _currentIndex => widget.navigationShell.currentIndex;
   void _onItemTapped(int index) {
+    debugPrint("index: $index");
     widget.navigationShell.goBranch(index);
   }
 

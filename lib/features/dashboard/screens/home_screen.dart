@@ -16,33 +16,16 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  final ScrollController _scrollController = ScrollController();
-  Timer? _autoScrollTimer;
-
   @override
   void initState() {
     super.initState();
     final bloc = context.read<DashboardBloc>();
     bloc.add(FetchAllergenEvent());
     bloc.add(FetchRestaurantsEvent());
-
-    // Auto-scroll periodico per la lista orizzontale di allergeni
-    _autoScrollTimer = Timer.periodic(const Duration(seconds: 3), (_) {
-      if (_scrollController.hasClients) {
-        final max = _scrollController.position.maxScrollExtent;
-        final cur = _scrollController.offset;
-        final next = (cur + 120) >= max ? 0.0 : cur + 120;
-        _scrollController.animateTo(next,
-            duration: const Duration(milliseconds: 800),
-            curve: Curves.easeInOut);
-      }
-    });
   }
 
   @override
   void dispose() {
-    _autoScrollTimer?.cancel();
-    _scrollController.dispose();
     super.dispose();
   }
 
@@ -52,30 +35,42 @@ class _HomePageState extends State<HomePage> {
       body: Column(
         children: [
           SizedBox(
-            height: 90,
+            height: 60, // Ridotto da 90
             child: BlocBuilder<DashboardBloc, DashboardState>(
               buildWhen: (_, s) => s is AllergensLoaded,
               builder: (context, state) {
                 if (state is AllergensLoaded) {
                   final List<AllergenDto> allergens = state.allergens;
                   return ListView.builder(
-                    controller: _scrollController,
                     scrollDirection: Axis.horizontal,
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
                     itemCount: allergens.length,
                     itemBuilder: (_, i) {
                       final a = allergens[i];
                       return Container(
-                        margin: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 16),
+                        margin: const EdgeInsets.symmetric(horizontal: 6),
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 8),
+                            horizontal: 10, vertical: 6),
                         decoration: BoxDecoration(
-                          color: Colors.orange.shade100,
-                          borderRadius: BorderRadius.circular(12),
+                          color: Colors.orange.shade50,
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black12,
+                              blurRadius: 4,
+                              offset: Offset(0, 2),
+                            ),
+                          ],
                         ),
                         child: Center(
-                          child: Text(a.name,
-                              style: const TextStyle(fontSize: 16)),
+                          child: Text(
+                            a.name,
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.deepOrange,
+                            ),
+                          ),
                         ),
                       );
                     },

@@ -1,5 +1,4 @@
 import 'package:dio/dio.dart';
-import 'package:flutter/material.dart';
 import 'package:gearpizza/common/models/items_allergens.dart';
 import 'package:gearpizza/common/models/read_items_allergens200_response.dart';
 import 'package:gearpizza/common/utils/directus_query_builder.dart';

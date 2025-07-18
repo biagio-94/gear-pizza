@@ -1,5 +1,3 @@
-// lib/common/components/restaurant_products_list.dart
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gearpizza/common/components/pizza_card.dart';
@@ -7,7 +5,7 @@ import 'package:gearpizza/features/dashboard/bloc/dashboard_bloc.dart';
 import 'package:gearpizza/features/dashboard/bloc/dashboard_state.dart';
 import 'package:gearpizza/features/dashboard/models/pizza_dto.dart';
 
-/// Un componente che espone la SliverGrid di pizze, gestendo loading e empty state.
+/// Un componente che espone la SliverList di pizze, gestendo loading e empty state.
 class RestaurantProductsList extends StatelessWidget {
   /// Callback opzionale quando si tocca una pizza
   final void Function(PizzaDto pizza)? onPizzaTap;
@@ -28,13 +26,7 @@ class RestaurantProductsList extends StatelessWidget {
           }
           return SliverPadding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
-            sliver: SliverGrid(
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                mainAxisSpacing: 12,
-                crossAxisSpacing: 12,
-                childAspectRatio: 0.7,
-              ),
+            sliver: SliverList(
               delegate: SliverChildBuilderDelegate(
                 (context, index) {
                   final pizza = pizzas[index];

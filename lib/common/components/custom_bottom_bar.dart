@@ -88,15 +88,15 @@ class _NavItem extends StatelessWidget {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: isSelected
-                    ? colorScheme.primary.withOpacity(0.2)
+                    ? colorScheme.primary.withOpacity(0.3)
                     : Colors.transparent,
               ),
               child: Icon(
                 icon,
                 color: isSelected
-                    ? colorScheme.primary
+                    ? colorScheme.onPrimary
                     : colorScheme.onSurfaceVariant,
-                size: 26,
+                size: 22,
               ),
             ),
             Text(

@@ -92,11 +92,11 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
 
             // 3) Header titolo "Menu Pizze"
             SliverPadding(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
               sliver: SliverToBoxAdapter(
                 child: Text(
-                  'Menu Pizze',
-                  style: AppTextStyles.titleLarge(context),
+                  'Le nostre pizze',
+                  style: AppTextStyles.titleMedium(context),
                 ),
               ),
             ),

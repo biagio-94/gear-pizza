@@ -10,6 +10,7 @@ import 'package:gearpizza/common/utils/exception_handler.dart';
 import 'package:gearpizza/common/utils/serializers.dart';
 import 'package:gearpizza/features/dashboard/api/dashboard_endpoints.dart';
 import 'package:gearpizza/features/dashboard/models/alergen_dto.dart';
+import 'package:gearpizza/features/dashboard/models/filters_dto.dart';
 import 'package:gearpizza/features/dashboard/models/pizza_dto.dart';
 import 'package:gearpizza/features/dashboard/models/restaurants_dto.dart';
 import 'package:gearpizza/common/services/api_service.dart';
@@ -51,6 +52,32 @@ class DashboardRepository {
       rethrow;
     } catch (e) {
       throw DashboardServiceException('Errore imprevisto fetch ristoranti: $e');
+    }
+  }
+
+  Future<List<FiltersDto>> fetchAllFilters() async {
+    try {
+      // Simulo un piccolo delay da rete
+      await Future.delayed(const Duration(milliseconds: 500));
+
+      // Mock Filtri generici per filtrare ristoranti
+      final List<Map<String, dynamic>> rawData = [
+        {'id': 1, 'name': 'Italiano'},
+        {'id': 2, 'name': 'Cinese'},
+        {'id': 3, 'name': 'Fast Food'},
+        {'id': 4, 'name': 'Prezzo: basso → alto'},
+        {'id': 5, 'name': 'Distanza: vicino → lontano'},
+        {'id': 6, 'name': 'Valutazione: ⭐️⭐️⭐️+'},
+        {'id': 7, 'name': 'Aperto 24h'},
+      ];
+
+      return rawData.map((item) => FiltersDto.fromMap(item)).toList();
+    } on DioException catch (e) {
+      throw mapDioExceptionToCustomException(e);
+    } on DashboardServiceException {
+      rethrow;
+    } catch (e) {
+      throw DashboardServiceException('Errore imprevisto fetch filtri: $e');
     }
   }
 

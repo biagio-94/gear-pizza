@@ -31,7 +31,7 @@ class AppTextStyles {
 
   static TextStyle bodyLarge(BuildContext context) => TextStyle(
         fontSize: AppFontSizes.bodyTextLarge,
-        fontWeight: AppFontSizes.regular,
+        fontWeight: AppFontSizes.bold,
         height: 1.5,
         color: Theme.of(context).colorScheme.onSurface,
       );

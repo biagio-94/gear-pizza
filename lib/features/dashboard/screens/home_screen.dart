@@ -1,12 +1,10 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gearpizza/common/components/restaurants_card.dart';
 import 'package:gearpizza/features/dashboard/bloc/dashboard_bloc.dart';
 import 'package:gearpizza/features/dashboard/bloc/dashboard_event.dart';
 import 'package:gearpizza/features/dashboard/bloc/dashboard_state.dart';
-import 'package:gearpizza/features/dashboard/models/alergen_dto.dart';
+import 'package:gearpizza/features/dashboard/components/home_filters_bar.dart';
 import 'package:gearpizza/features/dashboard/models/restaurants_dto.dart';
 
 class HomePage extends StatefulWidget {
@@ -21,6 +19,7 @@ class _HomePageState extends State<HomePage> {
     super.initState();
     final bloc = context.read<DashboardBloc>();
     bloc.add(FetchAllergenEvent());
+    bloc.add(fetchAllFilters());
     bloc.add(FetchRestaurantsEvent());
   }
 
@@ -31,58 +30,23 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
       body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(
-            height: 60, // Ridotto da 90
-            child: BlocBuilder<DashboardBloc, DashboardState>(
-              buildWhen: (_, s) => s is AllergensLoaded,
-              builder: (context, state) {
-                if (state is AllergensLoaded) {
-                  final List<AllergenDto> allergens = state.allergens;
-                  return ListView.builder(
-                    scrollDirection: Axis.horizontal,
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    itemCount: allergens.length,
-                    itemBuilder: (_, i) {
-                      final a = allergens[i];
-                      return Container(
-                        margin: const EdgeInsets.symmetric(horizontal: 6),
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: Colors.orange.shade50,
-                          borderRadius: BorderRadius.circular(20),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black12,
-                              blurRadius: 4,
-                              offset: Offset(0, 2),
-                            ),
-                          ],
-                        ),
-                        child: Center(
-                          child: Text(
-                            a.name,
-                            style: const TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
-                              color: Colors.deepOrange,
-                            ),
-                          ),
-                        ),
-                      );
-                    },
-                  );
-                } else {
-                  return const Center(child: CircularProgressIndicator());
-                }
-              },
+          HomeFiltersBar(),
+          // 2) Ristoranti con ExpansionTile
+          Padding(
+            padding: const EdgeInsets.only(top: 20, left: 20),
+            child: Text(
+              'I nostri ristoranti',
+              textAlign: TextAlign.left,
+              style: theme.textTheme.headlineSmall
+                  ?.copyWith(fontWeight: FontWeight.bold),
             ),
           ),
-
-          // 2) Ristoranti con ExpansionTile
           Expanded(
             child: BlocBuilder<DashboardBloc, DashboardState>(
               buildWhen: (_, s) => s is RestaurantsLoaded,

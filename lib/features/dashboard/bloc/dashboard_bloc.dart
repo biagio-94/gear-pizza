@@ -45,6 +45,21 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
       }
     });
 
+    on<fetchAllFilters>((event, emit) async {
+      loadingBloc.showLoading('Caricamento filters...');
+      try {
+        final filters = await dashboardService.fetchAllFilters();
+        emit(FiltersLoaded(filters));
+      } on ApiServiceException catch (e) {
+        exceptionBloc.throwExceptionState(e.message);
+      } catch (e) {
+        exceptionBloc
+            .throwExceptionState('Errore durante il fetch dell\'allergene');
+      } finally {
+        loadingBloc.hideLoading();
+      }
+    });
+
     on<FetchPizzasEvent>((event, emit) async {
       loadingBloc.showLoading('Caricamento pizze...');
       try {

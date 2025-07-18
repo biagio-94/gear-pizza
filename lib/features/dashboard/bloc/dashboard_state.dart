@@ -1,6 +1,7 @@
 // dashboard_state.dart
 import 'package:flutter/foundation.dart';
 import 'package:gearpizza/features/dashboard/models/alergen_dto.dart';
+import 'package:gearpizza/features/dashboard/models/filters_dto.dart';
 import 'package:gearpizza/features/dashboard/models/pizza_dto.dart';
 import 'package:gearpizza/features/dashboard/models/restaurants_dto.dart';
 
@@ -19,6 +20,11 @@ class RestaurantsLoaded extends DashboardState {
 class AllergensLoaded extends DashboardState {
   final List<AllergenDto> allergens;
   const AllergensLoaded(this.allergens);
+}
+
+class FiltersLoaded extends DashboardState {
+  final List<FiltersDto> filters;
+  const FiltersLoaded(this.filters);
 }
 
 class PizzasLoaded extends DashboardState {

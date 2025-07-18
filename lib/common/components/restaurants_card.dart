@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:gearpizza/common/styles/text_styles.dart';
 import 'package:gearpizza/common/utils/image_download_helper.dart';
 import 'package:gearpizza/features/dashboard/models/restaurants_dto.dart';
 
@@ -12,21 +13,21 @@ class RestaurantCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      elevation: 4,
-      clipBehavior: Clip.hardEdge,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // Immagine in alto a tutta larghezza con angoli arrotondati
-          SizedBox(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        ClipRRect(
+          borderRadius: const BorderRadius.vertical(
+            top: Radius.circular(16),
+            bottom: Radius.circular(16),
+          ),
+          child: SizedBox(
             height: 160,
             child: restaurant.coverImageUrl != null
                 ? ImageDownloadHelper.loadNetworkImage(
                     restaurant.coverImageUrl!,
                     fit: BoxFit.cover,
+                    width: double.infinity,
                   )
                 : Container(
                     color: Colors.grey[300],
@@ -37,42 +38,34 @@ class RestaurantCard extends StatelessWidget {
                     ),
                   ),
           ),
-
-          // Spazio tra immagine e testo
-          const SizedBox(height: 12),
-
-          // Nome ristorante
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Text(
+        ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Text(
               restaurant.name,
-              style: const TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
-              textAlign: TextAlign.left,
-            ),
-          ),
-
-          // Spazio
-          const SizedBox(height: 4),
-
-          // Info aggiuntive (es. proprietario o indirizzo)
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Text(
-              restaurant.ownerName,
-              style: const TextStyle(
-                fontSize: 14,
-                color: Colors.black54,
-              ),
-              maxLines: 1,
+              style: AppTextStyles.bodyLarge(context),
               overflow: TextOverflow.ellipsis,
-              textAlign: TextAlign.left,
             ),
-          ),
-        ],
-      ),
+            Row(
+              children: [
+                Text(
+                  "4.8",
+                  style: AppTextStyles.body(context),
+                ),
+                const SizedBox(width: 4),
+                const Icon(Icons.star, size: 16, color: Colors.amber),
+              ],
+            ),
+          ],
+        ),
+        Text(
+          restaurant.ownerName,
+          style: AppTextStyles.bodySmall(context),
+          overflow: TextOverflow.ellipsis,
+        ),
+      ],
     );
   }
 }

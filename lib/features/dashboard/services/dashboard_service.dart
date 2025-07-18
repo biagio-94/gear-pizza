@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:gearpizza/features/auth/services/auth_service.dart';
+import 'package:gearpizza/features/dashboard/models/filters_dto.dart';
 import '../../../common/services/api_service_exception.dart';
 import '../../../common/utils/exception_handler.dart';
 import '../repositories/dashboard_repository.dart';
@@ -17,6 +18,19 @@ class DashboardService {
   Future<List<RestaurantDto>> fetchAllRestaurants() async {
     try {
       return await dashboardRepository.fetchAllRestaurants();
+    } on ApiServiceException catch (_) {
+      rethrow;
+    } on DioException catch (e) {
+      throw mapDioExceptionToCustomException(e);
+    } catch (e) {
+      throw GenericException();
+    }
+  }
+
+  /// Ritorna la lista di filtri mock per i ristoranti
+  Future<List<FiltersDto>> fetchAllFilters() async {
+    try {
+      return await dashboardRepository.fetchAllFilters();
     } on ApiServiceException catch (_) {
       rethrow;
     } on DioException catch (e) {

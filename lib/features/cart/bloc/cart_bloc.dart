@@ -18,7 +18,7 @@ class CartBloc extends Bloc<CartEvent, CartState> {
   final exceptionBloc = GetIt.instance<ExceptionBloc>();
 
   CartBloc(this._dashboardService, this._cartService)
-      : super(CartEmptyState()) {
+      : super(CartStateInitial()) {
     on<LoadCartDetailsEvent>(_onLoadCartDetails);
     on<AddOneItemEvent>(_onAddOne);
     on<RemoveOneItemEvent>(_onRemoveOne);

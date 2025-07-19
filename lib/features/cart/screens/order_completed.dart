@@ -9,8 +9,8 @@ import 'package:gearpizza/features/cart/bloc/cart_bloc.dart';
 import 'package:gearpizza/features/cart/bloc/cart_state.dart';
 import 'package:gearpizza/features/cart/model/order_dto.dart';
 
-class OrderResultScreen extends StatelessWidget {
-  const OrderResultScreen({Key? key}) : super(key: key);
+class OrderCompleteted extends StatelessWidget {
+  const OrderCompleteted({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -25,7 +25,7 @@ class OrderResultScreen extends StatelessWidget {
     return BlocListener<CartBloc, CartState>(
       listener: (context, state) {
         if (state is CartEmptyState) {
-          context.go("/dashboard");
+          context.pushReplacement("/cart");
         }
       },
       child: Scaffold(
@@ -67,8 +67,8 @@ class OrderResultScreen extends StatelessWidget {
           height: 56,
           child: FloatingActionButton.extended(
             onPressed: () {
+              context.read<ProductCardBloc>().add(ClearProductCardEvent());
               context.read<CartBloc>().add(ClearCartEvent());
-              context.read<ProductCardBloc>().add(ClearProductCardEcent());
             },
             backgroundColor: Theme.of(context).colorScheme.secondary,
             foregroundColor: Theme.of(context).colorScheme.onSecondary,

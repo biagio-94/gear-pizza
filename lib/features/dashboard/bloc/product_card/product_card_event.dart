@@ -29,4 +29,4 @@ class UpdateProductEvent extends ProductCardEvent {
   });
 }
 
-class ClearProductCardEcent extends ProductCardEvent {}
+class ClearProductCardEvent extends ProductCardEvent {}

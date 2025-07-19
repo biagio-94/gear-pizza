@@ -8,7 +8,7 @@ class ProductCardBloc extends Bloc<ProductCardEvent, ProductCardState> {
     on<AddProductEvent>(_onAddProduct);
     on<RemoveProductEvent>(_onRemoveProduct);
     on<UpdateProductEvent>(_onUpdateProduct);
-    on<ClearProductCardEcent>(_onClearProductCard);
+    on<ClearProductCardEvent>(_onClearProductCard);
   }
 
   Future<void> _onAddProduct(
@@ -93,7 +93,7 @@ class ProductCardBloc extends Bloc<ProductCardEvent, ProductCardState> {
   }
 
   void _onClearProductCard(
-      ClearProductCardEcent event, Emitter<ProductCardState> emit) {
+      ClearProductCardEvent event, Emitter<ProductCardState> emit) {
     emit(EmptyProductCardState());
   }
 }

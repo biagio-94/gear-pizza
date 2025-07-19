@@ -12,12 +12,59 @@ import 'package:gearpizza/features/dashboard/models/restaurants_dto.dart';
 import 'package:gearpizza/common/services/api_service.dart';
 import 'package:gearpizza/features/dashboard/services/dashboard_service_exception.dart';
 
+/// Repository con caching in-memory per dati poco dinamici e fetch singolo con cache:
+/// - Ristoranti, Filtri, Allergeni (TTL 1h)
+/// - Ristorante by id (TTL 5min)
+/// - Pizza by id (TTL 5min)
 class DashboardRepository {
   final ApiService _apiService;
 
   DashboardRepository(this._apiService);
 
+  // Cache globali
+  List<RestaurantDto>? _restaurantsCache;
+  DateTime? _restaurantsCachedAt;
+
+  List<FiltersDto>? _filtersCache;
+  DateTime? _filtersCachedAt;
+
+  List<AllergenDto>? _allergensCache;
+  DateTime? _allergensCachedAt;
+
+  // Cache by id
+  final Map<int, RestaurantDto> _restaurantByIdCache = {};
+  final Map<int, DateTime> _restaurantByIdCachedAt = {};
+
+  final Map<int, PizzaDto> _pizzaByIdCache = {};
+  final Map<int, DateTime> _pizzaByIdCachedAt = {};
+
+  // TTL durations
+  final Duration _cacheTTL = const Duration(hours: 1);
+  final Duration _byIdTTL = const Duration(minutes: 5);
+
+  bool _cacheValid(DateTime? timestamp, Duration ttl) {
+    return timestamp != null && DateTime.now().difference(timestamp) < ttl;
+  }
+
+  /// Invalidate all caches
+  void clearCache() {
+    _restaurantsCache = null;
+    _restaurantsCachedAt = null;
+    _filtersCache = null;
+    _filtersCachedAt = null;
+    _allergensCache = null;
+    _allergensCachedAt = null;
+    _restaurantByIdCache.clear();
+    _restaurantByIdCachedAt.clear();
+    _pizzaByIdCache.clear();
+    _pizzaByIdCachedAt.clear();
+  }
+
   Future<List<RestaurantDto>> fetchAllRestaurants() async {
+    if (_cacheValid(_restaurantsCachedAt, _cacheTTL) &&
+        _restaurantsCache != null) {
+      return _restaurantsCache!;
+    }
     try {
       final qb = DirectusQueryBuilder()
         ..fields([
@@ -29,29 +76,33 @@ class DashboardRepository {
           'pizzas'
         ])
         ..populate(['cover_image', 'owner']);
-
       final endpoint = DashboardEndpoints.getRestaurants(queryBuilder: qb);
       final resp = await _apiService.get(endpoint);
+      if (resp.statusCode != 200) throw FetchRestaurantsException();
 
-      if (resp.statusCode != 200) {
-        throw FetchRestaurantsException();
-      }
-
-      final List<dynamic> rawData = resp.data['data'] ?? [];
-
-      return rawData
-          .map((item) => RestaurantDto.fromMap(item as Map<String, dynamic>))
+      final rawData = resp.data['data'] as List<dynamic>? ?? [];
+      final list = rawData
+          .map((e) => RestaurantDto.fromMap(e as Map<String, dynamic>))
           .toList();
+      _restaurantsCache = list;
+      _restaurantsCachedAt = DateTime.now();
+      return list;
     } on DioException catch (e) {
       throw mapDioExceptionToCustomException(e);
     } on DashboardServiceException {
       rethrow;
     } catch (e) {
-      throw DashboardServiceException('Errore imprevisto fetch ristoranti: $e');
+      throw DashboardServiceException(
+          'Errore imprevisto fetch ristoranti: \$e');
     }
   }
 
   Future<RestaurantDto> fetchRestaurantById({required int restaurantId}) async {
+    final cachedAt = _restaurantByIdCachedAt[restaurantId];
+    if (_cacheValid(cachedAt, _byIdTTL) &&
+        _restaurantByIdCache.containsKey(restaurantId)) {
+      return _restaurantByIdCache[restaurantId]!;
+    }
     try {
       final qb = DirectusQueryBuilder()
         ..fields([
@@ -66,41 +117,35 @@ class DashboardRepository {
         ..filter({
           'id': {'_eq': restaurantId}
         });
-
       final endpoint = DashboardEndpoints.getRestaurants(queryBuilder: qb);
       final resp = await _apiService.get(endpoint);
-
-      if (resp.statusCode != 200) {
-        throw FetchRestaurantsException();
-      }
-
-      final List<dynamic> rawData = resp.data['data'] ?? [];
-
-      if (rawData.isEmpty) {
+      if (resp.statusCode != 200) throw FetchRestaurantsException();
+      final data = resp.data['data'] as List<dynamic>?;
+      if (data == null || data.isEmpty)
         throw FetchRestaurantsException(
-            'Ristorante non trovato per id: $restaurantId');
-      }
-
-      // Prendo solo il primo elemento e lo trasformo in RestaurantDto
+            'Ristorante non trovato: \$restaurantId');
       final restaurant =
-          RestaurantDto.fromMap(rawData.first as Map<String, dynamic>);
+          RestaurantDto.fromMap(data.first as Map<String, dynamic>);
+      _restaurantByIdCache[restaurantId] = restaurant;
+      _restaurantByIdCachedAt[restaurantId] = DateTime.now();
       return restaurant;
     } on DioException catch (e) {
       throw mapDioExceptionToCustomException(e);
     } on DashboardServiceException {
       rethrow;
     } catch (e) {
-      throw DashboardServiceException('Errore imprevisto fetch ristoranti: $e');
+      throw DashboardServiceException(
+          'Errore imprevisto fetch ristorante: \$e');
     }
   }
 
   Future<List<FiltersDto>> fetchAllFilters() async {
+    if (_cacheValid(_filtersCachedAt, _cacheTTL) && _filtersCache != null) {
+      return _filtersCache!;
+    }
     try {
-      // Simulo un piccolo delay da rete
       await Future.delayed(const Duration(milliseconds: 500));
-
-      // Mock Filtri generici per filtrare ristoranti
-      final List<Map<String, dynamic>> rawData = [
+      final raw = [
         {'id': 1, 'name': 'Italiano'},
         {'id': 2, 'name': 'Cinese'},
         {'id': 3, 'name': 'Fast Food'},
@@ -109,45 +154,44 @@ class DashboardRepository {
         {'id': 6, 'name': 'Valutazione: ⭐️⭐️⭐️+'},
         {'id': 7, 'name': 'Aperto 24h'},
       ];
-
-      return rawData.map((item) => FiltersDto.fromMap(item)).toList();
+      final list = raw.map((e) => FiltersDto.fromMap(e)).toList();
+      _filtersCache = list;
+      _filtersCachedAt = DateTime.now();
+      return list;
     } on DioException catch (e) {
       throw mapDioExceptionToCustomException(e);
     } on DashboardServiceException {
       rethrow;
     } catch (e) {
-      throw DashboardServiceException('Errore imprevisto fetch filtri: $e');
+      throw DashboardServiceException('Errore imprevisto fetch filtri: \$e');
     }
   }
 
   Future<List<AllergenDto>> fetchAllAllergens() async {
+    if (_cacheValid(_allergensCachedAt, _cacheTTL) && _allergensCache != null) {
+      return _allergensCache!;
+    }
     try {
       final endpoint = DashboardEndpoints.getAllergens();
       final resp = await _apiService.get(endpoint);
-
-      if (resp.statusCode != 200) {
-        throw FetchAllergensException();
-      }
-
+      if (resp.statusCode != 200) throw FetchAllergensException();
       final parsed = standardSerializers.deserializeWith(
-        ReadItemsAllergens200Response.serializer,
-        resp.data,
-      );
-      final builtList = parsed?.data?.toList() ?? [];
-
-      return builtList.map((item) {
+          ReadItemsAllergens200Response.serializer, resp.data);
+      final built = parsed?.data?.toList() ?? [];
+      final list = built.map((item) {
         final raw = standardSerializers.serializeWith(
-          ItemsAllergens.serializer,
-          item,
-        ) as Map<String, dynamic>;
+            ItemsAllergens.serializer, item) as Map<String, dynamic>;
         return AllergenDto.fromMap(raw);
       }).toList();
+      _allergensCache = list;
+      _allergensCachedAt = DateTime.now();
+      return list;
     } on DioException catch (e) {
       throw mapDioExceptionToCustomException(e);
     } on DashboardServiceException {
       rethrow;
     } catch (e) {
-      throw DashboardServiceException('Errore imprevisto fetch ristoranti: $e');
+      throw DashboardServiceException('Errore imprevisto fetch allergeni: \$e');
     }
   }
 
@@ -160,38 +204,34 @@ class DashboardRepository {
           'cover_image.id',
           'cover_image.filename_download',
           'allergens.allergens_id.id',
-          'allergens.allergens_id.name',
+          'allergens.allergens_id.name'
         ])
-        ..populate([
-          'cover_image',
-          'allergens.allergens_id',
-        ])
+        ..populate(['cover_image', 'allergens.allergens_id'])
         ..filter({
           'restaurant': {'_eq': restaurantId}
         });
-
       final endpoint = DashboardEndpoints.getPizzas(queryBuilder: qb);
       final resp = await _apiService.get(endpoint);
-
-      if (resp.statusCode != 200) {
-        throw FetchPizzasException();
-      }
-
-      final List<dynamic> rawData = resp.data['data'] ?? [];
-
+      if (resp.statusCode != 200) throw FetchPizzasException();
+      final rawData = resp.data['data'] as List<dynamic>? ?? [];
       return rawData
-          .map((item) => PizzaDto.fromMap(item as Map<String, dynamic>))
+          .map((e) => PizzaDto.fromMap(e as Map<String, dynamic>))
           .toList();
     } on DioException catch (e) {
       throw mapDioExceptionToCustomException(e);
     } on DashboardServiceException {
       rethrow;
     } catch (e) {
-      throw DashboardServiceException('Errore imprevisto fetch pizze: $e');
+      throw DashboardServiceException('Errore imprevisto fetch pizze: \$e');
     }
   }
 
   Future<PizzaDto> fetchPizzaById(int pizzaId) async {
+    final cachedAt = _pizzaByIdCachedAt[pizzaId];
+    if (_cacheValid(cachedAt, _byIdTTL) &&
+        _pizzaByIdCache.containsKey(pizzaId)) {
+      return _pizzaByIdCache[pizzaId]!;
+    }
     try {
       final qb = DirectusQueryBuilder()
         ..fields([
@@ -200,35 +240,28 @@ class DashboardRepository {
           'cover_image.id',
           'cover_image.filename_download',
           'allergens.allergens_id.id',
-          'allergens.allergens_id.name',
+          'allergens.allergens_id.name'
         ])
-        ..populate([
-          'cover_image',
-          'allergens.allergens_id',
-        ])
+        ..populate(['cover_image', 'allergens.allergens_id'])
         ..filter({
           'id': {'_eq': pizzaId}
         });
-
       final endpoint = DashboardEndpoints.getPizzas(queryBuilder: qb);
       final resp = await _apiService.get(endpoint);
-
-      if (resp.statusCode != 200) {
-        throw FetchPizzasException();
-      }
-
-      final List<dynamic> rawData = resp.data['data'] ?? [];
-      if (rawData.isEmpty) {
-        throw FetchPizzasException('Pizza non trovata con id $pizzaId');
-      }
-
-      return PizzaDto.fromMap(rawData.first as Map<String, dynamic>);
+      if (resp.statusCode != 200) throw FetchPizzasException();
+      final data = resp.data['data'] as List<dynamic>?;
+      if (data == null || data.isEmpty)
+        throw FetchPizzasException('Pizza non trovata: \$pizzaId');
+      final pizza = PizzaDto.fromMap(data.first as Map<String, dynamic>);
+      _pizzaByIdCache[pizzaId] = pizza;
+      _pizzaByIdCachedAt[pizzaId] = DateTime.now();
+      return pizza;
     } on DioException catch (e) {
       throw mapDioExceptionToCustomException(e);
     } on DashboardServiceException {
       rethrow;
     } catch (e) {
-      throw DashboardServiceException('Errore imprevisto fetch pizza: $e');
+      throw DashboardServiceException('Errore imprevisto fetch pizza: \$e');
     }
   }
 
@@ -237,20 +270,18 @@ class DashboardRepository {
     required List<int> excludedAllergenIds,
   }) async {
     try {
-      // 1. Fai il fetch completo
       final allPizzas = await fetchPizzaByrestaurantId(restaurantId);
-
-      // 2. Filtro client-side: escludi pizze che contengono allergeni esclusi, non ho trovato ( almeno in tempo )
-      // un modo per fare query many-to-many
-      final filteredPizzas = allPizzas.where((pizza) {
-        final allergenIds = pizza.allergens.map((a) => a.id).toSet();
-        return allergenIds.intersection(excludedAllergenIds.toSet()).isEmpty;
+      return allPizzas.where((pizza) {
+        final ids = pizza.allergens.map((a) => a.id).toSet();
+        return ids.intersection(excludedAllergenIds.toSet()).isEmpty;
       }).toList();
-
-      return filteredPizzas;
+    } on DioException catch (e) {
+      throw mapDioExceptionToCustomException(e);
+    } on DashboardServiceException {
+      rethrow;
     } catch (e) {
       throw DashboardServiceException(
-          'Errore nel filtrare pizze per allergeni: $e');
+          'Errore imprevisto fetch pizze per allergeni: \$e');
     }
   }
 }

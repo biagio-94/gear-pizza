@@ -4,6 +4,8 @@ import 'package:gearpizza/features/dashboard/models/restaurants_dto.dart';
 
 abstract class CartState {}
 
+class CartStateInitial extends CartState {}
+
 class CartEmptyState extends CartState {}
 
 class CartLoadedState extends CartState {

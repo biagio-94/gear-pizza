@@ -1,6 +1,6 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter/material.dart';
-import 'package:gearpizza/features/cart/screens/order_resul_screen.dart';
+import 'package:gearpizza/features/cart/screens/order_completed.dart';
 import 'package:gearpizza/features/cart/screens/order_screen.dart';
 import 'package:go_router/go_router.dart';
 
@@ -31,7 +31,7 @@ final List<GoRoute> cartRoutes = [
         pageBuilder: (context, state) {
           return MaterialPage(
             key: state.pageKey,
-            child: OrderResultScreen(),
+            child: OrderCompleteted(),
           );
         },
       ),

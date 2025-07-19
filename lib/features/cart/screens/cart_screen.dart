@@ -6,9 +6,14 @@ import 'package:gearpizza/features/cart/bloc/cart_state.dart';
 import 'package:gearpizza/features/cart/components/cart_item_card.dart';
 import 'package:gearpizza/features/cart/components/checkout_button.dart';
 
-class CartScreen extends StatelessWidget {
-  const CartScreen({Key? key}) : super(key: key);
+class CartScreen extends StatefulWidget {
+  const CartScreen({super.key});
 
+  @override
+  State<CartScreen> createState() => _CartScreenState();
+}
+
+class _CartScreenState extends State<CartScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -24,14 +29,7 @@ class CartScreen extends StatelessWidget {
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       body: BlocBuilder<CartBloc, CartState>(
         builder: (context, state) {
-          if (state is CartEmptyState) {
-            return const Center(
-              child: Text(
-                'Il carrello è vuoto',
-                style: TextStyle(fontSize: 18, color: Colors.grey),
-              ),
-            );
-          } else if (state is CartLoadedState) {
+          if (state is CartLoadedState) {
             final items = state.items;
 
             return Column(
@@ -138,8 +136,15 @@ class CartScreen extends StatelessWidget {
                 ),
               ],
             );
+          } else if (state is CartEmptyState || state is CartStateInitial) {
+            return const Center(
+              child: Text(
+                'Il carrello è vuoto',
+                style: TextStyle(fontSize: 18, color: Colors.grey),
+              ),
+            );
           } else {
-            return const Center(child: CircularProgressIndicator());
+            return Center(child: CircularProgressIndicator());
           }
         },
       ),

@@ -10,12 +10,7 @@ class UserRoleService {
     switch (roleName.toLowerCase().trim()) {
       case 'admin':
         return Roles.admin;
-      case 'trainer':
-      case 'pt':
-      case 'personal_trainer':
-        return Roles.trainer;
       case 'user':
-      case 'cliente':
       default:
         return Roles.user;
     }

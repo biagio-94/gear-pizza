@@ -4,7 +4,8 @@ import 'package:flutter/material.dart';
 
 class AppColors {
   // Palette Glovo-inspired
-  static const Color glovoYellow = Color(0xFFFFD600); // Primary vibrant yellow
+  static const Color glovoYellow =
+      Color(0xFFFFC244); // Glovo vibrant yellow #FFC244
   static const Color glovoGreen = Color(0xFF00AB88);
   static const Color darkBackground = Color(0xFF121212);
   static const Color lightBackground = Color(0xFFFFFFFF);

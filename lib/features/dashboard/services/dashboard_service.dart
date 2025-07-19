@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:gearpizza/features/auth/services/auth_service.dart';
 import 'package:gearpizza/features/dashboard/models/filters_dto.dart';
+import 'package:gearpizza/features/dashboard/services/dashboard_service_exception.dart';
 import '../../../common/services/api_service_exception.dart';
 import '../../../common/utils/exception_handler.dart';
 import '../repositories/dashboard_repository.dart';
@@ -18,6 +19,8 @@ class DashboardService {
   Future<List<RestaurantDto>> fetchAllRestaurants() async {
     try {
       return await dashboardRepository.fetchAllRestaurants();
+    } on DashboardServiceException catch (_) {
+      rethrow;
     } on ApiServiceException catch (_) {
       rethrow;
     } on DioException catch (e) {
@@ -32,6 +35,8 @@ class DashboardService {
     try {
       return await dashboardRepository.fetchRestaurantById(
           restaurantId: restaurantId);
+    } on DashboardServiceException catch (_) {
+      rethrow;
     } on ApiServiceException catch (_) {
       rethrow;
     } on DioException catch (e) {
@@ -45,6 +50,8 @@ class DashboardService {
   Future<List<FiltersDto>> fetchAllFilters() async {
     try {
       return await dashboardRepository.fetchAllFilters();
+    } on DashboardServiceException catch (_) {
+      rethrow;
     } on ApiServiceException catch (_) {
       rethrow;
     } on DioException catch (e) {
@@ -58,6 +65,8 @@ class DashboardService {
   Future<List<AllergenDto>> fetchAllAllergens() async {
     try {
       return await dashboardRepository.fetchAllAllergens();
+    } on DashboardServiceException catch (_) {
+      rethrow;
     } on ApiServiceException catch (_) {
       rethrow;
     } on DioException catch (e) {
@@ -73,6 +82,8 @@ class DashboardService {
   }) async {
     try {
       return await dashboardRepository.fetchPizzaByrestaurantId(restaurantId);
+    } on DashboardServiceException catch (_) {
+      rethrow;
     } on ApiServiceException catch (_) {
       rethrow;
     } on DioException catch (e) {
@@ -87,6 +98,8 @@ class DashboardService {
   }) async {
     try {
       return await dashboardRepository.fetchPizzaById(pizzaId);
+    } on DashboardServiceException catch (_) {
+      rethrow;
     } on ApiServiceException catch (_) {
       rethrow;
     } on DioException catch (e) {
@@ -107,11 +120,13 @@ class DashboardService {
         restaurantId: restaurantId,
         excludedAllergenIds: excludedAllergenIds,
       );
+    } on DashboardServiceException catch (_) {
+      rethrow;
     } on ApiServiceException catch (_) {
       rethrow;
     } on DioException catch (e) {
       throw mapDioExceptionToCustomException(e);
-    } catch (_) {
+    } catch (e) {
       throw GenericException();
     }
   }

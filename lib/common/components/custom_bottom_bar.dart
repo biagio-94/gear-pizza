@@ -84,7 +84,7 @@ class __NavItemState extends State<_NavItem>
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 300),
-      lowerBound: 0.9, // meno ridotto
+      lowerBound: 0.9,
       upperBound: 1.0,
       value: widget.index == widget.selectedIndex ? 1.0 : 0.9,
     );
@@ -133,7 +133,7 @@ class __NavItemState extends State<_NavItem>
                   color: isSelected
                       ? widget.colorScheme.onPrimary
                       : widget.colorScheme.onSurfaceVariant,
-                  size: 24, // dimensione base più grande
+                  size: 24,
                 ),
               ),
             ),

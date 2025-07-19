@@ -1,5 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:gearpizza/features/cart/repositories/cart_repository.dart';
+import 'package:gearpizza/features/cart/services/cart_service.dart';
 import 'package:get_it/get_it.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:local_auth/local_auth.dart';
@@ -63,4 +65,11 @@ Future<void> setupServiceLocator() async {
 
   getIt.registerLazySingleton<DashboardService>(() =>
       DashboardService(getIt<DashboardRepository>(), getIt<AuthService>()));
+
+  getIt.registerLazySingleton<CartRepository>(
+      () => CartRepository(getIt<ApiService>()));
+
+  getIt.registerLazySingleton<CartService>(() => CartService(
+        getIt<CartRepository>(),
+      ));
 }

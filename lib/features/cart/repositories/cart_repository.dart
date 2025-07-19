@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:dio/dio.dart';
 import 'package:gearpizza/common/services/api_service.dart';
 import 'package:gearpizza/common/utils/exception_handler.dart';
@@ -43,7 +45,7 @@ class CartRepository {
         data: customer.toMap(),
       );
 
-      if (resp.statusCode != 201) {
+      if (resp.statusCode != 200) {
         throw CreateCustomerException();
       }
 
@@ -61,13 +63,32 @@ class CartRepository {
 
   Future<OrderDto> createOrder({required OrderDto order}) async {
     try {
+      int? helpingImageId;
+
+      if (order.helpingImage != null && order.helpingImage!.isNotEmpty) {
+        // Prendo l'immagine dal pathLocale
+        final file = File(order.helpingImage!);
+        helpingImageId = await _apiService.uploadFileToDirectus(file);
+      }
+
+      // Creo una copia dell'order con helpingImage aggiornata (id come stringa)
+      final orderToSend = OrderDto(
+        id: order.id,
+        status: order.status,
+        restaurantId: order.restaurantId,
+        customerId: order.customerId,
+        address: order.address,
+        helpingImage: helpingImageId != null ? helpingImageId.toString() : null,
+        pizzaIds: order.pizzaIds,
+      );
+
       final endpoint = CartEndpoints.createOrder();
       final resp = await _apiService.post(
         endpoint,
-        data: order.toMap(),
+        data: orderToSend.toMap(),
       );
 
-      if (resp.statusCode != 201) {
+      if (resp.statusCode != 200 && resp.statusCode != 201) {
         throw CreateOrderException();
       }
 
@@ -81,6 +102,19 @@ class CartRepository {
     } catch (e) {
       throw CartServiceException(
           'Errore imprevisto durante la creazione ordine: $e');
+    }
+  }
+
+  Future<String> uploadFileToDirectus(File file) async {
+    final form = FormData.fromMap({
+      'file': await _apiService.uploadFileToDirectus(file),
+    });
+
+    final resp = await _apiService.postMultipart('/files', form);
+    if (resp.statusCode == 200 || resp.statusCode == 201) {
+      return resp.data['data']['id'] as String;
+    } else {
+      throw Exception('Upload image failed: ${resp.statusCode}');
     }
   }
 }

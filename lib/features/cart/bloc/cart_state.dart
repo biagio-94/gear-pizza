@@ -1,4 +1,5 @@
 import 'package:gearpizza/features/cart/model/card_item_dto.dart';
+import 'package:gearpizza/features/cart/model/order_dto.dart';
 import 'package:gearpizza/features/dashboard/models/restaurants_dto.dart';
 
 abstract class CartState {}
@@ -27,4 +28,10 @@ class CartLoadedState extends CartState {
       totalPrice: totalPrice ?? this.totalPrice,
     );
   }
+}
+
+class CartSuccessState extends CartState {
+  final OrderDto order;
+
+  CartSuccessState({required this.order});
 }

@@ -2,6 +2,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gearpizza/features/cart/bloc/cart_event.dart';
 import 'package:gearpizza/features/cart/bloc/cart_state.dart';
 import 'package:gearpizza/features/cart/model/card_item_dto.dart';
+import 'package:gearpizza/features/cart/model/customer_dto.dart';
+import 'package:gearpizza/features/cart/model/order_dto.dart';
+import 'package:gearpizza/features/cart/services/cart_service.dart';
 import 'package:gearpizza/features/dashboard/services/dashboard_service.dart';
 import 'package:get_it/get_it.dart';
 import 'package:gearpizza/common/bloc/loading_bloc.dart';
@@ -10,14 +13,17 @@ import 'package:gearpizza/common/utils/bloc_exception_helper.dart';
 
 class CartBloc extends Bloc<CartEvent, CartState> {
   final DashboardService _dashboardService;
+  final CartService _cartService;
   final loadingBloc = GetIt.instance<LoadingBloc>();
   final exceptionBloc = GetIt.instance<ExceptionBloc>();
 
-  CartBloc(this._dashboardService) : super(CartEmptyState()) {
+  CartBloc(this._dashboardService, this._cartService)
+      : super(CartEmptyState()) {
     on<LoadCartDetailsEvent>(_onLoadCartDetails);
     on<AddOneItemEvent>(_onAddOne);
     on<RemoveOneItemEvent>(_onRemoveOne);
     on<ClearCartEvent>(_onClearCart);
+    on<CompleteOrder>(_onCompleteOrder);
   }
 
   Future<void> _onLoadCartDetails(
@@ -46,6 +52,43 @@ class CartBloc extends Bloc<CartEvent, CartState> {
           totalPrice: total,
           restaurant: restaurantData,
         ));
+      },
+    );
+  }
+
+  Future<void> _onCompleteOrder(
+    CompleteOrder event,
+    Emitter<CartState> emit,
+  ) async {
+    await ExecutionHelper.run(
+      showLoading: () => loadingBloc.showLoading('Completamento ordine...'),
+      hideLoading: () => loadingBloc.hideLoading(),
+      onError: (msg) => exceptionBloc.throwExceptionState(msg),
+      action: () async {
+        // Recupero o creo il customer basandomi sull'email
+        final CustomerDto customer = await _cartService.getOrCreateCustomer(
+          email: event.customerInfo.emailAddress,
+          name: event.customerInfo.name,
+          restaurantId: event.customerInfo.restaurantId,
+        );
+
+        // Costruisco l'OrderDto usando l'id restituito dal customer appena ottenuto
+        final OrderDto order = OrderDto(
+          status: event.orderInfo.status, // Imposto lo stato dell'ordine
+          restaurantId:
+              event.orderInfo.restaurantId, // Associazione al ristorante
+          customerId: customer.id!, // Uso l'id del customer
+          address: event.orderInfo.address, // Indirizzo di consegna
+          helpingImage:
+              event.orderInfo.helpingImage, // Eventuale immagine di supporto
+          pizzaIds: event.orderInfo.pizzaIds, // Lista di ID pizze selezionate
+        );
+
+        // Invio la richiesta per creare l'ordine sul server
+        final OrderDto created = await _cartService.placeOrder(order: order);
+
+        // Emetto lo stato di successo con l'ordine appena creato
+        emit(CartSuccessState(order: created));
       },
     );
   }

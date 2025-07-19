@@ -13,10 +13,11 @@ class CartService {
 
   /// Verifica se esiste un customer con [email].
   /// Se non esiste, lo crea e lo restituisce.
-  Future<CustomerDto> getOrCreateCustomer(
-      {required String email,
-      required String name,
-      required int restaurantId}) async {
+  Future<CustomerDto> getOrCreateCustomer({
+    required String email,
+    required String name,
+    required int restaurantId,
+  }) async {
     try {
       final existing = await _cartRepository.checkCustomerExists(email: email);
       if (existing != null) {

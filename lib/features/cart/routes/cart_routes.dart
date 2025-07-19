@@ -1,4 +1,6 @@
 import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
+import 'package:gearpizza/features/cart/screens/order_resul_screen.dart';
 import 'package:gearpizza/features/cart/screens/order_screen.dart';
 import 'package:go_router/go_router.dart';
 
@@ -22,6 +24,24 @@ final List<GoRoute> cartRoutes = [
         },
       );
     },
-    routes: [],
+    routes: [
+      GoRoute(
+        path: 'result',
+        name: 'checkout_result',
+        pageBuilder: (context, state) {
+          // Recupera i parametri passati con extra
+          final extra = state.extra as Map<String, dynamic>? ?? {};
+          final success = extra['success'] as bool? ?? false;
+          final message = extra['message'] as String? ?? '';
+          return MaterialPage(
+            key: state.pageKey,
+            child: OrderResultScreen(
+              success: success,
+              message: message,
+            ),
+          );
+        },
+      ),
+    ],
   ),
 ];

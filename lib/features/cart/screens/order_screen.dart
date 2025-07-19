@@ -6,10 +6,14 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gearpizza/common/components/custom_input.dart';
 import 'package:gearpizza/features/cart/bloc/cart_bloc.dart';
 import 'package:gearpizza/features/cart/bloc/cart_event.dart';
+import 'package:gearpizza/features/cart/bloc/cart_state.dart';
 import 'package:gearpizza/features/cart/components/address_autocomplete_input.dart';
 import 'package:gearpizza/features/cart/components/order_confirm_button.dart';
 import 'package:gearpizza/features/cart/components/order_form_section.dart';
 import 'package:gearpizza/features/cart/components/order_image_upload_section.dart';
+import 'package:gearpizza/features/cart/model/card_item_dto.dart';
+import 'package:gearpizza/features/cart/model/customer_dto.dart';
+import 'package:gearpizza/features/cart/model/order_dto.dart';
 import 'package:go_router/go_router.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:image_picker/image_picker.dart';
@@ -190,65 +194,106 @@ class _OrderScreenState extends State<OrderScreen> {
     );
   }
 
-  void _submitOrder() {
-    if (_formKey.currentState?.validate() ?? false) {
-      final address = _addressController.text.trim();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Ordine in corso per: \$address')),
-      );
-      // Gestisci _pickedImage se necessario
-      context.read<CartBloc>().add(ClearCartEvent());
-      if (context.mounted) context.go('/dashboard');
-    }
+  void _submitOrder(
+      {required List<CartItemDto> cartItems, required int restaurantId}) {
+    if (!(_formKey.currentState?.validate() ?? false)) return;
+
+    final address = _addressController.text.trim();
+
+    final customerDto = CustomerDto(
+      id: null,
+      restaurantId: restaurantId,
+      name: _emailController.text.split('@').first,
+      emailAddress: _emailController.text.trim(),
+    );
+
+    final orderDto = OrderDto(
+      status: 'pending',
+      restaurantId: restaurantId,
+      customerId: customerDto.id ?? 0,
+      address: address,
+      helpingImage: _pickedImage?.path,
+      pizzaIds: cartItems.map((i) => i.pizza.id).toList(),
+    );
+
+    context.read<CartBloc>().add(
+          CompleteOrder(
+            customerInfo: customerDto,
+            orderInfo: orderDto,
+          ),
+        );
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.close),
-          onPressed: () => context.pop(),
-          color: theme.colorScheme.onSurface,
-        ),
-        title: const Text('Checkout'),
-        centerTitle: true,
-        backgroundColor: theme.colorScheme.surface,
-        elevation: 0,
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
-        child: ConstrainedBox(
-          constraints: BoxConstraints(
-            minHeight: MediaQuery.of(context).size.height -
-                kToolbarHeight -
-                MediaQuery.of(context).padding.top,
+    return BlocListener<CartBloc, CartState>(
+      listener: (context, state) {
+        if (state is CartSuccessState) {
+          // Dopo aver svuotato il carrello
+          context.read<CartBloc>().add(ClearCartEvent());
+          final msg = 'Ordine ${state.order.id} creato con successo!';
+          context.go(
+            '/checkout/result',
+            extra: {'success': true, 'message': msg},
+          );
+        }
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          leading: IconButton(
+            icon: const Icon(Icons.close),
+            onPressed: () => context.pop(),
+            color: theme.colorScheme.onSurface,
           ),
-          child: IntrinsicHeight(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                OrderFormSection(
-                  formKey: _formKey,
-                  addressController: _addressController,
-                  emailController: _emailController,
-                ),
-                const SizedBox(height: 24),
-                OrderImageUploadSection(
-                  image: _pickedImage,
-                  onUploadTap: _showImageSourceActionSheet,
-                ),
-              ],
+          title: const Text('Checkout'),
+          centerTitle: true,
+          backgroundColor: theme.colorScheme.surface,
+          elevation: 0,
+        ),
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              minHeight: MediaQuery.of(context).size.height -
+                  kToolbarHeight -
+                  MediaQuery.of(context).padding.top,
+            ),
+            child: IntrinsicHeight(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  OrderFormSection(
+                    formKey: _formKey,
+                    addressController: _addressController,
+                    emailController: _emailController,
+                  ),
+                  const SizedBox(height: 24),
+                  OrderImageUploadSection(
+                    image: _pickedImage,
+                    onUploadTap: _showImageSourceActionSheet,
+                  ),
+                ],
+              ),
             ),
           ),
         ),
+        floatingActionButton: BlocBuilder<CartBloc, CartState>(
+          builder: (context, state) {
+            final isLoaded = state is CartLoadedState;
+            return OrderConfirmButton(
+              enabled: _canConfirm && isLoaded,
+              onPressed: isLoaded
+                  ? () => _submitOrder(
+                        cartItems: state.items,
+                        restaurantId: state.restaurant.id,
+                      )
+                  : () {},
+            );
+          },
+        ),
+        floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       ),
-      floatingActionButton: OrderConfirmButton(
-        enabled: _canConfirm,
-        onPressed: _submitOrder,
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
   }
 }

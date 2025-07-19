@@ -227,7 +227,7 @@ class _LoginForm extends StatelessWidget {
                 expanded: true,
                 type: ButtonType.greenFilled,
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 12),
               CustomButton(
                 label: 'Inizia ad ordinare',
                 onPressed: onSignAsGuest,

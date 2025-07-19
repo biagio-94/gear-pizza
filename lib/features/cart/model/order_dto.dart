@@ -1,43 +1,68 @@
 import 'dart:convert';
-import 'package:gearpizza/features/dashboard/models/pizza_dto.dart';
 
+/// DTO per gli ordini, compatibile con lo schema Directus
 class OrderDto {
+  final int? id;
   final String status;
   final int restaurantId;
   final int customerId;
   final String address;
-  final String? helpImageUrl;
-  final List<PizzaDto> pizzas;
+  final String? helpingImage;
+  final List<int> pizzaIds;
 
   OrderDto({
+    this.id,
     required this.status,
     required this.restaurantId,
     required this.customerId,
     required this.address,
-    required this.helpImageUrl,
-    required this.pizzas,
+    this.helpingImage,
+    required this.pizzaIds,
   });
 
+  /// Mappa i campi nelle chiavi corrette di Directus
   Map<String, dynamic> toMap() {
-    return {
+    final data = {
+      if (id != null) 'id': id,
       'status': status,
-      'restaurantId': restaurantId,
-      'customerId': customerId,
+      'restaurant': restaurantId,
+      'customer': customerId,
       'address': address,
-      'helpImageUrl': helpImageUrl,
-      'pizzas': pizzas.map((x) => x.toMap()).toList(),
+      if (helpingImage != null) 'helping_image': helpingImage,
+      'pizzas': pizzaIds,
     };
+    return data;
   }
 
   factory OrderDto.fromMap(Map<String, dynamic> map) {
+    int extractId(dynamic field) {
+      if (field is int) return field;
+      if (field is Map<String, dynamic> && field['id'] is int)
+        return field['id'];
+      return 0;
+    }
+
+    List<int> extractPizzaIds(dynamic field) {
+      if (field is List) {
+        return field.map<int>((e) {
+          if (e is int) return e;
+          if (e is Map<String, dynamic> && e['pizza'] != null) {
+            return extractId(e['pizza']);
+          }
+          return 0;
+        }).toList();
+      }
+      return [];
+    }
+
     return OrderDto(
+      id: map['id'] as int?,
       status: map['status'] ?? '',
-      restaurantId: map['restaurantId']?.toInt() ?? 0,
-      customerId: map['customerId']?.toInt() ?? 0,
+      restaurantId: extractId(map['restaurant']),
+      customerId: extractId(map['customer']),
       address: map['address'] ?? '',
-      helpImageUrl: map['helpImageUrl'],
-      pizzas:
-          List<PizzaDto>.from(map['pizzas']?.map((x) => PizzaDto.fromMap(x))),
+      helpingImage: map['helpingImage'],
+      pizzaIds: extractPizzaIds(map['pizzas']),
     );
   }
 

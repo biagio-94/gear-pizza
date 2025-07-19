@@ -1,5 +1,6 @@
 import 'dart:convert';
-
+import 'dart:io';
+import 'package:path/path.dart' as p;
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:gearpizza/common/api/endpoints.dart';
@@ -140,23 +141,38 @@ class ApiService {
     }
   }
 
-  Future<Response> get(String path, {Map<String, dynamic>? queryParams}) =>
-      _dio.get(path, queryParameters: queryParams);
-
+  // Metodi GET, POST, PUT, DELETE, PATCH
+  Future<Response> get(String path, {Map<String, dynamic>? queryParameters}) =>
+      _dio.get(path, queryParameters: queryParameters);
   Future<Response> post(String path, {dynamic data}) =>
       _dio.post(path, data: data);
-
   Future<Response> put(String path, {dynamic data}) =>
       _dio.put(path, data: jsonEncode(data));
-
-  Future<Response> delete(String path, {Map<String, dynamic>? queryParams}) =>
-      _dio.delete(path, queryParameters: queryParams);
-
+  Future<Response> delete(String path,
+          {Map<String, dynamic>? queryParameters}) =>
+      _dio.delete(path, queryParameters: queryParameters);
   Future<Response> patch(String path, {dynamic data}) =>
       _dio.patch(path, data: data);
-
   Future<Response> postMultipart(String path, FormData data) =>
       _dio.post(path, data: data);
+  // Upload image helpers
+  Future<MultipartFile> uploadImage(File file) async {
+    final fileName = p.basename(file.path);
+    return MultipartFile.fromFile(file.path, filename: fileName);
+  }
+
+  Future<int> uploadFileToDirectus(File file) async {
+    final form = FormData.fromMap({
+      'file': await uploadImage(file),
+    });
+    // POST diretto a '/files'
+    final resp = await postMultipart('/files', form);
+    if (resp.statusCode == 200 || resp.statusCode == 201) {
+      return resp.data['data']['id'] as int;
+    } else {
+      throw Exception('Upload image failed: ${resp.statusCode}');
+    }
+  }
 
   Future<void> saveNewRefreshInfo(
       {required String refreshToken, required int expiresMs}) async {

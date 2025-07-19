@@ -6,8 +6,9 @@ class CartEndpoints {
   static String checkCustomer({required String email}) {
     final qb = DirectusQueryBuilder()
       ..filter({
-        'emailAddress': {'_eq': email}
-      });
+        'email_address': {'_eq': email}
+      })
+      ..populate(['restaurant']);
 
     return '$basePath/customers${qb.build()}';
   }

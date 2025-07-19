@@ -59,7 +59,7 @@ class RestaurantDetailAppBar extends StatelessWidget {
           fit: StackFit.expand,
           children: [
             if (restaurant.coverImageUrl != null)
-              ImageDownloadHelper.loadNetworkImage(
+              ImageDownloadHelper.loadCachedNetworkImage(
                 restaurant.coverImageUrl!,
                 fit: BoxFit.cover,
                 width: double.infinity,

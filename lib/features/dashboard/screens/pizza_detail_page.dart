@@ -103,7 +103,7 @@ class _PizzaDetailPageState extends State<PizzaDetailPage> {
                             flexibleSpace: FlexibleSpaceBar(
                               collapseMode: CollapseMode.parallax,
                               background: p.coverImageUrl != null
-                                  ? ImageDownloadHelper.loadNetworkImage(
+                                  ? ImageDownloadHelper.loadCachedNetworkImage(
                                       p.coverImageUrl!,
                                       fit: BoxFit.cover,
                                       width: double.infinity,

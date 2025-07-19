@@ -23,38 +23,37 @@ class CustomBottomBar extends StatelessWidget {
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          _NavItem(
-            index: 0,
+        children: List.generate(3, (index) {
+          IconData icon;
+          String label;
+          switch (index) {
+            case 0:
+              icon = Icons.home;
+              label = 'Home';
+              break;
+            case 1:
+              icon = Icons.shopping_cart_outlined;
+              label = 'Cart';
+              break;
+            default:
+              icon = Icons.person_outline;
+              label = 'Profile';
+          }
+          return _NavItem(
+            index: index,
             selectedIndex: selectedIndex,
-            icon: Icons.home,
-            label: 'Home',
+            icon: icon,
+            label: label,
             onTap: onItemTapped,
             colorScheme: colorScheme,
-          ),
-          _NavItem(
-            index: 1,
-            selectedIndex: selectedIndex,
-            icon: Icons.shopping_cart_outlined,
-            label: 'Cart',
-            onTap: onItemTapped,
-            colorScheme: colorScheme,
-          ),
-          _NavItem(
-            index: 2,
-            selectedIndex: selectedIndex,
-            icon: Icons.person_outline,
-            label: 'Profile',
-            onTap: onItemTapped,
-            colorScheme: colorScheme,
-          ),
-        ],
+          );
+        }),
       ),
     );
   }
 }
 
-class _NavItem extends StatelessWidget {
+class _NavItem extends StatefulWidget {
   final int index;
   final int selectedIndex;
   final IconData icon;
@@ -72,42 +71,84 @@ class _NavItem extends StatelessWidget {
   });
 
   @override
+  __NavItemState createState() => __NavItemState();
+}
+
+class __NavItemState extends State<_NavItem>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 300),
+      lowerBound: 0.9, // meno ridotto
+      upperBound: 1.0,
+      value: widget.index == widget.selectedIndex ? 1.0 : 0.9,
+    );
+  }
+
+  @override
+  void didUpdateWidget(covariant _NavItem oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.index == widget.selectedIndex) {
+      _controller.forward();
+    } else {
+      _controller.reverse();
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final bool isSelected = index == selectedIndex;
+    final bool isSelected = widget.index == widget.selectedIndex;
 
     return Expanded(
       child: GestureDetector(
-        onTap: () => onTap(index),
+        onTap: () => widget.onTap(widget.index),
         behavior: HitTestBehavior.opaque,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const SizedBox(height: 10), // padding sopra l’icona
-            Container(
-              padding: const EdgeInsets.all(5),
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: isSelected
-                    ? colorScheme.primary.withOpacity(0.3)
-                    : Colors.transparent,
-              ),
-              child: Icon(
-                icon,
-                color: isSelected
-                    ? colorScheme.onPrimary
-                    : colorScheme.onSurfaceVariant,
-                size: 22,
+            const SizedBox(height: 12),
+            ScaleTransition(
+              scale: _controller,
+              child: Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: isSelected
+                      ? widget.colorScheme.primary
+                      : Colors.transparent,
+                ),
+                child: Icon(
+                  widget.icon,
+                  color: isSelected
+                      ? widget.colorScheme.onPrimary
+                      : widget.colorScheme.onSurfaceVariant,
+                  size: 24, // dimensione base più grande
+                ),
               ),
             ),
+            const SizedBox(height: 6),
             Text(
-              label,
+              widget.label,
               style: TextStyle(
                 fontSize: 12,
-                color: colorScheme.onSurfaceVariant,
+                color: isSelected
+                    ? widget.colorScheme.onPrimary
+                    : widget.colorScheme.onSurfaceVariant,
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
               ),
             ),
-            const SizedBox(height: 10), // padding sotto la label
+            const SizedBox(height: 12),
           ],
         ),
       ),

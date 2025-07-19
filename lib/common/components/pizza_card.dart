@@ -49,7 +49,7 @@ class PizzaCard extends StatelessWidget {
                         height: 100,
                         color: Colors.grey[200],
                         child: pizza.coverImageUrl != null
-                            ? ImageDownloadHelper.loadNetworkImage(
+                            ? ImageDownloadHelper.loadCachedNetworkImage(
                                 pizza.coverImageUrl!,
                                 fit: BoxFit.cover,
                                 width: 100,

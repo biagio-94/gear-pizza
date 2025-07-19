@@ -23,7 +23,7 @@ class CartItemCard extends StatelessWidget {
         children: [
           ClipRRect(
             borderRadius: BorderRadius.circular(8),
-            child: ImageDownloadHelper.loadNetworkImage(
+            child: ImageDownloadHelper.loadCachedNetworkImage(
               pizza.coverImageUrl ?? '',
               width: 80,
               height: 80,

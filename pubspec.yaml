@@ -71,6 +71,7 @@ dependencies:
   pin_code_fields: ^8.0.1
   supabase_codegen: ^1.4.0
   google_fonts: ^6.2.1
+  cached_network_image: ^3.4.1
   flutter_google_places_hoc081098: ^2.0.0
 
 

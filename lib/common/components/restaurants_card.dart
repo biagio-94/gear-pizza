@@ -33,7 +33,7 @@ class RestaurantCard extends StatelessWidget {
             child: SizedBox(
               height: 160,
               child: restaurant.coverImageUrl != null
-                  ? ImageDownloadHelper.loadNetworkImage(
+                  ? ImageDownloadHelper.loadCachedNetworkImage(
                       restaurant.coverImageUrl!,
                       fit: BoxFit.cover,
                       width: double.infinity,

@@ -22,7 +22,7 @@ class OrderDto {
 
   /// Mappa i campi nelle chiavi corrette di Directus
   Map<String, dynamic> toMap() {
-    final data = {
+    return {
       if (id != null) 'id': id,
       'status': status,
       'restaurant': restaurantId,
@@ -31,7 +31,6 @@ class OrderDto {
       if (helpingImage != null) 'helping_image': helpingImage,
       'pizzas': pizzaIds,
     };
-    return data;
   }
 
   factory OrderDto.fromMap(Map<String, dynamic> map) {

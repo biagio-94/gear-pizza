@@ -2,11 +2,13 @@ import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:gearpizza/common/services/api_service.dart';
+import 'package:gearpizza/common/services/firestore_service.dart';
 import 'package:gearpizza/common/utils/exception_handler.dart';
 import 'package:gearpizza/features/cart/api/cart_endpoints.dart';
 import 'package:gearpizza/features/cart/model/customer_dto.dart';
 import 'package:gearpizza/features/cart/model/order_dto.dart';
 import 'package:gearpizza/features/cart/services/cart_service_exception.dart';
+import 'package:get_it/get_it.dart';
 
 class CartRepository {
   final ApiService _apiService;
@@ -63,58 +65,64 @@ class CartRepository {
 
   Future<OrderDto> createOrder({required OrderDto order}) async {
     try {
-      int? helpingImageId;
-
-      if (order.helpingImage != null && order.helpingImage!.isNotEmpty) {
-        // Prendo l'immagine dal pathLocale
-        final file = File(order.helpingImage!);
-        helpingImageId = await _apiService.uploadFileToDirectus(file);
-      }
-
-      // Creo una copia dell'order con helpingImage aggiornata (id come stringa)
-      final orderToSend = OrderDto(
-        id: order.id,
-        status: order.status,
-        restaurantId: order.restaurantId,
-        customerId: order.customerId,
-        address: order.address,
-        helpingImage: helpingImageId != null ? helpingImageId.toString() : null,
-        pizzaIds: order.pizzaIds,
+      // 1) Creo l'ordine base senza pizzas né helping_image
+      final orderPayload = {
+        'status': order.status,
+        'restaurant': order.restaurantId,
+        'customer': order.customerId,
+        'address': order.address,
+      };
+      final createResp = await _apiService.post(
+        '/items/orders',
+        data: orderPayload,
       );
-
-      final endpoint = CartEndpoints.createOrder();
-      final resp = await _apiService.post(
-        endpoint,
-        data: orderToSend.toMap(),
-      );
-
-      if (resp.statusCode != 200 && resp.statusCode != 201) {
+      const validStatuses = [200, 201, 204];
+      if (!validStatuses.contains(createResp.statusCode)) {
         throw CreateOrderException();
       }
+      final createdData = createResp.data['data'] as Map<String, dynamic>;
+      final newOrderId = createdData['id'].toString();
 
-      final created =
-          OrderDto.fromMap(resp.data['data'] as Map<String, dynamic>);
-      return created;
+      // 2) Popolo la pivot orders_pizzas
+      for (final pizzaId in order.pizzaIds) {
+        await _apiService.post(
+          '/items/orders_pizzas',
+          data: {
+            'orders_id': newOrderId,
+            'pizzas_id': pizzaId.toString(),
+          },
+        );
+      }
+
+      // 3) Se c’è un’immagine, uso il servizio per caricarla su Firebase
+      if (order.helpingImage != null && order.helpingImage!.isNotEmpty) {
+        // `order.helpingImage` è il path locale da XFile
+        final file = File(order.helpingImage!);
+
+        await GetIt.instance<FirebaseStorageService>().uploadOrderImage(
+          file,
+          newOrderId,
+        );
+      }
+
+      // 5) Ricarico l'ordine completo
+      final fetchResp = await _apiService.get(
+        '/items/orders/$newOrderId',
+        queryParameters: {
+          'fields': ['*', 'pizzas.*'],
+        },
+      );
+      if (fetchResp.statusCode != 200) {
+        throw CartServiceException('Impossibile recuperare l’ordine creato');
+      }
+      final fullOrderMap = fetchResp.data['data'] as Map<String, dynamic>;
+      return OrderDto.fromMap(fullOrderMap);
     } on DioException catch (e) {
       throw mapDioExceptionToCustomException(e);
     } on CartServiceException {
       rethrow;
     } catch (e) {
-      throw CartServiceException(
-          'Errore imprevisto durante la creazione ordine: $e');
-    }
-  }
-
-  Future<String> uploadFileToDirectus(File file) async {
-    final form = FormData.fromMap({
-      'file': await _apiService.uploadFileToDirectus(file),
-    });
-
-    final resp = await _apiService.postMultipart('/files', form);
-    if (resp.statusCode == 200 || resp.statusCode == 201) {
-      return resp.data['data']['id'] as String;
-    } else {
-      throw Exception('Upload image failed: ${resp.statusCode}');
+      throw CartServiceException('Errore imprevisto durante createOrder: $e');
     }
   }
 }

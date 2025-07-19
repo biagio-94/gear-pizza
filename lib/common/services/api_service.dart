@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:http_parser/http_parser.dart';
 import 'package:path/path.dart' as p;
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
@@ -10,6 +11,7 @@ import 'package:gearpizza/common/services/secure_storage_service.dart';
 import 'package:gearpizza/common/utils/serializers.dart';
 import 'package:gearpizza/features/auth/api/auth_endpoints.dart';
 import 'package:get_it/get_it.dart';
+import 'package:mime/mime.dart';
 
 class ApiService {
   ApiService() {
@@ -161,16 +163,40 @@ class ApiService {
     return MultipartFile.fromFile(file.path, filename: fileName);
   }
 
-  Future<int> uploadFileToDirectus(File file) async {
+  Future<String> uploadFileToDirectus(
+      File file, String title, String customeId) async {
+    final fileName = file.path.split('/').last;
+    final mimeType = lookupMimeType(file.path) ?? 'png/jpeg';
+    final parts = mimeType.split('/');
+
+    final fileStat = await file.stat();
+
     final form = FormData.fromMap({
-      'file': await uploadImage(file),
+      'file': await MultipartFile.fromFile(
+        file.path,
+        filename: fileName,
+        contentType: MediaType(parts[0], parts[1]),
+      ),
+      'title': title,
+      'filename_download': fileName,
+      'type': mimeType,
+      'charset': 'binary',
+      "width": 800,
+      "height": 838,
+      'filesize': fileStat.size,
+      'storage': 'local',
+      'uploaded_on': DateTime.now().toUtc().toIso8601String(),
+      'created_on': DateTime.now().toUtc().toIso8601String(),
+      'uploaded_by': customeId,
     });
-    // POST diretto a '/files'
+    debugPrint("fileStat: ${fileStat.toString()}");
+
     final resp = await postMultipart('/files', form);
+
     if (resp.statusCode == 200 || resp.statusCode == 201) {
-      return resp.data['data']['id'] as int;
+      return resp.data['data']['id'] as String;
     } else {
-      throw Exception('Upload image failed: ${resp.statusCode}');
+      throw Exception('Upload image failed: ${resp.statusCode} ${resp.data}');
     }
   }
 

@@ -20,7 +20,7 @@ class CustomerDto {
       if (id != null) 'id': id,
       'restaurant': restaurantId,
       'name': name,
-      'emailAddress': emailAddress,
+      'email_address': emailAddress,
     };
     return data;
   }

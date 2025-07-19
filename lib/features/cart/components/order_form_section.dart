@@ -7,12 +7,14 @@ class OrderFormSection extends StatelessWidget {
   final GlobalKey<FormState> formKey;
   final TextEditingController addressController;
   final TextEditingController emailController;
+  final TextEditingController nameController;
 
   const OrderFormSection({
     Key? key,
     required this.formKey,
     required this.addressController,
     required this.emailController,
+    required this.nameController,
   }) : super(key: key);
 
   @override
@@ -35,12 +37,19 @@ class OrderFormSection extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               CustomTextInput(
+                labelText: 'Nome',
+                controller: nameController,
+                validator: validateName,
+                keyboardType: TextInputType.emailAddress,
+              ),
+              const SizedBox(height: 12),
+              CustomTextInput(
                 labelText: 'Email',
                 controller: emailController,
                 validator: validateEmail,
                 keyboardType: TextInputType.emailAddress,
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 12),
               AddressAutocompleteInput(
                 controller: addressController,
               ),

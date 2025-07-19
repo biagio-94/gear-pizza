@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:gearpizza/common/services/firestore_service.dart';
 import 'package:gearpizza/features/cart/repositories/cart_repository.dart';
 import 'package:gearpizza/features/cart/services/cart_service.dart';
 import 'package:get_it/get_it.dart';
@@ -27,6 +28,8 @@ Future<void> setupServiceLocator() async {
 
   getIt.registerLazySingleton<FirebaseAuth>(() => FirebaseAuth.instance);
   getIt.registerLazySingleton<GoogleSignIn>(() => GoogleSignIn());
+  getIt.registerLazySingleton<FirebaseStorageService>(
+      () => FirebaseStorageService());
 
   getIt.registerLazySingleton<LocalAuthentication>(() => LocalAuthentication());
 

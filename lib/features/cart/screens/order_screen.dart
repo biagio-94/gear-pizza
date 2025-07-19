@@ -29,6 +29,7 @@ class _OrderScreenState extends State<OrderScreen> {
   final _formKey = GlobalKey<FormState>();
   final _addressController = TextEditingController();
   final _emailController = TextEditingController();
+  final _nameController = TextEditingController();
 
   XFile? _pickedImage;
   bool _canConfirm = false;
@@ -39,24 +40,32 @@ class _OrderScreenState extends State<OrderScreen> {
     // Listen to address changes to update button state
     _addressController.addListener(_updateConfirmButtonState);
     _emailController.addListener(_updateConfirmButtonState);
+    _nameController.addListener(_updateConfirmButtonState);
   }
 
   @override
   void dispose() {
     _addressController.removeListener(_updateConfirmButtonState);
     _emailController.removeListener(_updateConfirmButtonState);
+    _nameController.removeListener(_updateConfirmButtonState);
+    _nameController.dispose();
     _emailController.dispose();
     _addressController.dispose();
     super.dispose();
   }
 
-  // Aggiorna lo stato del pulsante di conferma
   void _updateConfirmButtonState() {
     final isAddressValid = _addressController.text.trim().isNotEmpty;
-    final isEmailValid = RegExp(r"^[\w\.-]+@[\w\.-]+\.\w{2,4}$")
-        .hasMatch(_emailController.text.trim());
+
+    final email = _emailController.text.trim();
+    final isEmailValid =
+        RegExp(r"^[\w\.-]+@[\w\.-]+\.\w{2,4}$").hasMatch(email);
+
+    final name = _nameController.text.trim();
+    final isNameValid = RegExp(r"^[A-Za-zÀ-ÿ\s'-]{2,50}$").hasMatch(name);
+
     setState(() {
-      _canConfirm = isAddressValid && isEmailValid;
+      _canConfirm = isAddressValid && isEmailValid && isNameValid;
     });
   }
 
@@ -203,8 +212,8 @@ class _OrderScreenState extends State<OrderScreen> {
     final customerDto = CustomerDto(
       id: null,
       restaurantId: restaurantId,
-      name: _emailController.text.split('@').first,
-      emailAddress: _emailController.text.trim(),
+      name: _nameController.text.trim(),
+      emailAddress: _emailController.text.trim().toLowerCase(),
     );
 
     final orderDto = OrderDto(
@@ -267,6 +276,7 @@ class _OrderScreenState extends State<OrderScreen> {
                     formKey: _formKey,
                     addressController: _addressController,
                     emailController: _emailController,
+                    nameController: _nameController,
                   ),
                   const SizedBox(height: 24),
                   OrderImageUploadSection(

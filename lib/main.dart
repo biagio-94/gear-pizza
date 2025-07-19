@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:gearpizza/features/cart/bloc/cart_bloc.dart';
 import 'package:gearpizza/features/dashboard/bloc/dashboard_bloc.dart';
 import 'package:gearpizza/features/dashboard/bloc/product_card/product_card_bloc.dart';
 import 'package:gearpizza/features/dashboard/services/dashboard_service.dart';
@@ -70,6 +71,9 @@ class MyApp extends StatelessWidget {
         ),
         BlocProvider(
           create: (context) => ProductCardBloc(),
+        ),
+        BlocProvider(
+          create: (context) => CartBloc(GetIt.I<DashboardService>()),
         ),
         BlocProvider(
             create: (context) => DashboardBloc(

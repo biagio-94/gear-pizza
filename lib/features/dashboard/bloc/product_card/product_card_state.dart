@@ -11,6 +11,7 @@ class NoProductSelectedState extends ProductCardState {
 
 class ProductSelectedState extends ProductCardState {
   /// Map of productId to quantity
+  /// <idPrdotto,quantità>
   final Map<int, int> productsQuantity;
 
   /// Total subtotal across all products

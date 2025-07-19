@@ -132,7 +132,7 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
       onError: (msg) => exceptionBloc.throwExceptionState(msg),
       action: () async {
         final pizza = await _dashboardService.fetchPizzaById(
-          restaurantId: event.pizzaId,
+          pizzaId: event.pizzaId,
         );
         emit(PizzaDetailPageState(pizza: pizza));
       },

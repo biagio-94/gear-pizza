@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:gearpizza/features/cart/screens/cart_screen.dart';
 import 'package:go_router/go_router.dart';
 import 'package:gearpizza/common/bloc/exception_bloc.dart';
 import 'package:gearpizza/common/bloc/exception_state.dart';
@@ -92,7 +93,7 @@ class MainRouter {
             routes: [
               GoRoute(
                 path: '/cart',
-                builder: (context, state) => Scaffold(body: const Center()),
+                builder: (context, state) => Scaffold(body: const CartScreen()),
               ),
             ],
           ),

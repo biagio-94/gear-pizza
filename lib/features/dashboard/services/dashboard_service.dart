@@ -83,10 +83,10 @@ class DashboardService {
   }
 
   Future<PizzaDto> fetchPizzaById({
-    required int restaurantId,
+    required int pizzaId,
   }) async {
     try {
-      return await dashboardRepository.fetchPizzaById(restaurantId);
+      return await dashboardRepository.fetchPizzaById(pizzaId);
     } on ApiServiceException catch (_) {
       rethrow;
     } on DioException catch (e) {

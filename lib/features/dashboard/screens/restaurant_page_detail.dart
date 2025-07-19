@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gearpizza/common/styles/colors_schemes.dart';
+import 'package:gearpizza/features/cart/bloc/cart_bloc.dart';
+import 'package:gearpizza/features/cart/bloc/cart_event.dart';
 import 'package:gearpizza/features/dashboard/bloc/product_card/product_card_bloc.dart';
 import 'package:gearpizza/features/dashboard/bloc/product_card/product_card_state.dart';
 import 'package:go_router/go_router.dart';
@@ -124,18 +126,32 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
         floatingActionButton: BlocBuilder<ProductCardBloc, ProductCardState>(
           builder: (context, state) {
             if (state is! ProductSelectedState) return const SizedBox.shrink();
+
             final total = state.totalPrice;
+            final productsQuantity = state.productsQuantity;
+
             final colors = Theme.of(context).colorScheme;
 
             return SizedBox(
               width: MediaQuery.of(context).size.width * 0.8,
-              height: 56, // altezza consigliata per maggiore rotondità
+              height: 56,
               child: FloatingActionButton.extended(
-                onPressed: () {/* checkout */},
+                onPressed: () {
+                  // Lancia l'evento nel CartBloc
+                  context.read<CartBloc>().add(
+                        LoadCartDetailsEvent(
+                          restaurantid: widget.restaurantId,
+                          productsQuantity: productsQuantity,
+                        ),
+                      );
+
+                  // Poi naviga alla pagina carrello
+                  context.go("/cart");
+                },
                 backgroundColor: colors.secondary,
                 foregroundColor: colors.onSecondary,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(28), // più arrotondato
+                  borderRadius: BorderRadius.circular(28),
                 ),
                 label: Center(
                   child: Text(

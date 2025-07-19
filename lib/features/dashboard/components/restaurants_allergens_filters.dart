@@ -26,14 +26,38 @@ class _RestaurantsAllergensFiltersState
     extends State<RestaurantsAllergensFilters> {
   final Set<AllergenDto> _selectedFilters = {};
 
-  @override
-  void initState() {
-    super.initState();
+// Map of icons for each allergen (by name)
+  static const Map<String, IconData> _allergenIcons = {
+    'Gluten': Icons.grain,
+    'Lactose': Icons.local_cafe,
+    'Peanuts': Icons.spa,
+    'Soy': Icons.spa,
+    'Egg': Icons.egg,
+    'Fish': Icons.set_meal,
+    'Shellfish': Icons.shield,
+    'Tomato': Icons.local_florist,
+    'Milk': Icons.local_drink,
+    'Wheat': Icons.emoji_food_beverage,
+    'Yeast': Icons.grass,
+    'All': Icons.select_all,
+  };
+
+  IconData _iconForAllergen(AllergenDto allergen, bool isSelected) {
+    if (isSelected) return Icons.check;
+    final key = allergen.name.toLowerCase();
+    return _allergenIcons.entries
+        .firstWhere(
+          (entry) => entry.key.toLowerCase() == key,
+          orElse: () => const MapEntry('default', Icons.filter_list),
+        )
+        .value;
   }
 
   @override
   Widget build(BuildContext context) {
     const totalHeight = 24.0 + 4.0 + 56.0;
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
     return SliverPersistentHeader(
       pinned: true,
@@ -41,7 +65,7 @@ class _RestaurantsAllergensFiltersState
         minExtent: totalHeight,
         maxExtent: totalHeight,
         child: Container(
-          color: Theme.of(context).scaffoldBackgroundColor,
+          color: theme.scaffoldBackgroundColor,
           padding: const EdgeInsets.symmetric(vertical: 8),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -50,9 +74,7 @@ class _RestaurantsAllergensFiltersState
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Text(
                   widget.label,
-                  style: Theme.of(context)
-                      .textTheme
-                      .labelLarge
+                  style: theme.textTheme.labelLarge
                       ?.copyWith(fontWeight: FontWeight.bold),
                 ),
               ),
@@ -71,7 +93,7 @@ class _RestaurantsAllergensFiltersState
                       return ListView.separated(
                         scrollDirection: Axis.horizontal,
                         padding: const EdgeInsets.symmetric(horizontal: 16),
-                        separatorBuilder: (_, __) => const SizedBox(width: 8),
+                        separatorBuilder: (_, __) => const SizedBox(width: 2),
                         itemCount: allOptions.length,
                         itemBuilder: (context, idx) {
                           final allergen = allOptions[idx];
@@ -79,39 +101,76 @@ class _RestaurantsAllergensFiltersState
                               ? _selectedFilters.length == allergensList.length
                               : _selectedFilters.contains(allergen);
 
-                          return ChoiceChip(
-                            label: Text(allergen.name),
-                            selected: isSelected,
-                            onSelected: (_) {
-                              setState(() {
-                                if (allergen.id == 0) {
-                                  // Toggle: seleziona tutti o deseleziona tutti
-                                  if (_selectedFilters.length <
-                                      allergensList.length) {
-                                    _selectedFilters
-                                      ..clear()
-                                      ..addAll(allergensList);
-                                  } else {
-                                    _selectedFilters.clear();
-                                  }
-                                } else {
-                                  if (!_selectedFilters.remove(allergen)) {
-                                    _selectedFilters.add(allergen);
-                                  }
-                                }
-                              });
-                              widget.onSelectionChanged
-                                  ?.call(_selectedFilters.toList());
+                          return Padding(
+                            padding:
+                                const EdgeInsets.only(right: 4, bottom: 10),
+                            child: Material(
+                              color: isSelected
+                                  ? colorScheme.primary
+                                  : colorScheme.surfaceVariant,
+                              borderRadius: BorderRadius.circular(32),
+                              elevation: isSelected ? 4 : 2,
+                              shadowColor: Colors.black38,
+                              child: InkWell(
+                                borderRadius: BorderRadius.circular(32),
+                                onTap: () {
+                                  setState(() {
+                                    if (allergen.id == 0) {
+                                      if (_selectedFilters.length <
+                                          allergensList.length) {
+                                        _selectedFilters
+                                          ..clear()
+                                          ..addAll(allergensList);
+                                      } else {
+                                        _selectedFilters.clear();
+                                      }
+                                    } else {
+                                      if (!_selectedFilters.remove(allergen)) {
+                                        _selectedFilters.add(allergen);
+                                      }
+                                    }
+                                  });
+                                  widget.onSelectionChanged
+                                      ?.call(_selectedFilters.toList());
 
-                              final ids =
-                                  _selectedFilters.map((a) => a.id).toList();
-                              context
-                                  .read<DashboardBloc>()
-                                  .add(FetchByAllergensEvent(
-                                    restaurantId: widget.restaurantid,
-                                    selectedAllergenIds: ids,
-                                  ));
-                            },
+                                  final ids = _selectedFilters
+                                      .map((a) => a.id)
+                                      .toList();
+                                  context
+                                      .read<DashboardBloc>()
+                                      .add(FetchByAllergensEvent(
+                                        restaurantId: widget.restaurantid,
+                                        selectedAllergenIds: ids,
+                                      ));
+                                },
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 14, vertical: 8),
+                                  child: Row(
+                                    children: [
+                                      Icon(
+                                        _iconForAllergen(allergen, isSelected),
+                                        size: 20,
+                                        color: isSelected
+                                            ? colorScheme.onPrimary
+                                            : colorScheme.primary,
+                                      ),
+                                      const SizedBox(width: 6),
+                                      Text(
+                                        allergen.name,
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w600,
+                                          color: isSelected
+                                              ? colorScheme.onPrimary
+                                              : colorScheme.onSurface,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
                           );
                         },
                       );

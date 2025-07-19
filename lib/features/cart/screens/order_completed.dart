@@ -25,7 +25,7 @@ class OrderCompleteted extends StatelessWidget {
     return BlocListener<CartBloc, CartState>(
       listener: (context, state) {
         if (state is CartEmptyState) {
-          context.pushReplacement("/cart");
+          context.go('/cart');
         }
       },
       child: Scaffold(

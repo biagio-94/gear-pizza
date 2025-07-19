@@ -73,7 +73,9 @@ class MyApp extends StatelessWidget {
           create: (context) => ProductCardBloc(),
         ),
         BlocProvider(
-          create: (context) => CartBloc(GetIt.I<DashboardService>()),
+          create: (context) => CartBloc(
+            GetIt.I<DashboardService>(),
+          ),
         ),
         BlocProvider(
             create: (context) => DashboardBloc(

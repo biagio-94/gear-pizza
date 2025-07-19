@@ -140,7 +140,7 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
                   // Lancia l'evento nel CartBloc
                   context.read<CartBloc>().add(
                         LoadCartDetailsEvent(
-                          restaurantid: widget.restaurantId,
+                          restaurantId: widget.restaurantId,
                           productsQuantity: productsQuantity,
                         ),
                       );

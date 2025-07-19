@@ -23,8 +23,12 @@ class FetchPizzasEvent extends DashboardEvent {
 
 /// Evento per filtro per allergeni selezionati
 class FetchByAllergensEvent extends DashboardEvent {
+  final int restaurantId;
   final List<int> selectedAllergenIds;
-  const FetchByAllergensEvent(this.selectedAllergenIds);
+  const FetchByAllergensEvent({
+    required this.selectedAllergenIds,
+    required this.restaurantId,
+  });
 }
 
 class FetchByPizzaId extends DashboardEvent {

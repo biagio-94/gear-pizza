@@ -7,11 +7,13 @@ import 'package:gearpizza/features/dashboard/bloc/dashboard_state.dart';
 
 class RestaurantsAllergensFilters extends StatefulWidget {
   final String label;
+  final int restaurantid;
   final ValueChanged<List<AllergenDto>>? onSelectionChanged;
 
   const RestaurantsAllergensFilters({
     Key? key,
     required this.label,
+    required this.restaurantid,
     this.onSelectionChanged,
   }) : super(key: key);
 
@@ -27,7 +29,6 @@ class _RestaurantsAllergensFiltersState
   @override
   void initState() {
     super.initState();
-    context.read<DashboardBloc>().add(FetchAllergenEvent());
   }
 
   @override
@@ -106,7 +107,10 @@ class _RestaurantsAllergensFiltersState
                                   _selectedFilters.map((a) => a.id).toList();
                               context
                                   .read<DashboardBloc>()
-                                  .add(FetchByAllergensEvent(ids));
+                                  .add(FetchByAllergensEvent(
+                                    restaurantId: widget.restaurantid,
+                                    selectedAllergenIds: ids,
+                                  ));
                             },
                           );
                         },

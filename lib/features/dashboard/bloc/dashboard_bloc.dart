@@ -102,24 +102,19 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
     await ExecutionHelper.run(
       onError: (msg) => exceptionBloc.throwExceptionState(msg),
       action: () async {
-        final currentState = state;
+        // Chiamata al repository con ristorante e allergeni da escludere
+        final pizzas = await _dashboardService.fetchPizzasExcludingAllergens(
+          restaurantId: event.restaurantId,
+          excludedAllergenIds: event.selectedAllergenIds,
+        );
+        final restaurant = await _dashboardService.fetchRestaurantById(
+            restaurantId: event.restaurantId);
 
-        // Recupera il ristorante corrente da uno stato precedente
-        if (currentState is PizzasLoaded) {
-          final restaurant = currentState.restaurant;
-
-          // Chiamata al repository con ristorante e allergeni da escludere
-          final pizzas = await _dashboardService.fetchPizzasExcludingAllergens(
-            restaurantId: restaurant.id,
-            excludedAllergenIds: event.selectedAllergenIds,
-          );
-
-          // Emetti lo stato aggiornato
-          emit(PizzasLoaded(
-            restaurant: restaurant,
-            pizzas: pizzas,
-          ));
-        }
+        // Emetti lo stato aggiornato
+        emit(PizzasLoaded(
+          restaurant: restaurant,
+          pizzas: pizzas,
+        ));
       },
     );
   }

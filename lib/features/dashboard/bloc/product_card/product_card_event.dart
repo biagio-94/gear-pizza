@@ -28,3 +28,5 @@ class UpdateProductEvent extends ProductCardEvent {
     required this.productPrice,
   });
 }
+
+class ClearProductCardEcent extends ProductCardEvent {}

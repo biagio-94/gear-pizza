@@ -3,11 +3,9 @@ import 'dart:io';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:gearpizza/common/components/custom_input.dart';
 import 'package:gearpizza/features/cart/bloc/cart_bloc.dart';
 import 'package:gearpizza/features/cart/bloc/cart_event.dart';
 import 'package:gearpizza/features/cart/bloc/cart_state.dart';
-import 'package:gearpizza/features/cart/components/address_autocomplete_input.dart';
 import 'package:gearpizza/features/cart/components/order_confirm_button.dart';
 import 'package:gearpizza/features/cart/components/order_form_section.dart';
 import 'package:gearpizza/features/cart/components/order_image_upload_section.dart';
@@ -25,7 +23,7 @@ class OrderScreen extends StatefulWidget {
   _OrderScreenState createState() => _OrderScreenState();
 }
 
-class _OrderScreenState extends State<OrderScreen> {
+class _OrderScreenState extends State<OrderScreen> with WidgetsBindingObserver {
   final _formKey = GlobalKey<FormState>();
   final _addressController = TextEditingController();
   final _emailController = TextEditingController();
@@ -33,10 +31,12 @@ class _OrderScreenState extends State<OrderScreen> {
 
   XFile? _pickedImage;
   bool _canConfirm = false;
+  bool _keyboardVisible = false;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     // Listen to address changes to update button state
     _addressController.addListener(_updateConfirmButtonState);
     _emailController.addListener(_updateConfirmButtonState);
@@ -45,6 +45,7 @@ class _OrderScreenState extends State<OrderScreen> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _addressController.removeListener(_updateConfirmButtonState);
     _emailController.removeListener(_updateConfirmButtonState);
     _nameController.removeListener(_updateConfirmButtonState);
@@ -52,6 +53,18 @@ class _OrderScreenState extends State<OrderScreen> {
     _emailController.dispose();
     _addressController.dispose();
     super.dispose();
+  }
+
+  @override
+  void didChangeMetrics() {
+    final bottomInset = WidgetsBinding
+        .instance.platformDispatcher.views.first.viewInsets.bottom;
+    final isVisible = bottomInset > 0.0;
+    if (isVisible != _keyboardVisible) {
+      setState(() {
+        _keyboardVisible = isVisible;
+      });
+    }
   }
 
   void _updateConfirmButtonState() {
@@ -236,16 +249,11 @@ class _OrderScreenState extends State<OrderScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+
     return BlocListener<CartBloc, CartState>(
       listener: (context, state) {
         if (state is CartSuccessState) {
-          // Dopo aver svuotato il carrello
-          context.read<CartBloc>().add(ClearCartEvent());
-          final msg = 'Ordine ${state.order.id} creato con successo!';
-          context.go(
-            '/checkout/result',
-            extra: {'success': true, 'message': msg},
-          );
+          context.go('/cart/checkout/result');
         }
       },
       child: Scaffold(
@@ -288,20 +296,22 @@ class _OrderScreenState extends State<OrderScreen> {
             ),
           ),
         ),
-        floatingActionButton: BlocBuilder<CartBloc, CartState>(
-          builder: (context, state) {
-            final isLoaded = state is CartLoadedState;
-            return OrderConfirmButton(
-              enabled: _canConfirm && isLoaded,
-              onPressed: isLoaded
-                  ? () => _submitOrder(
-                        cartItems: state.items,
-                        restaurantId: state.restaurant.id,
-                      )
-                  : () {},
-            );
-          },
-        ),
+        floatingActionButton: _keyboardVisible
+            ? null
+            : BlocBuilder<CartBloc, CartState>(
+                builder: (context, state) {
+                  final isLoaded = state is CartLoadedState;
+                  return OrderConfirmButton(
+                    enabled: _canConfirm && isLoaded,
+                    onPressed: isLoaded
+                        ? () => _submitOrder(
+                              cartItems: state.items,
+                              restaurantId: state.restaurant.id,
+                            )
+                        : () {},
+                  );
+                },
+              ),
         floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       ),
     );

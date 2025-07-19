@@ -33,6 +33,8 @@ class _AddressAutocompleteInputState extends State<AddressAutocompleteInput>
 
   bool _showFields = false;
 
+  final LayerLink _layerLink = LayerLink();
+
   @override
   void initState() {
     super.initState();
@@ -104,49 +106,52 @@ class _AddressAutocompleteInputState extends State<AddressAutocompleteInput>
 
   void _showOverlay() {
     if (_showFields) return;
-    _overlayEntry?.remove();
+    _removeOverlay();
     _overlayEntry = _createOverlayEntry();
     Overlay.of(context).insert(_overlayEntry!);
   }
 
   OverlayEntry _createOverlayEntry() {
-    final renderBox = context.findRenderObject() as RenderBox;
-    final size = renderBox.size;
-    final offset = renderBox.localToGlobal(Offset.zero);
-
     return OverlayEntry(
-      builder: (context) => Positioned(
-        left: offset.dx,
-        top: offset.dy + size.height + 5,
-        width: size.width,
-        child: Material(
-          elevation: 4,
-          borderRadius: BorderRadius.circular(8),
-          child: ListView.builder(
-            shrinkWrap: true,
-            padding: EdgeInsets.zero,
-            itemCount: _suggestions.length,
-            itemBuilder: (context, index) {
-              final prediction = _suggestions[index];
-              return ListTile(
-                leading: Icon(Icons.location_on,
-                    color: Theme.of(context).colorScheme.secondary),
-                title: Text(prediction.description ?? ''),
-                onTap: () async {
-                  _autocompleteController.text = prediction.description ?? '';
-                  _removeOverlay();
-                  _suggestions.clear();
-                  _focusNode.unfocus();
+      builder: (context) => Positioned.fill(
+        child: CompositedTransformFollower(
+          link: _layerLink,
+          showWhenUnlinked: false,
+          offset: const Offset(0, 80),
+          child: Material(
+            elevation: 4,
+            borderRadius: BorderRadius.circular(8),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxHeight: 250),
+              child: ListView.builder(
+                padding: EdgeInsets.zero,
+                itemCount: _suggestions.length,
+                itemBuilder: (context, index) {
+                  final prediction = _suggestions[index];
+                  return ListTile(
+                    leading: Icon(
+                      Icons.location_on,
+                      color: Theme.of(context).colorScheme.secondary,
+                    ),
+                    title: Text(prediction.description ?? ''),
+                    onTap: () async {
+                      _autocompleteController.text =
+                          prediction.description ?? '';
+                      _removeOverlay();
+                      _suggestions.clear();
+                      _focusNode.unfocus();
 
-                  final details =
-                      await _places.getDetailsByPlaceId(prediction.placeId!);
-                  if (details.status == 'OK') {
-                    _fillAddressFields(details.result.addressComponents);
-                    setState(() => _showFields = true);
-                  }
+                      final details = await _places
+                          .getDetailsByPlaceId(prediction.placeId!);
+                      if (details.status == 'OK') {
+                        _fillAddressFields(details.result.addressComponents);
+                        setState(() => _showFields = true);
+                      }
+                    },
+                  );
                 },
-              );
-            },
+              ),
+            ),
           ),
         ),
       ),
@@ -169,12 +174,15 @@ class _AddressAutocompleteInputState extends State<AddressAutocompleteInput>
   Widget build(BuildContext context) {
     return Column(
       children: [
-        CustomTextInput(
-          labelText: 'Cerca indirizzo...',
-          controller: _autocompleteController,
-          focusNode: _focusNode,
-          enabled: true,
-          validator: (_) => null,
+        CompositedTransformTarget(
+          link: _layerLink,
+          child: CustomTextInput(
+            labelText: 'Cerca indirizzo...',
+            controller: _autocompleteController,
+            focusNode: _focusNode,
+            enabled: true,
+            validator: (_) => null,
+          ),
         ),
         const SizedBox(height: 16),
         AnimatedSize(

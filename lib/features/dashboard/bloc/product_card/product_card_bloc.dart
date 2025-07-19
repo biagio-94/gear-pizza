@@ -4,10 +4,11 @@ import 'product_card_state.dart';
 
 /// Bloc to manage quantities per product card and total price
 class ProductCardBloc extends Bloc<ProductCardEvent, ProductCardState> {
-  ProductCardBloc() : super(const NoProductSelectedState()) {
+  ProductCardBloc() : super(const EmptyProductCardState()) {
     on<AddProductEvent>(_onAddProduct);
     on<RemoveProductEvent>(_onRemoveProduct);
     on<UpdateProductEvent>(_onUpdateProduct);
+    on<ClearProductCardEcent>(_onClearProductCard);
   }
 
   Future<void> _onAddProduct(
@@ -50,7 +51,7 @@ class ProductCardBloc extends Bloc<ProductCardEvent, ProductCardState> {
       }
 
       if (quantities.isEmpty) {
-        emit(const NoProductSelectedState());
+        emit(const EmptyProductCardState());
       } else {
         emit(ProductSelectedState(
             productsQuantity: quantities, totalPrice: subtotal));
@@ -83,11 +84,16 @@ class ProductCardBloc extends Bloc<ProductCardEvent, ProductCardState> {
       subtotal += quantityDiff * event.productPrice;
 
       if (quantities.isEmpty) {
-        emit(const NoProductSelectedState());
+        emit(const EmptyProductCardState());
       } else {
         emit(ProductSelectedState(
             productsQuantity: quantities, totalPrice: subtotal));
       }
     }
+  }
+
+  void _onClearProductCard(
+      ClearProductCardEcent event, Emitter<ProductCardState> emit) {
+    emit(EmptyProductCardState());
   }
 }

@@ -40,7 +40,8 @@ class OrderFormSection extends StatelessWidget {
                 labelText: 'Nome',
                 controller: nameController,
                 validator: validateName,
-                keyboardType: TextInputType.emailAddress,
+                keyboardType: TextInputType.name,
+                textCapitalization: TextCapitalization.words,
               ),
               const SizedBox(height: 12),
               CustomTextInput(
@@ -48,6 +49,7 @@ class OrderFormSection extends StatelessWidget {
                 controller: emailController,
                 validator: validateEmail,
                 keyboardType: TextInputType.emailAddress,
+                textCapitalization: TextCapitalization.none,
               ),
               const SizedBox(height: 12),
               AddressAutocompleteInput(

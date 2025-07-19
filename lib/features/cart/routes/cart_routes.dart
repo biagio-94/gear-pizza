@@ -29,16 +29,9 @@ final List<GoRoute> cartRoutes = [
         path: 'result',
         name: 'checkout_result',
         pageBuilder: (context, state) {
-          // Recupera i parametri passati con extra
-          final extra = state.extra as Map<String, dynamic>? ?? {};
-          final success = extra['success'] as bool? ?? false;
-          final message = extra['message'] as String? ?? '';
           return MaterialPage(
             key: state.pageKey,
-            child: OrderResultScreen(
-              success: success,
-              message: message,
-            ),
+            child: OrderResultScreen(),
           );
         },
       ),

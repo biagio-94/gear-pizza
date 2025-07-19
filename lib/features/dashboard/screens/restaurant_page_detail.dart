@@ -90,6 +90,7 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
             // 2) Filtri allergeni (pinned subito dopo l'AppBar)
             RestaurantsAllergensFilters(
               label: 'Hai qualche intolleranza?',
+              restaurantid: widget.restaurantId,
               onSelectionChanged: (allergen) {
                 // Posso reagire al cambio filtro qui o nel Bloc
               },

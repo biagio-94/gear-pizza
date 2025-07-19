@@ -5,8 +5,8 @@ abstract class ProductCardState {
   const ProductCardState();
 }
 
-class NoProductSelectedState extends ProductCardState {
-  const NoProductSelectedState();
+class EmptyProductCardState extends ProductCardState {
+  const EmptyProductCardState();
 }
 
 class ProductSelectedState extends ProductCardState {

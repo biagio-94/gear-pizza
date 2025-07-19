@@ -156,6 +156,7 @@ class DashboardRepository {
       final qb = DirectusQueryBuilder()
         ..fields([
           '*',
+          'restaurant.id',
           'cover_image.id',
           'cover_image.filename_download',
           'allergens.allergens_id.id',
@@ -187,6 +188,47 @@ class DashboardRepository {
       rethrow;
     } catch (e) {
       throw DashboardServiceException('Errore imprevisto fetch pizze: $e');
+    }
+  }
+
+  Future<PizzaDto> fetchPizzaById(int pizzaId) async {
+    try {
+      final qb = DirectusQueryBuilder()
+        ..fields([
+          '*',
+          'restaurant.id',
+          'cover_image.id',
+          'cover_image.filename_download',
+          'allergens.allergens_id.id',
+          'allergens.allergens_id.name',
+        ])
+        ..populate([
+          'cover_image',
+          'allergens.allergens_id',
+        ])
+        ..filter({
+          'id': {'_eq': pizzaId}
+        });
+
+      final endpoint = DashboardEndpoints.getPizzas(queryBuilder: qb);
+      final resp = await _apiService.get(endpoint);
+
+      if (resp.statusCode != 200) {
+        throw FetchPizzasException();
+      }
+
+      final List<dynamic> rawData = resp.data['data'] ?? [];
+      if (rawData.isEmpty) {
+        throw FetchPizzasException('Pizza non trovata con id $pizzaId');
+      }
+
+      return PizzaDto.fromMap(rawData.first as Map<String, dynamic>);
+    } on DioException catch (e) {
+      throw mapDioExceptionToCustomException(e);
+    } on DashboardServiceException {
+      rethrow;
+    } catch (e) {
+      throw DashboardServiceException('Errore imprevisto fetch pizza: $e');
     }
   }
 

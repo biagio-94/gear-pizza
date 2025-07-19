@@ -11,6 +11,11 @@ abstract class DashboardState {
 
 class DashboardInitial extends DashboardState {}
 
+class PizzaDetailPageState extends DashboardState {
+  final PizzaDto pizza;
+  PizzaDetailPageState({required this.pizza});
+}
+
 class RestaurantsLoaded extends DashboardState {
   final List<RestaurantDto> restaurants;
   const RestaurantsLoaded(this.restaurants);

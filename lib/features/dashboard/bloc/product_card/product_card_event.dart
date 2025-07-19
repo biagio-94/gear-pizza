@@ -17,3 +17,14 @@ class RemoveProductEvent extends ProductCardEvent {
   const RemoveProductEvent(
       {required this.productId, required this.productPrice});
 }
+
+class UpdateProductEvent extends ProductCardEvent {
+  final int productId;
+  final int quantity;
+  final double productPrice;
+  const UpdateProductEvent({
+    required this.productId,
+    required this.quantity,
+    required this.productPrice,
+  });
+}

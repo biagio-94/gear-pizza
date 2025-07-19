@@ -9,7 +9,7 @@ class PizzaDto {
   final double price;
   final String? coverImageUrl;
   final List<AllergenDto> allergens;
-
+  final int restaurantId;
   PizzaDto({
     required this.id,
     required this.name,
@@ -17,6 +17,7 @@ class PizzaDto {
     required this.price,
     this.coverImageUrl,
     this.allergens = const [],
+    required this.restaurantId,
   });
 
   Map<String, dynamic> toMap() {
@@ -27,6 +28,7 @@ class PizzaDto {
       'price': price,
       'coverImageUrl': coverImageUrl,
       'allergens': allergens.map((a) => a.toMap()).toList(),
+      'restaurantId': restaurantId,
     };
   }
 
@@ -39,13 +41,12 @@ class PizzaDto {
       return AllergenDto.fromMap(allergenMap);
     }).toList();
 
-    // Prezzo casuale tra 7.00 e 16.00 incluso con due decimali
+    // Prezzo casuale
     double generateRandomPrice() {
       final rng = Random(map['id'] ?? DateTime.now().millisecondsSinceEpoch);
       final min = 7.0;
       final max = 16.0;
       double raw = min + rng.nextDouble() * (max - min);
-      // arrotonda a due decimali
       return (raw * 100).round() / 100;
     }
 
@@ -60,6 +61,9 @@ class PizzaDto {
       price: priceValue,
       coverImageUrl: imageUrl,
       allergens: parsedAllergens,
+      restaurantId: (map['restaurant'] is Map)
+          ? (map['restaurant']['id'] ?? 0)
+          : map['restaurant'] ?? 0,
     );
   }
 

@@ -107,8 +107,13 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
             // 4) Lista pizze: griglia con loading e empty state
             RestaurantProductsList(
               onPizzaTap: (pizza) {
-                // Navigo ai dettagli della pizza selezionata
-                // e.g. context.pushNamed('pizzaDetail', params: {...});
+                context.pushNamed(
+                  'pizzaDetail',
+                  pathParameters: {
+                    'restaurantId': pizza.restaurantId.toString(),
+                    'pizzaId': pizza.id.toString(),
+                  },
+                );
               },
             ),
 

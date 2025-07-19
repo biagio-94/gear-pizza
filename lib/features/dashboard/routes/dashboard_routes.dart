@@ -1,3 +1,6 @@
+import 'dart:ui';
+
+import 'package:flutter/material.dart';
 import 'package:gearpizza/features/dashboard/screens/pizza_detail_page.dart';
 import 'package:gearpizza/features/dashboard/screens/restaurant_page_detail.dart';
 import 'package:go_router/go_router.dart';
@@ -14,12 +17,26 @@ final List<GoRoute> dashboardRoutes = [
       GoRoute(
         path: 'pizza/:pizzaId',
         name: 'pizzaDetail',
-        builder: (context, state) {
+        pageBuilder: (context, state) {
           final rId = state.pathParameters['restaurantId']!;
           final pId = state.pathParameters['pizzaId']!;
-          return PizzaDetailPage(
-            restaurantId: rId,
-            pizzaId: pId,
+          return CustomTransitionPage(
+            child: PizzaDetailPage(
+              restaurantId: rId,
+              pizzaId: pId,
+            ),
+            transitionsBuilder:
+                (context, animation, secondaryAnimation, child) {
+              const begin = Offset(0.0, 1.0);
+              const end = Offset.zero;
+              const curve = Curves.easeOut;
+              final tween =
+                  Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+              return SlideTransition(
+                position: animation.drive(tween),
+                child: child,
+              );
+            },
           );
         },
       ),

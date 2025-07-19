@@ -7,6 +7,7 @@ class ProductCardBloc extends Bloc<ProductCardEvent, ProductCardState> {
   ProductCardBloc() : super(const NoProductSelectedState()) {
     on<AddProductEvent>(_onAddProduct);
     on<RemoveProductEvent>(_onRemoveProduct);
+    on<UpdateProductEvent>(_onUpdateProduct);
   }
 
   Future<void> _onAddProduct(
@@ -47,6 +48,39 @@ class ProductCardBloc extends Bloc<ProductCardEvent, ProductCardState> {
         quantities.remove(event.productId);
         subtotal -= event.productPrice;
       }
+
+      if (quantities.isEmpty) {
+        emit(const NoProductSelectedState());
+      } else {
+        emit(ProductSelectedState(
+            productsQuantity: quantities, totalPrice: subtotal));
+      }
+    }
+  }
+
+  Future<void> _onUpdateProduct(
+    UpdateProductEvent event,
+    Emitter<ProductCardState> emit,
+  ) async {
+    final currentState = state;
+
+    if (currentState is ProductSelectedState) {
+      final quantities = Map<int, int>.from(currentState.productsQuantity);
+      double subtotal = currentState.totalPrice;
+
+      final oldQuantity = quantities[event.productId] ?? 0;
+      final newQuantity = event.quantity;
+
+      if (newQuantity > 0) {
+        quantities[event.productId] = newQuantity;
+      } else {
+        quantities.remove(event.productId);
+      }
+
+      // Calcola la differenza di quantità
+      final quantityDiff = newQuantity - oldQuantity;
+      // Aggiorna il subtotal aggiungendo (o sottraendo) la differenza * prezzo
+      subtotal += quantityDiff * event.productPrice;
 
       if (quantities.isEmpty) {
         emit(const NoProductSelectedState());

@@ -26,3 +26,8 @@ class FetchByAllergensEvent extends DashboardEvent {
   final List<int> selectedAllergenIds;
   const FetchByAllergensEvent(this.selectedAllergenIds);
 }
+
+class FetchByPizzaId extends DashboardEvent {
+  final int pizzaId;
+  const FetchByPizzaId(this.pizzaId);
+}

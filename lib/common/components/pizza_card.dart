@@ -6,6 +6,7 @@ import 'package:gearpizza/features/dashboard/models/pizza_dto.dart';
 import 'package:gearpizza/features/dashboard/bloc/product_card/product_card_bloc.dart';
 import 'package:gearpizza/features/dashboard/bloc/product_card/product_card_event.dart';
 import 'package:gearpizza/features/dashboard/bloc/product_card/product_card_state.dart';
+import 'package:go_router/go_router.dart';
 
 class PizzaCard extends StatelessWidget {
   final PizzaDto pizza;
@@ -134,12 +135,23 @@ class PizzaCard extends StatelessWidget {
                                     _QuantityButton(
                                       icon: Icons.add,
                                       onPressed: () {
-                                        context.read<ProductCardBloc>().add(
-                                              AddProductEvent(
-                                                productId: pizza.id,
-                                                productPrice: pizza.price,
-                                              ),
-                                            );
+                                        if (quantity > 0) {
+                                          context.read<ProductCardBloc>().add(
+                                                AddProductEvent(
+                                                  productId: pizza.id,
+                                                  productPrice: pizza.price,
+                                                ),
+                                              );
+                                        } else {
+                                          context.pushNamed(
+                                            'pizzaDetail',
+                                            pathParameters: {
+                                              'restaurantId':
+                                                  pizza.restaurantId.toString(),
+                                              'pizzaId': pizza.id.toString(),
+                                            },
+                                          );
+                                        }
                                       },
                                     ),
                                   ],

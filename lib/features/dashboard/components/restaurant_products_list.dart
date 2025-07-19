@@ -25,7 +25,7 @@ class RestaurantProductsList extends StatelessWidget {
             );
           }
           return SliverPadding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
             sliver: SliverList(
               delegate: SliverChildBuilderDelegate(
                 (context, index) {

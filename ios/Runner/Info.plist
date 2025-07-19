@@ -20,6 +20,13 @@
 		<string>$(FLUTTER_BUILD_NAME)</string>
 		<key>CFBundleSignature</key>
 		<string>????</string>
+		  <!-- Permessi fotocamera e galleria -->
+		<key>NSCameraUsageDescription</key>
+		<string>Permesso necessario per scattare foto del tuo indirizzo</string>
+		<key>NSPhotoLibraryUsageDescription</key>
+		<string>Permesso necessario per scegliere foto dalla galleria</string>
+		<key>NSPhotoLibraryAddUsageDescription</key>
+		<string>Permesso necessario per salvare le foto scattate nella libreria</string>
 		<key>CFBundleVersion</key>
 		<string>$(FLUTTER_BUILD_NUMBER)</string>
 		<key>LSRequiresIPhoneOS</key>

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:gearpizza/features/cart/routes/cart_routes.dart';
 import 'package:gearpizza/features/cart/screens/cart_screen.dart';
 import 'package:go_router/go_router.dart';
 import 'package:gearpizza/common/bloc/exception_bloc.dart';
@@ -54,8 +55,8 @@ class MainRouter {
         // Altrimenti, se chiedo /dashboard, /cart o /profile (o altre pagine interne),
         // lascio che il router gestisca normalmente la navigazione:
         if (path.startsWith('/dashboard') ||
-            path == '/cart' ||
-            path == '/profile') {
+            path.startsWith('/cart') ||
+            path.startsWith('/profile')) {
           return null;
         }
         // Se provi a digitare un path non riconosciuto, fallback a /dashboard:
@@ -92,9 +93,12 @@ class MainRouter {
             initialLocation: '/cart',
             routes: [
               GoRoute(
-                path: '/cart',
-                builder: (context, state) => Scaffold(body: const CartScreen()),
-              ),
+                  path: '/cart',
+                  builder: (context, state) =>
+                      Scaffold(body: const CartScreen()),
+                  routes: [
+                    ...cartRoutes,
+                  ]),
             ],
           ),
           // Clients branch

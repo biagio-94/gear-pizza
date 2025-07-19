@@ -3,9 +3,13 @@ import 'dart:io';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:gearpizza/common/components/custom_input.dart';
 import 'package:gearpizza/features/cart/bloc/cart_bloc.dart';
 import 'package:gearpizza/features/cart/bloc/cart_event.dart';
 import 'package:gearpizza/features/cart/components/address_autocomplete_input.dart';
+import 'package:gearpizza/features/cart/components/order_confirm_button.dart';
+import 'package:gearpizza/features/cart/components/order_form_section.dart';
+import 'package:gearpizza/features/cart/components/order_image_upload_section.dart';
 import 'package:go_router/go_router.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:image_picker/image_picker.dart';
@@ -20,6 +24,8 @@ class OrderScreen extends StatefulWidget {
 class _OrderScreenState extends State<OrderScreen> {
   final _formKey = GlobalKey<FormState>();
   final _addressController = TextEditingController();
+  final _emailController = TextEditingController();
+
   XFile? _pickedImage;
   bool _canConfirm = false;
 
@@ -28,11 +34,14 @@ class _OrderScreenState extends State<OrderScreen> {
     super.initState();
     // Listen to address changes to update button state
     _addressController.addListener(_updateConfirmButtonState);
+    _emailController.addListener(_updateConfirmButtonState);
   }
 
   @override
   void dispose() {
     _addressController.removeListener(_updateConfirmButtonState);
+    _emailController.removeListener(_updateConfirmButtonState);
+    _emailController.dispose();
     _addressController.dispose();
     super.dispose();
   }
@@ -40,8 +49,10 @@ class _OrderScreenState extends State<OrderScreen> {
   // Aggiorna lo stato del pulsante di conferma
   void _updateConfirmButtonState() {
     final isAddressValid = _addressController.text.trim().isNotEmpty;
+    final isEmailValid = RegExp(r"^[\w\.-]+@[\w\.-]+\.\w{2,4}$")
+        .hasMatch(_emailController.text.trim());
     setState(() {
-      _canConfirm = isAddressValid;
+      _canConfirm = isAddressValid && isEmailValid;
     });
   }
 
@@ -218,12 +229,13 @@ class _OrderScreenState extends State<OrderScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                AddressSection(
+                OrderFormSection(
                   formKey: _formKey,
-                  controller: _addressController,
+                  addressController: _addressController,
+                  emailController: _emailController,
                 ),
                 const SizedBox(height: 24),
-                ImagePickerSection(
+                OrderImageUploadSection(
                   image: _pickedImage,
                   onUploadTap: _showImageSourceActionSheet,
                 ),
@@ -232,131 +244,11 @@ class _OrderScreenState extends State<OrderScreen> {
           ),
         ),
       ),
-      floatingActionButton: ConfirmOrderButton(
+      floatingActionButton: OrderConfirmButton(
         enabled: _canConfirm,
         onPressed: _submitOrder,
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-    );
-  }
-}
-
-class AddressSection extends StatelessWidget {
-  final GlobalKey<FormState> formKey;
-  final TextEditingController controller;
-
-  const AddressSection({
-    Key? key,
-    required this.formKey,
-    required this.controller,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Text('Dove desideri la consegna?', style: theme.textTheme.titleMedium),
-        const SizedBox(height: 4),
-        Text(
-          'Digita via, numero civico, CAP e città per una consegna puntuale',
-          style: theme.textTheme.bodySmall,
-        ),
-        const SizedBox(height: 16),
-        Form(
-          key: formKey,
-          child: AddressAutocompleteInput(controller: controller),
-        ),
-      ],
-    );
-  }
-}
-
-class ImagePickerSection extends StatelessWidget {
-  final XFile? image;
-  final VoidCallback onUploadTap;
-
-  const ImagePickerSection({
-    Key? key,
-    required this.image,
-    required this.onUploadTap,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Text('Vuoi aggiungere una foto (opzionale)?',
-            style: theme.textTheme.titleMedium),
-        const SizedBox(height: 8),
-        if (image != null)
-          ClipRRect(
-            borderRadius: BorderRadius.circular(12),
-            child: Image.file(
-              File(image!.path),
-              height: 150,
-              width: double.infinity,
-              fit: BoxFit.cover,
-            ),
-          ),
-        OutlinedButton.icon(
-          onPressed: onUploadTap,
-          icon: Icon(Icons.camera_alt, color: theme.colorScheme.secondary),
-          label: Text(
-            'Carica foto',
-            style: TextStyle(color: theme.colorScheme.secondary),
-          ),
-          style: OutlinedButton.styleFrom(
-            side: BorderSide(color: theme.colorScheme.secondary),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class ConfirmOrderButton extends StatelessWidget {
-  final bool enabled;
-  final VoidCallback onPressed;
-
-  const ConfirmOrderButton({
-    Key? key,
-    required this.enabled,
-    required this.onPressed,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return SizedBox(
-      width: MediaQuery.of(context).size.width * 0.8,
-      height: 56,
-      child: Opacity(
-        opacity: enabled ? 1.0 : 0.5,
-        child: FloatingActionButton.extended(
-          onPressed: enabled ? onPressed : null,
-          backgroundColor: theme.colorScheme.secondary,
-          foregroundColor: theme.colorScheme.onSecondary,
-          elevation: enabled ? 6 : 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(28),
-          ),
-          label: Center(
-            child: Text(
-              'Conferma ordine',
-              style: theme.textTheme.bodyLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
-            ),
-          ),
-        ),
-      ),
     );
   }
 }

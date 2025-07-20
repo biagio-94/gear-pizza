@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:gearpizza/features/cart/model/order_dto.dart';
+import 'package:gearpizza/features/profile/models/order_detail_dto.dart';
 
 abstract class OrdersState extends Equatable {
   const OrdersState();
@@ -13,7 +14,7 @@ class OrdersInitial extends OrdersState {}
 class OrdersLoading extends OrdersState {}
 
 class OrdersLoaded extends OrdersState {
-  final List<OrderDto> orders;
+  final List<OrderDetailDto> orders;
 
   const OrdersLoaded(this.orders);
 

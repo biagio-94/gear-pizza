@@ -7,6 +7,7 @@ import 'package:gearpizza/features/cart/api/cart_endpoints.dart';
 import 'package:gearpizza/features/cart/model/customer_dto.dart';
 import 'package:gearpizza/features/cart/model/order_dto.dart';
 import 'package:gearpizza/features/profile/api/user_endpoint.dart';
+import 'package:gearpizza/features/profile/models/order_detail_dto.dart';
 import 'package:gearpizza/features/profile/models/user_profile_data_dto.dart';
 import 'package:gearpizza/features/profile/services/user_service_exception.dart';
 
@@ -90,22 +91,34 @@ class UserRepository {
     }
   }
 
-  Future<List<OrderDto>> getOrdersByUserId() async {
+  Future<List<OrderDetailDto>> getOrdersByUserId() async {
     try {
       final userId = await _getUserId();
       if (userId == null) {
         return [];
       }
 
-      final query = DirectusQueryBuilder()
+      final qb = DirectusQueryBuilder()
         ..filter({
           'customer': {'_eq': userId}
         })
-        ..fields(['*', 'pizzas.*'])
-        ..populate(['restaurant', 'customer', 'pizzas'])
-        ..sort('-id');
+        ..fields([
+          '*', // tutti i campi dell'ordine
+          'pizzas.*', // pivot table
+          'pizzas.pizzas_id.*', // dati completi della pizza
+          'pizzas.pizzas_id.allergens.*', // 👈 dati completi degli allergeni
+          'restaurant.*',
+          'customer.*',
+        ])
+        ..sort('-id')
+        ..populate([
+          'restaurant',
+          'customer',
+          'pizzas.pizzas_id',
+          'pizzas.pizzas_id.allergens', // 👈 relazione allergeni popolata
+        ]);
 
-      final endpoint = UserEndpoint.getOrdersByUserId(userId, query);
+      final endpoint = UserEndpoint.getOrdersByUserId(userId, qb);
 
       final resp = await _apiService.get(endpoint);
       if (resp.statusCode != 200) {
@@ -115,7 +128,7 @@ class UserRepository {
 
       final data = resp.data['data'] as List<dynamic>? ?? [];
       return data
-          .map((e) => OrderDto.fromMap(e as Map<String, dynamic>))
+          .map((e) => OrderDetailDto.fromMap(e as Map<String, dynamic>))
           .toList();
     } on DioException catch (e) {
       throw mapDioExceptionToCustomException(e);

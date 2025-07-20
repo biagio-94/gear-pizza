@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:gearpizza/features/cart/model/order_dto.dart';
+import 'package:gearpizza/features/profile/models/order_detail_dto.dart';
 import 'package:gearpizza/features/profile/models/user_profile_data_dto.dart';
 import 'package:gearpizza/features/profile/repositories/user_repository.dart';
 import 'package:gearpizza/features/profile/services/user_service_exception.dart';
@@ -38,7 +39,7 @@ class UserService {
   }
 
   /// Recupera la lista di ordini associati al profilo utente, se ne esistono
-  Future<List<OrderDto>> getOrdersByUserId() async {
+  Future<List<OrderDetailDto>> getOrdersByUserId() async {
     try {
       return await _userRepository.getOrdersByUserId();
     } on UserServiceException {

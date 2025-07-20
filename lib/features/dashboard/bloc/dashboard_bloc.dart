@@ -29,7 +29,6 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
     // Fetch delle pizze per pizaId
     on<FetchByPizzaId>(_onFetchByPizzaId);
   }
-
   Future<void> _onFetchRestaurants(
     FetchRestaurantsEvent event,
     Emitter<DashboardState> emit,

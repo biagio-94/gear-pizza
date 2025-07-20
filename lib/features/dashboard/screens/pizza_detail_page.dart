@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:gearpizza/common/styles/text_styles.dart';
 import 'package:gearpizza/common/utils/image_download_helper.dart';
 import 'package:gearpizza/features/dashboard/bloc/dashboard_bloc.dart';
 import 'package:gearpizza/features/dashboard/bloc/dashboard_event.dart';
@@ -128,6 +129,16 @@ class _PizzaDetailPageState extends State<PizzaDetailPage> {
                                       p.description!,
                                       style: theme.textTheme.bodyMedium,
                                     ),
+                                  const SizedBox(height: 8),
+                                  if (p.allergens.isNotEmpty) ...[
+                                    Text(
+                                      'Allergeni: ${p.allergens.map((a) => a.name).join(', ')}',
+                                      style: AppTextStyles.caption(context)
+                                          .copyWith(
+                                              fontWeight: FontWeight.bold),
+                                    ),
+                                  ],
+                                  const SizedBox(height: 8),
                                   Row(
                                     mainAxisSize: MainAxisSize.min,
                                     mainAxisAlignment: MainAxisAlignment

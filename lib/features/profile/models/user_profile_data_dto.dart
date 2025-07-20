@@ -11,15 +11,15 @@ class UserProfileDataDto {
 
   factory UserProfileDataDto.fromMap(Map<String, dynamic> map) {
     return UserProfileDataDto(
-      email: map['email'] ?? '',
-      fullName: map['full_name'] ?? '',
+      email: map['email_address'] ?? '',
+      fullName: map['name'] ?? '',
     );
   }
 
   Map<String, dynamic> toMap() {
     return {
-      'email': email,
-      'full_name': fullName,
+      'email_address': email,
+      'name': fullName,
     };
   }
 }

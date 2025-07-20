@@ -24,6 +24,18 @@ class DashboardEndpoints {
   static String getAllergenById(int id) {
     return '$basePath/allergens/$id';
   }
+
+  /// Restituisce l'endpoint per recuperare un customer per ID,
+  /// con possibilità di specificare campi o relazioni da popolare.
+  static String getCustomerById(
+    String id, {
+    DirectusQueryBuilder? queryBuilder,
+  }) {
+    final qb = queryBuilder ?? DirectusQueryBuilder();
+    // Esempio: qb.fields(['id','email_address','name'])
+    final query = qb.build();
+    return '$basePath/customers/$id$query';
+  }
 }
 // This class provides static methods to construct API endpoints for the dashboard feature.
 // It uses a base path and allows for query parameters to be appended using the DirectusQueryBuilder.

@@ -8,6 +8,7 @@ import 'package:gearpizza/common/utils/get_device_id.dart';
 import 'package:gearpizza/features/auth/services/auth_service_exception.dart';
 import 'package:gearpizza/features/cart/services/cart_service_exception.dart';
 import 'package:gearpizza/features/dashboard/services/dashboard_service_exception.dart';
+import 'package:gearpizza/features/profile/services/user_service_exception.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 /// Questa classe `ExecutionHelper` è pensata per semplificare la gestione di
@@ -63,6 +64,9 @@ class ExecutionHelper {
       await _logError(e, st);
       onError?.call(e.message);
     } on CartServiceException catch (e, st) {
+      await _logError(e, st);
+      onError?.call(e.message);
+    } on UnexpectedUserException catch (e, st) {
       await _logError(e, st);
       onError?.call(e.message);
     } on DioException catch (e, st) {

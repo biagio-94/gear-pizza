@@ -8,16 +8,12 @@ class UserService {
 
   UserService(this._userRepository);
 
-  /// Aggiorna i dati utente con la mappa [data].
-  Future<void> updateUserProfile(Map<String, String> data) async {
+  Future<void> patchUser({
+    required String fullName,
+    required String email,
+  }) async {
     try {
-      // Aggiorna via API
-      await _userRepository.patchUser(data);
-
-      // Aggiorna storage locale
-      final key = data.keys.first;
-      final value = data.values.first;
-      await _userRepository.saveFieldToStorage(key, value);
+      await _userRepository.patchUser(email: email, fullName: fullName);
     } on UserServiceException {
       rethrow;
     } on DioException {
@@ -27,17 +23,10 @@ class UserService {
     }
   }
 
-  /// Recupera il profilo utente.
-  /// Se [fromApi] è true, carica da API e aggiorna storage, altrimenti solo da storage.
-  Future<UserProfileDataDto> getUserProfile({bool fromApi = false}) async {
+  /// Recupera il profilo utente Se esiste.
+  Future<UserProfileDataDto?> fetchUserProfile() async {
     try {
-      if (fromApi) {
-        final profile = await _userRepository.fetchUserProfile();
-        await _userRepository.saveUserProfileToStorage(profile);
-        return profile;
-      } else {
-        return await _userRepository.loadUserProfileFromStorage();
-      }
+      return await _userRepository.fetchUserProfile();
     } on UserServiceException {
       rethrow;
     } on DioException {

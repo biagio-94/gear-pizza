@@ -37,7 +37,7 @@ class CustomerDto {
       id: map['id'] as int?,
       restaurantId: extractId(map['restaurant']),
       name: map['name'] ?? '',
-      emailAddress: map['emailAddress'] ?? '',
+      emailAddress: map['email_address'] ?? '',
     );
   }
 

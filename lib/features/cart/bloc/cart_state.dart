@@ -12,22 +12,28 @@ class CartLoadedState extends CartState {
   final List<CartItemDto> items;
   final RestaurantDto restaurant;
   final double totalPrice;
+  final String? fullName;
+  final String? emailAddress;
 
-  CartLoadedState({
-    required this.items,
-    required this.totalPrice,
-    required this.restaurant,
-  });
+  CartLoadedState(
+      {required this.items,
+      required this.totalPrice,
+      required this.restaurant,
+      this.emailAddress,
+      this.fullName});
 
-  CartLoadedState copyWith({
-    List<CartItemDto>? items,
-    RestaurantDto? restaurant,
-    double? totalPrice,
-  }) {
+  CartLoadedState copyWith(
+      {List<CartItemDto>? items,
+      RestaurantDto? restaurant,
+      double? totalPrice,
+      String? emailAddress,
+      String? fullName}) {
     return CartLoadedState(
       items: items ?? this.items,
       restaurant: restaurant ?? this.restaurant,
       totalPrice: totalPrice ?? this.totalPrice,
+      emailAddress: emailAddress ?? this.emailAddress,
+      fullName: fullName ?? this.fullName,
     );
   }
 }

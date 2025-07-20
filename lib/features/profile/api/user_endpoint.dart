@@ -2,7 +2,7 @@ import 'package:gearpizza/common/utils/directus_query_builder.dart';
 
 class UserEndpoint {
   static const String basePath = '/items';
-  static const String collection = 'users';
+  static const String collection = 'customers';
 
   // Endpoint per fetch profilo utente con query opzionale
   static String fetchUserProfile(String userId,

@@ -27,15 +27,18 @@ class CartBloc extends Bloc<CartEvent, CartState> {
   }
 
   Future<void> _onLoadCartDetails(
-      LoadCartDetailsEvent event, Emitter<CartState> emit) async {
+    LoadCartDetailsEvent event,
+    Emitter<CartState> emit,
+  ) async {
     await ExecutionHelper.run(
       showLoading: () => loadingBloc.showLoading('Caricamento carrello...'),
       hideLoading: () => loadingBloc.hideLoading(),
       onError: (msg) => exceptionBloc.throwExceptionState(msg),
       action: () async {
+        // Fetch ristorante e items
         final restaurantData = await _dashboardService.fetchRestaurantById(
-            restaurantId: event.restaurantId);
-
+          restaurantId: event.restaurantId,
+        );
         final cartItems = await Future.wait(
           event.productsQuantity.entries.map((e) async {
             final pizza =
@@ -44,14 +47,23 @@ class CartBloc extends Bloc<CartEvent, CartState> {
           }),
         );
 
+        // Provo a recuperare il customer se esiste
+        final CustomerDto? customerInfo =
+            await _dashboardService.fetchCustomerInfoIfExists();
+
         final total =
             cartItems.fold<double>(0, (sum, item) => sum + item.subtotal);
 
-        emit(CartLoadedState(
-          items: cartItems,
-          totalPrice: total,
-          restaurant: restaurantData,
-        ));
+        // Costruisco lo stato con o senza fullName/emailAddress
+        emit(
+          CartLoadedState(
+            items: cartItems,
+            totalPrice: total,
+            restaurant: restaurantData,
+            fullName: customerInfo?.name,
+            emailAddress: customerInfo?.emailAddress,
+          ),
+        );
       },
     );
   }

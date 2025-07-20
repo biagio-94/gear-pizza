@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:gearpizza/features/auth/services/auth_service.dart';
+import 'package:gearpizza/features/cart/model/customer_dto.dart';
 import 'package:gearpizza/features/dashboard/models/filters_dto.dart';
 import 'package:gearpizza/features/dashboard/services/dashboard_service_exception.dart';
 import '../../../common/services/api_service_exception.dart';
@@ -19,6 +20,21 @@ class DashboardService {
   Future<List<RestaurantDto>> fetchAllRestaurants() async {
     try {
       return await dashboardRepository.fetchAllRestaurants();
+    } on DashboardServiceException catch (_) {
+      rethrow;
+    } on ApiServiceException catch (_) {
+      rethrow;
+    } on DioException catch (e) {
+      throw mapDioExceptionToCustomException(e);
+    } catch (e) {
+      throw GenericException();
+    }
+  }
+
+  /// Ritorna la lista di ristoranti come DTO leggeri per la UI
+  Future<CustomerDto?> fetchCustomerInfoIfExists() async {
+    try {
+      return await dashboardRepository.fetchCustomerInfoIfExists();
     } on DashboardServiceException catch (_) {
       rethrow;
     } on ApiServiceException catch (_) {

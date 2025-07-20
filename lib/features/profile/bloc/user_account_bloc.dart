@@ -27,9 +27,12 @@ class UserAccountBloc extends Bloc<UserAccountEvent, UserAccountState> {
       hideLoading: () => loadingBloc.hideLoading(),
       onError: (msg) => exceptionBloc.throwExceptionState(msg),
       action: () async {
-        // Carica il profilo dall'ultima fonte disponibile (storage o API)
-        // Puoi decidere qui se forzare fetch da API con fromApi: true
-        final userProfile = await _userService.getUserProfile(fromApi: false);
+        final userProfile = await _userService.fetchUserProfile();
+
+        if (userProfile == null) {
+          emit(UserAccountInitial());
+          return;
+        }
 
         emit(UserAccountLoaded(
           name: userProfile.fullName,
@@ -47,17 +50,28 @@ class UserAccountBloc extends Bloc<UserAccountEvent, UserAccountState> {
     if (current is! UserAccountLoaded) return;
 
     await ExecutionHelper.run(
-      showLoading: () => loadingBloc.showLoading('Aggiornamento dati...'),
-      hideLoading: () => loadingBloc.hideLoading(),
       onError: (msg) => exceptionBloc.throwExceptionState(msg),
       action: () async {
-        // Aggiorna il profilo via service (che aggiorna sia API che storage)
-        await _userService.updateUserProfile({event.field: event.value});
+        // Ricava i valori esistenti
+        final existingName = current.name;
+        final existingEmail = current.email;
 
-        // Emissione stato aggiornato
+        // Decidi cosa aggiornare e cosa mantenere
+        final updatedName =
+            event.field == 'full_name' ? event.value : existingName;
+        final updatedEmail =
+            event.field == 'email' ? event.value : existingEmail;
+
+        // Chiamata al service (API + storage)
+        await _userService.patchUser(
+          fullName: updatedName,
+          email: updatedEmail,
+        );
+
+        // Emissione del nuovo stato con entrambi i valori
         emit(UserAccountLoaded(
-          name: event.field == 'full_name' ? event.value : current.name,
-          email: event.field == 'email' ? event.value : current.email,
+          name: updatedName,
+          email: updatedEmail,
         ));
       },
     );

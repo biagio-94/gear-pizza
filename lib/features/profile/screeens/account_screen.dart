@@ -58,13 +58,16 @@ class _AccountScreenState extends State<AccountScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
         appBar: AppBar(
           title: const Text('Account'),
           centerTitle: true,
         ),
         body: BlocConsumer<UserAccountBloc, UserAccountState>(
-          listenWhen: (previous, current) => current is UserAccountFailure,
+          listenWhen: (previous, current) =>
+              current is UserAccountFailure || current is UserAccountLoaded,
           listener: (context, state) {
             if (state is UserAccountFailure) {
               ScaffoldMessenger.of(context).showSnackBar(
@@ -78,12 +81,28 @@ class _AccountScreenState extends State<AccountScreen> {
           },
           buildWhen: (previous, current) => current is UserAccountLoaded,
           builder: (context, state) {
-            if (state is UserAccountLoaded) {
+            if (state is UserAccountLoaded || state is UserAccountInitial) {
               return Padding(
                 padding: const EdgeInsets.all(16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    const SizedBox(height: 16),
+                    Text(
+                      'Modifica il tuo profilo',
+                      style: theme.textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Aggiorna nome ed email per ricevere le novità e gestire i tuoi ordini in modo semplice.',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: Colors.grey[700],
+                      ),
+                    ),
+                    const SizedBox(height: 32),
                     TextField(
                       controller: _nameController,
                       focusNode: _nameFocus,
@@ -91,6 +110,7 @@ class _AccountScreenState extends State<AccountScreen> {
                         labelText: 'Nome completo',
                         hintText: 'Inserisci il tuo nome completo',
                       ),
+                      keyboardType: TextInputType.name,
                       textInputAction: TextInputAction.next,
                     ),
                     const SizedBox(height: 16),

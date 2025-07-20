@@ -3,6 +3,8 @@ import 'package:gearpizza/common/services/api_service.dart';
 import 'package:gearpizza/common/services/secure_storage_service.dart';
 import 'package:gearpizza/common/utils/directus_query_builder.dart';
 import 'package:gearpizza/common/utils/exception_handler.dart';
+import 'package:gearpizza/features/cart/api/cart_endpoints.dart';
+import 'package:gearpizza/features/cart/model/customer_dto.dart';
 import 'package:gearpizza/features/profile/api/user_endpoint.dart';
 import 'package:gearpizza/features/profile/models/user_profile_data_dto.dart';
 import 'package:gearpizza/features/profile/services/user_service_exception.dart';
@@ -13,28 +15,72 @@ class UserRepository {
 
   UserRepository(this._apiService, this._storage);
 
-  Future<String?> _getToken() => _storage.readSecureData('access_token');
   Future<String?> _getUserId() => _storage.readSecureData('user_id');
+  Future<void> _saveUserId(String id) async =>
+      _storage.writeSecureData('user_id', id);
 
-  Future<void> patchUser(Map<String, String> data) async {
+  Future<void> _saveProfileFields({String? fullName, String? email}) async {
+    if (fullName != null) {
+      await _storage.writeSecureData('user_full_name', fullName);
+    }
+    if (email != null) {
+      await _storage.writeSecureData('user_email', email);
+    }
+  }
+
+  Future<CustomerDto?> _checkCustomerExists(String email) async {
+    if (email.trim().isEmpty) return null;
+    final endpoint = CartEndpoints.checkCustomer(email: email);
+    final resp = await _apiService.get(endpoint);
+    if (resp.statusCode != 200) {
+      throw UserServiceException('Errore fetch customer: \${resp.statusCode}');
+    }
+    final list = resp.data['data'] as List<dynamic>? ?? [];
+    return list.isEmpty
+        ? null
+        : CustomerDto.fromMap(list.first as Map<String, dynamic>);
+  }
+
+  /// Patch o crea customer in base a email e nome
+  Future<void> patchUser({String? fullName, String? email}) async {
     try {
-      final token = await _getToken();
-      final userId = await _getUserId();
+      String? id = await _getUserId();
 
-      if (token == null || userId == null) {
-        throw MissingAuthDataException();
+      // Se manca l'id ma ho un'email valida, cerco o creo customer
+      if (id == null && email != null && email.trim().isNotEmpty) {
+        final existing = await _checkCustomerExists(email);
+        CustomerDto customer;
+        if (existing != null) {
+          customer = existing;
+        } else {
+          throw UnexpectedUserException(
+              "Non hai ancora effettuato un'ordine, non possiamo reperire le tue credenziali");
+        }
+        id = customer.id.toString();
+        await _saveUserId(id);
       }
 
-      final endpoint = UserEndpoint.patchUser(userId);
-
-      final response = await _apiService.patch(
-        endpoint,
-        data: data,
-      );
-
-      if (response.statusCode != 200) {
-        throw PatchUserException('Codice: ${response.statusCode}');
+      if (id == null) {
+        return;
       }
+
+      // Preparo payload dinamico
+      final data = <String, String>{};
+      if (fullName != null && fullName.trim().isNotEmpty) {
+        data['name'] = fullName;
+      }
+      if (email != null && email.trim().isNotEmpty) {
+        data['email_address'] = email;
+      }
+      if (data.isEmpty) return;
+
+      final endpoint = UserEndpoint.patchUser(id);
+      final resp = await _apiService.patch(endpoint, data: data);
+      if (resp.statusCode != 200 && resp.statusCode != 204) {
+        throw PatchUserException('Codice: \${resp.statusCode}');
+      }
+
+      await _saveProfileFields(fullName: fullName, email: email);
     } on DioException catch (e) {
       throw mapDioExceptionToCustomException(e);
     } on UserServiceException {
@@ -44,35 +90,23 @@ class UserRepository {
     }
   }
 
-  Future<UserProfileDataDto> fetchUserProfile({List<String>? fields}) async {
+  Future<UserProfileDataDto?> fetchUserProfile() async {
     try {
-      final token = await _getToken();
-      final userId = await _getUserId();
+      final id = await _getUserId();
+      if (id == null)
+        throw UnexpectedUserException(
+            "Non hai ancora effettuato un'ordine, non possiamo reperire le tue credenziali");
 
-      if (token == null || userId == null) {
-        throw MissingAuthDataException();
+      final qb = DirectusQueryBuilder().fields(['id', 'email_address', 'name']);
+      final endpoint = UserEndpoint.fetchUserProfile(id, queryBuilder: qb);
+      final resp = await _apiService.get(endpoint);
+      if (resp.statusCode != 200 && resp.statusCode != 204) {
+        throw FetchUserProfileException('Codice: \${resp.statusCode}');
       }
-
-      final queryBuilder =
-          DirectusQueryBuilder().fields(fields ?? ['id', 'email', 'full_name']);
-
-      final endpoint =
-          UserEndpoint.fetchUserProfile(userId, queryBuilder: queryBuilder);
-
-      final response = await _apiService.get(endpoint);
-
-      if (response.statusCode != 200) {
-        throw FetchUserProfileException('Codice: ${response.statusCode}');
-      }
-
-      final data = response.data['data'] as Map<String, dynamic>;
+      final data = resp.data['data'] as Map<String, dynamic>;
       return UserProfileDataDto.fromMap(data);
     } on DioException catch (e) {
       throw mapDioExceptionToCustomException(e);
-    } on UserServiceException {
-      rethrow;
-    } catch (e) {
-      throw UnexpectedUserException();
     }
   }
 
@@ -80,15 +114,5 @@ class UserRepository {
     final name = await _storage.readSecureData('user_full_name') ?? '';
     final email = await _storage.readSecureData('user_email') ?? '';
     return UserProfileDataDto(fullName: name, email: email);
-  }
-
-  Future<void> saveUserProfileToStorage(UserProfileDataDto profile) async {
-    await _storage.writeSecureData('user_full_name', profile.fullName);
-    await _storage.writeSecureData('user_email', profile.email);
-  }
-
-  Future<void> saveFieldToStorage(String field, String value) async {
-    final key = field == 'full_name' ? 'user_full_name' : 'user_email';
-    await _storage.writeSecureData(key, value);
   }
 }

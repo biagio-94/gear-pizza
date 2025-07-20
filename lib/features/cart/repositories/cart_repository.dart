@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:gearpizza/common/services/api_service.dart';
 import 'package:gearpizza/common/services/firestore_service.dart';
+import 'package:gearpizza/common/services/secure_storage_service.dart';
 import 'package:gearpizza/common/utils/exception_handler.dart';
 import 'package:gearpizza/features/cart/api/cart_endpoints.dart';
 import 'package:gearpizza/features/cart/model/customer_dto.dart';
@@ -12,6 +13,7 @@ import 'package:get_it/get_it.dart';
 
 class CartRepository {
   final ApiService _apiService;
+  final SecureStorageService _storage = GetIt.instance<SecureStorageService>();
 
   CartRepository(this._apiService);
 
@@ -53,6 +55,11 @@ class CartRepository {
 
       final created =
           CustomerDto.fromMap(resp.data['data'] as Map<String, dynamic>);
+
+      // Salva l'idCustomer in secure storage
+      if (created.id != null) {
+        await _storage.writeSecureData('user_id', created.id.toString());
+      }
       return created;
     } on DioException catch (e) {
       throw mapDioExceptionToCustomException(e);

@@ -1,9 +1,12 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/material.dart';
 import 'package:gearpizza/common/models/items_allergens.dart';
 import 'package:gearpizza/common/models/read_items_allergens200_response.dart';
+import 'package:gearpizza/common/services/secure_storage_service.dart';
 import 'package:gearpizza/common/utils/directus_query_builder.dart';
 import 'package:gearpizza/common/utils/exception_handler.dart';
 import 'package:gearpizza/common/utils/serializers.dart';
+import 'package:gearpizza/features/cart/model/customer_dto.dart';
 import 'package:gearpizza/features/dashboard/api/dashboard_endpoints.dart';
 import 'package:gearpizza/features/dashboard/models/alergen_dto.dart';
 import 'package:gearpizza/features/dashboard/models/filters_dto.dart';
@@ -11,6 +14,7 @@ import 'package:gearpizza/features/dashboard/models/pizza_dto.dart';
 import 'package:gearpizza/features/dashboard/models/restaurants_dto.dart';
 import 'package:gearpizza/common/services/api_service.dart';
 import 'package:gearpizza/features/dashboard/services/dashboard_service_exception.dart';
+import 'package:get_it/get_it.dart';
 
 /// Repository con caching in-memory per dati poco dinamici e fetch singolo con cache:
 /// - Ristoranti, Filtri, Allergeni (TTL 1h)
@@ -94,6 +98,48 @@ class DashboardRepository {
     } catch (e) {
       throw DashboardServiceException(
           'Errore imprevisto fetch ristoranti: \$e');
+    }
+  }
+
+  Future<CustomerDto?> fetchCustomerInfoIfExists() async {
+    try {
+      // 1) Leggo l'id dal local storage
+      final userId = await GetIt.instance<SecureStorageService>()
+          .readSecureData('user_id');
+      if (userId == null) {
+        // Non ho un user_id
+        return null;
+      }
+
+      // 2) Costruisco l'endpoint per il singolo customer
+      final endpoint = DashboardEndpoints.getCustomerById(
+        userId,
+        queryBuilder: DirectusQueryBuilder()
+          ..fields(['id', 'email_address', 'name']),
+      );
+
+      // 3) Eseguo la GET
+      final resp = await _apiService.get(endpoint);
+      if (resp.statusCode != 200) {
+        // Se il codice non è OK→ restituisco null
+        return null;
+      }
+
+      // 4) Estraggo il payload
+      final data = resp.data['data'] as Map<String, dynamic>?;
+      debugPrint("data If exists $data");
+      if (data == null || data.isEmpty) {
+        return null;
+      }
+
+      // 5) Mappa in DTO e restituisci
+      return CustomerDto.fromMap(data);
+    } on DioException catch (e) {
+      // Mappo l'errore Dio in un'eccezione custom
+      throw mapDioExceptionToCustomException(e);
+    } catch (e) {
+      // Qualsiasi altro errore
+      throw DashboardServiceException('Errore imprevisto: $e');
     }
   }
 

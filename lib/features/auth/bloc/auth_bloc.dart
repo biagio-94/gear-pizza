@@ -41,7 +41,6 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       hideLoading: () => loadingBloc.hideLoading(),
       onError: (msg) => exceptionBloc.throwExceptionState(msg),
       action: () async {
-        emit(const AuthStartLoading());
         final AuthGeaPizzaUser? user = await _authService.onStart();
         if (user != null) {
           // Passiamo true di default per isRoleChoosen in questa versione

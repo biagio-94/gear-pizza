@@ -59,6 +59,7 @@ class ApiService {
         final status = e.response?.statusCode;
         final path = e.requestOptions.uri.path;
         final isRefreshEndpoint = path.endsWith("/refresh");
+        final isLoginEndpoint = path.endsWith("/login");
 
         // 1) Se 401, non siamo già sulla rotta di refresh e non abbiamo già fatto retry → provo a rinnovare
         if (status == 401 && !isRefreshEndpoint) {
@@ -68,6 +69,8 @@ class ApiService {
           } else {
             return handler.reject(e);
           }
+        } else if (status == 401 && isLoginEndpoint) {
+          return handler.reject(e);
         }
 
         // 2) Per 400 e 404 voglio semplicemente lasciare passare la response

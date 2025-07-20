@@ -35,36 +35,57 @@ class MainRouter {
     redirect: (context, state) {
       final authState = authBloc.state;
       final isAuth = authState is AuthAuthenticated;
-      final isRoleChoosen = isAuth && (authState).isRoleChoosen;
-
+      final isRoleChosen = isAuth && (authState).isRoleChoosen;
       final path = state.uri.path;
 
-      // 1) Se non autenticato, vai sempre a /login (a meno che non sia già in register/reset/otp)
-      final onAuthScreens = path == '/login' ||
-          path == '/register' ||
-          path == '/reset-password' ||
-          path == '/otp-verification';
+      // quali rotte sono “schermate auth”
+      final onAuthScreens = {
+        '/login',
+        '/register',
+        '/reset-password',
+        '/otp-verification',
+      }.contains(path);
+
+      // 1) Stati speciali: forza sempre register, reset, otp se necessario
+      if (!isAuth &&
+          (authState is AuthRegisterState ||
+              authState is AuthEmailVerificationSent)) {
+        return '/register';
+      }
+      if (authState is AuthResetPasswordState ||
+          authState is AuthPasswordResetEmailSent) {
+        return '/reset-password';
+      }
+      if (authState is AuthOtpSentState) {
+        return '/otp-verification';
+      }
+
+      // 2) Se il bloc ha emesso Unauthenticated, torno sempre a /login
+      if (authState is AuthUnauthenticated) {
+        return '/login';
+      }
+
+      // 3) Se non autenticato e non su auth-screens, torno a /login
       if (!isAuth && !onAuthScreens) {
         return '/login';
       }
 
-      // 3) Se autenticato e onboarding completato:
-      if (isAuth && isRoleChoosen) {
-        // Blocca l'accesso alle auth-screens rimandando a /dashboard
-        if (onAuthScreens) {
-          return '/dashboard';
-        }
-        // Altrimenti, se chiedo /dashboard, /cart o /profile (o altre pagine interne),
-        // lascio che il router gestisca normalmente la navigazione:
+      // 4) Se autenticato e onboarding completato
+      if (isAuth && isRoleChosen) {
+        // blocco le auth-screens
+        if (onAuthScreens) return '/dashboard';
+
+        // permetto le pagine interne
         if (path.startsWith('/dashboard') ||
             path.startsWith('/cart') ||
             path.startsWith('/profile')) {
           return null;
         }
-        // Se provi a digitare un path non riconosciuto, fallback a /dashboard:
+        // fallback generico
         return '/dashboard';
       }
 
+      // 5) Autenticato ma onboarding non completato: lascio proseguire
       return null;
     },
     routes: [

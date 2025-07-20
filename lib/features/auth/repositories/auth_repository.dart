@@ -336,13 +336,14 @@ class AuthRepository {
       //    dell’utente Firebase, Google o Facebook ecc.
       // 3. Implementeremo un flusso di onboarding per scegliere il ruolo
 
-      // Credenziali forzate per accesso firebase (in quanto non abbiamo effettuato una vera fadse di registrazone e collegamento
+      // Credenziali forzate per accesso firebase (in quanto non abbiamo effettuato
+      // una vera fadse di registrazone e collegamento
       // con Directus, ma solo una simulazione per testare il login):
       final cred = await _firebaseAuth.signInWithEmailAndPassword(
         email: "ferro.biagio@gmail.com",
         password: "Testspc1",
       );
-      //Non utilizzate per quanto spiegato sopra ovviamente
+      // Non utilizzate per quanto spiegato sopra ovviamente
 
       // se è il primo accesso da admin, recupero access + refresh token
       // e li salvo in secure storage.

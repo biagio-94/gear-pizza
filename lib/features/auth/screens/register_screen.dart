@@ -45,7 +45,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Scaffold(
-      backgroundColor: Colors.white,
+      appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            context.read<AuthBloc>().add(AuthStarted());
+          },
+        ),
+      ),
       body: SafeArea(
         child: MultiBlocListener(
           listeners: [
@@ -99,16 +106,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           ),
                           const SizedBox(height: 16),
                           Text(
-                            'Iniziamo con la tua e-mail',
-                            style: theme.textTheme.headlineLarge?.copyWith(
+                            'Inserisci la tua e-mail',
+                            style: theme.textTheme.headlineMedium?.copyWith(
                               fontWeight: FontWeight.bold,
                               color: Colors.black,
                             ),
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            'Verificheremo se hai già un account. In caso contrario, ne creeremo uno nuovo.',
-                            style: theme.textTheme.bodyMedium?.copyWith(
+                            "Hai già un account? Se non ne possiedi uno, puoi contattare il nostro team per richiedere un'utenza da ristoratore oppure accedere autonomamente scegliendo tra OTP, Google o Facebook.",
+                            style: theme.textTheme.bodySmall?.copyWith(
                               color: Colors.grey[700],
                             ),
                           ),

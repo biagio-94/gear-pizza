@@ -5,6 +5,7 @@ import 'package:gearpizza/common/utils/directus_query_builder.dart';
 import 'package:gearpizza/common/utils/exception_handler.dart';
 import 'package:gearpizza/features/cart/api/cart_endpoints.dart';
 import 'package:gearpizza/features/cart/model/customer_dto.dart';
+import 'package:gearpizza/features/cart/model/order_dto.dart';
 import 'package:gearpizza/features/profile/api/user_endpoint.dart';
 import 'package:gearpizza/features/profile/models/user_profile_data_dto.dart';
 import 'package:gearpizza/features/profile/services/user_service_exception.dart';
@@ -53,8 +54,7 @@ class UserRepository {
         if (existing != null) {
           customer = existing;
         } else {
-          throw UnexpectedUserException(
-              "Non hai ancora effettuato un'ordine, non possiamo reperire le tue credenziali");
+          return;
         }
         id = customer.id.toString();
         await _saveUserId(id);
@@ -90,12 +90,44 @@ class UserRepository {
     }
   }
 
+  Future<List<OrderDto>> getOrdersByUserId() async {
+    try {
+      final userId = await _getUserId();
+      if (userId == null) {
+        return [];
+      }
+
+      final query = DirectusQueryBuilder()
+        ..filter({
+          'customer': {'_eq': userId}
+        })
+        ..fields(['*', 'pizzas.*'])
+        ..populate(['restaurant', 'customer', 'pizzas'])
+        ..sort('-id');
+
+      final endpoint = UserEndpoint.getOrdersByUserId(userId, query);
+
+      final resp = await _apiService.get(endpoint);
+      if (resp.statusCode != 200) {
+        throw UserServiceException(
+            "Errore caricamento ordini: ${resp.statusCode}");
+      }
+
+      final data = resp.data['data'] as List<dynamic>? ?? [];
+      return data
+          .map((e) => OrderDto.fromMap(e as Map<String, dynamic>))
+          .toList();
+    } on DioException catch (e) {
+      throw mapDioExceptionToCustomException(e);
+    } catch (e) {
+      throw UserServiceException("Errore imprevisto: $e");
+    }
+  }
+
   Future<UserProfileDataDto?> fetchUserProfile() async {
     try {
       final id = await _getUserId();
-      if (id == null)
-        throw UnexpectedUserException(
-            "Non hai ancora effettuato un'ordine, non possiamo reperire le tue credenziali");
+      if (id == null) return null;
 
       final qb = DirectusQueryBuilder().fields(['id', 'email_address', 'name']);
       final endpoint = UserEndpoint.fetchUserProfile(id, queryBuilder: qb);

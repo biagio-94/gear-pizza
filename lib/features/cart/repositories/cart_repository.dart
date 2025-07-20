@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 import 'package:gearpizza/common/services/api_service.dart';
 import 'package:gearpizza/common/services/firestore_service.dart';
 import 'package:gearpizza/common/services/secure_storage_service.dart';
+import 'package:gearpizza/common/utils/directus_query_builder.dart';
 import 'package:gearpizza/common/utils/exception_handler.dart';
 import 'package:gearpizza/features/cart/api/cart_endpoints.dart';
 import 'package:gearpizza/features/cart/model/customer_dto.dart';
@@ -19,6 +20,24 @@ class CartRepository {
 
   Future<CustomerDto?> checkCustomerExists({required String email}) async {
     try {
+      // 1. Verifica se esiste già un user_id salvato
+      final userId = await _storage.readSecureData('user_id');
+      if (userId != null) {
+        // Se lo user_id esiste, possiamo usare direttamente quello
+        final qb = DirectusQueryBuilder()
+          ..fields(['id', 'name', 'email_address']);
+        final endpoint = CartEndpoints.getCustomerById(userId, qb);
+        final resp = await _apiService.get(endpoint);
+
+        if (resp.statusCode == 200) {
+          final data = resp.data['data'] as Map<String, dynamic>?;
+          if (data != null && data.isNotEmpty) {
+            return CustomerDto.fromMap(data);
+          }
+        }
+      }
+
+      // 2. Se non ho lo user_id o non valido, procedo con la verifica via email
       final endpoint = CartEndpoints.checkCustomer(email: email);
       final resp = await _apiService.get(endpoint);
 

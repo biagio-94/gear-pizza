@@ -13,6 +13,12 @@ class CartEndpoints {
     return '$basePath/customers${qb.build()}';
   }
 
+  static String getCustomerById(String id,
+      [DirectusQueryBuilder? queryBuilder]) {
+    final query = queryBuilder?.build() ?? '';
+    return '$basePath/customers/$id$query';
+  }
+
   static String createCustomer() {
     return '$basePath/customers';
   }

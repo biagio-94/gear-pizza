@@ -15,4 +15,11 @@ class UserEndpoint {
   static String patchUser(String userId) {
     return '$basePath/$collection/$userId';
   }
+
+  static String getOrdersByUserId(
+      String userId, DirectusQueryBuilder? queryBuilder) {
+    final query = queryBuilder?.build() ?? '';
+
+    return '$basePath/orders${query}';
+  }
 }

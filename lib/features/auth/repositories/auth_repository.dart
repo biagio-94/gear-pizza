@@ -71,10 +71,6 @@ class AuthRepository {
 
   Future<String?> getIsAdmin() => _secureStorage.readSecureData(_isAdminKey);
 
-  Future<void> deleteSecureStorage() async {
-    await _secureStorage.deleteAllSecureData();
-  }
-
   Future<void> clearRefreshData() async {
     await _secureStorage.deleteSecureData(_refreshTokenKey);
     await _secureStorage.deleteSecureData(_refreshTokenExpiryKey);
@@ -114,7 +110,7 @@ class AuthRepository {
     try {
       final savedRefresh = await getSavedRefreshToken();
       if (savedRefresh == null || !await isRefreshValid()) {
-        await deleteSecureStorage();
+        await clearRefreshData();
         return null;
       }
 
@@ -442,7 +438,7 @@ class AuthRepository {
     try {
       await _firebaseAuth.signOut();
       await _googleSignIn.signOut();
-      await deleteSecureStorage();
+      await clearRefreshData();
     } on DioException catch (e) {
       throw mapDioExceptionToCustomException(e);
     } on FirebaseAuthException catch (e) {

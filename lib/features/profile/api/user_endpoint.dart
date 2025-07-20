@@ -22,4 +22,10 @@ class UserEndpoint {
 
     return '$basePath/orders${query}';
   }
+
+  static String patchOrderStatus(int orderId,
+      {DirectusQueryBuilder? queryBuilder}) {
+    final query = queryBuilder?.build() ?? '';
+    return '$basePath/orders/$orderId$query';
+  }
 }

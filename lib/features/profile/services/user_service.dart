@@ -50,4 +50,23 @@ class UserService {
       throw UnexpectedUserException();
     }
   }
+
+  /// Aggiorna lo stato di un ordine specifico.
+  Future<void> updateOrderStatus({
+    required String orderId,
+    required String newStatus,
+  }) async {
+    try {
+      await _userRepository.updateOrderStatus(
+        orderId: orderId,
+        status: newStatus,
+      );
+    } on UserServiceException {
+      rethrow;
+    } on DioException {
+      rethrow;
+    } catch (e) {
+      throw UnexpectedUserException();
+    }
+  }
 }

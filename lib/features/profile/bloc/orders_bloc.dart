@@ -14,6 +14,7 @@ class OrdersBloc extends Bloc<OrdersEvent, OrdersState> {
 
   OrdersBloc(this._userService) : super(OrdersInitial()) {
     on<LoadOrders>(_onLoadOrders);
+    on<UpdateOrderStatusEvent>(_onUpdateOrderStatus);
   }
 
   Future<void> _onLoadOrders(
@@ -25,6 +26,26 @@ class OrdersBloc extends Bloc<OrdersEvent, OrdersState> {
       hideLoading: () => loadingBloc.hideLoading(),
       onError: (msg) => exceptionBloc.throwExceptionState(msg),
       action: () async {
+        final orders = await _userService.getOrdersByUserId();
+        emit(OrdersLoaded(orders));
+      },
+    );
+  }
+
+  Future<void> _onUpdateOrderStatus(
+    UpdateOrderStatusEvent event,
+    Emitter<OrdersState> emit,
+  ) async {
+    await ExecutionHelper.run(
+      showLoading: () => loadingBloc.showLoading('Aggiornamento stato...'),
+      hideLoading: () => loadingBloc.hideLoading(),
+      onError: (msg) => exceptionBloc.throwExceptionState(msg),
+      action: () async {
+        await _userService.updateOrderStatus(
+          orderId: event.orderId,
+          newStatus: event.newStatus,
+        );
+        // Dopo l'update, ricarica gli ordini
         final orders = await _userService.getOrdersByUserId();
         emit(OrdersLoaded(orders));
       },

@@ -3,7 +3,6 @@ import 'package:gearpizza/features/auth/models/auth_gear_pizza_user.dart';
 import 'package:gearpizza/features/auth/services/user_role_service.dart';
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
-import 'package:gearpizza/common/styles/colors_schemes.dart';
 import 'package:gearpizza/common/utils/image_download_helper.dart';
 import 'package:gearpizza/features/profile/models/order_detail_dto.dart';
 
@@ -158,13 +157,13 @@ class OrderCard extends StatelessWidget {
   Color _statusColor(String status, ColorScheme scheme) {
     switch (status.toLowerCase()) {
       case 'pending':
-        return scheme.primary;
+        return scheme.error.withOpacity(0.8);
       case 'preparing':
-        return scheme.secondary;
+        return scheme.primary;
       case 'delivered':
-        return AppColors.successGreen;
-      case 'completed':
         return scheme.tertiary;
+      case 'completed':
+        return scheme.secondary;
       default:
         return scheme.outline;
     }

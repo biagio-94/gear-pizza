@@ -10,3 +10,10 @@ abstract class OrdersEvent extends Equatable {
 class LoadOrders extends OrdersEvent {
   const LoadOrders();
 }
+
+class UpdateOrderStatusEvent extends OrdersEvent {
+  final String orderId;
+  final String newStatus;
+  const UpdateOrderStatusEvent(
+      {required this.orderId, required this.newStatus});
+}

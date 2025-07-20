@@ -9,6 +9,7 @@ class AppColors {
   static const Color glovoGreen = Color(0xFF00AB88);
   static const Color darkBackground = Color(0xFF121212);
   static const Color lightBackground = Color(0xFFFFFFFF);
+  static const Color lightBlue = Color.fromARGB(255, 9, 151, 240);
   static const Color lightSurface =
       Color(0xFFFFFFFF); // super chiaro, quasi bianco per surface light
   static const Color darkSurface = Color(0xFF1E1E1E);
@@ -32,7 +33,7 @@ final ColorScheme lightColorScheme = ColorScheme(
   onBackground: AppColors.lightOnSurface,
   surface: AppColors.lightSurface, // bianco, container primari bianchi
   onSurface: AppColors.lightOnSurface, // testo nero su surface bianco
-  tertiary: AppColors.glovoGreen,
+  tertiary: AppColors.lightBlue,
   onTertiary: Colors.white,
 );
 
@@ -48,6 +49,6 @@ final ColorScheme darkColorScheme = ColorScheme(
   onBackground: AppColors.lightSurface,
   surface: AppColors.lightOnSurface, // bianco, container primari bianchi
   onSurface: AppColors.lightSurface, // testo nero su surface bianco
-  tertiary: AppColors.glovoGreen,
+  tertiary: AppColors.lightBlue,
   onTertiary: Colors.white,
 );

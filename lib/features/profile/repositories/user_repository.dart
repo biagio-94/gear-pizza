@@ -137,6 +137,31 @@ class UserRepository {
     }
   }
 
+  /// Aggiorna lo stato di un ordine specifico.
+  Future<void> updateOrderStatus({
+    required String orderId,
+    required String status,
+  }) async {
+    try {
+      // Costruisce l'endpoint di patch dell'ordine
+      final endpoint = UserEndpoint.patchOrderStatus(
+        int.parse(orderId),
+        queryBuilder: DirectusQueryBuilder().fields(['id', 'status']),
+      );
+      final resp = await _apiService.patch(
+        endpoint,
+        data: {'status': status},
+      );
+      if (resp.statusCode != 200 && resp.statusCode != 204) {
+        throw UserServiceException('Errore patch status: \${resp.statusCode}');
+      }
+    } on DioException catch (e) {
+      throw mapDioExceptionToCustomException(e);
+    } catch (e) {
+      throw UserServiceException('Errore imprevisto: \$e');
+    }
+  }
+
   Future<UserProfileDataDto?> fetchUserProfile() async {
     try {
       final id = await _getUserId();

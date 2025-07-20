@@ -2,11 +2,30 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:gearpizza/common/services/secure_storage_service.dart';
-import 'package:gearpizza/features/auth/models/auth_gear_pizza_user.dart';
-import 'package:gearpizza/features/auth/services/user_role_service.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:get_it/get_it.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:gearpizza/common/services/secure_storage_service.dart';
+import 'package:gearpizza/features/auth/bloc/auth_bloc.dart';
+import 'package:gearpizza/features/auth/bloc/auth_event.dart';
+import 'package:gearpizza/features/auth/models/auth_gear_pizza_user.dart';
+import 'package:gearpizza/features/auth/services/user_role_service.dart';
+
+/// Modello che rappresenta un'azione nel profilo utente
+class ActionItem {
+  final int id;
+  final IconData icon;
+  final String title;
+  final VoidCallback onTap;
+
+  ActionItem({
+    required this.id,
+    required this.icon,
+    required this.title,
+    required this.onTap,
+  });
+}
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -23,26 +42,51 @@ class _ProfileScreenState extends State<ProfileScreen> {
   File? _imageFile;
   String? _userName;
 
-  // Dati immutabili
-  static const _allActions = [
-    {'id': 1, 'icon': Icons.person, 'title': 'Account'},
-    {'id': 2, 'icon': Icons.shopping_bag, 'title': 'Ordini'},
-    {'id': 3, 'icon': Icons.restaurant_menu, 'title': 'Gestisci Menu'},
-    {'id': 4, 'icon': Icons.logout, 'title': 'Esci'},
-  ];
-
-  // Getter che restituisce solo le azioni consentite
-  List<Map<String, dynamic>> get _actions {
-    return _allActions.where((a) {
-      if (a['id'] == 3) return userRole == Roles.admin;
-      return true;
-    }).toList();
-  }
+  late final List<ActionItem> _actions;
 
   @override
   void initState() {
     super.initState();
+    _initActions();
     _loadProfile();
+  }
+
+  void _initActions() {
+    _actions = [
+      ActionItem(
+        id: 1,
+        icon: Icons.person,
+        title: 'Account',
+        onTap: () {
+          context.go('/profile/account');
+        },
+      ),
+      ActionItem(
+        id: 2,
+        icon: Icons.shopping_bag,
+        title: 'Ordini',
+        onTap: () {
+          context.go('/profile/orders');
+        },
+      ),
+      if (userRole == Roles.admin)
+        ActionItem(
+          id: 3,
+          icon: Icons.restaurant_menu,
+          title: 'Gestisci Menu',
+          onTap: () {
+            context.go('/profile/manage-menu');
+          },
+        ),
+      ActionItem(
+        id: 4,
+        icon: Icons.logout,
+        title: 'Esci',
+        onTap: () {
+          context.read<AuthBloc>().add(AuthLoggedOut());
+        },
+      ),
+    ];
   }
 
   Future<void> _loadProfile() async {
@@ -131,7 +175,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 }
 
-// Widget estratto per l’header
+/// Widget estratto per l’header
 class _Header extends StatelessWidget {
   final double height;
   final double topPadding;
@@ -194,24 +238,24 @@ class _Header extends StatelessWidget {
   }
 }
 
-// Widget estratto per ciascuna riga di azione
+/// Widget estratto per ciascuna riga di azione
 class _ActionRow extends StatelessWidget {
-  final Map<String, dynamic> action;
+  final ActionItem action;
   const _ActionRow(this.action);
 
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      onTap: () {/* navigazione */},
+      onTap: action.onTap,
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 12),
         child: Row(
           children: [
-            Icon(action['icon'], color: Colors.grey[800]),
+            Icon(action.icon, color: Colors.grey[800]),
             const SizedBox(width: 16),
             Expanded(
               child: Text(
-                action['title'],
+                action.title,
                 style: Theme.of(context)
                     .textTheme
                     .bodyLarge

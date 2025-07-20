@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gearpizza/features/cart/routes/cart_routes.dart';
 import 'package:gearpizza/features/cart/screens/cart_screen.dart';
+import 'package:gearpizza/features/profile/routes/profile_routes.dart';
 import 'package:gearpizza/features/profile/screeens/profile_screen.dart';
 import 'package:go_router/go_router.dart';
 import 'package:gearpizza/common/bloc/exception_bloc.dart';
@@ -108,10 +109,12 @@ class MainRouter {
             initialLocation: '/profile',
             routes: [
               GoRoute(
-                path: '/profile',
-                builder: (context, state) =>
-                    Scaffold(body: const ProfileScreen()),
-              ),
+                  path: '/profile',
+                  builder: (context, state) =>
+                      Scaffold(body: const ProfileScreen()),
+                  routes: [
+                    ...profileRoutes,
+                  ]),
             ],
           ),
         ],

@@ -1,6 +1,5 @@
 enum Roles {
   admin,
-  trainer,
   user,
 }
 

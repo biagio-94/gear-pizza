@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:gearpizza/features/auth/models/auth_gear_pizza_user.dart';
+import 'package:gearpizza/features/auth/services/user_role_service.dart';
+import 'package:get_it/get_it.dart';
+import 'package:go_router/go_router.dart';
 import 'package:gearpizza/common/styles/colors_schemes.dart';
 import 'package:gearpizza/common/utils/image_download_helper.dart';
 import 'package:gearpizza/features/profile/models/order_detail_dto.dart';
@@ -14,7 +18,9 @@ class OrderCard extends StatelessWidget {
     final colorScheme = theme.colorScheme;
     final textTheme = theme.textTheme;
 
-    return Card(
+    final bool isAdmin = GetIt.instance<AuthGeaPizzaUser>().role == Roles.admin;
+
+    final cardContent = Card(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       elevation: 4,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -131,6 +137,22 @@ class OrderCard extends StatelessWidget {
         ),
       ),
     );
+
+    // Se è admin, avvolgiamo la card in InkWell per il tap, altrimenti solo la card
+    return isAdmin
+        ? InkWell(
+            borderRadius: BorderRadius.circular(12),
+            onTap: () {
+              context.pushNamed(
+                'order-detail',
+                pathParameters: {
+                  'id': order.id.toString(),
+                },
+              );
+            },
+            child: cardContent,
+          )
+        : cardContent;
   }
 
   Color _statusColor(String status, ColorScheme scheme) {
@@ -143,9 +165,8 @@ class OrderCard extends StatelessWidget {
         return AppColors.successGreen;
       case 'completed':
         return scheme.tertiary;
-
       default:
-        return scheme.outline; // Colore neutro per fallback
+        return scheme.outline;
     }
   }
 }

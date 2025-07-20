@@ -49,8 +49,10 @@ class CartRepository {
       if (data == null || data.isEmpty) {
         return null;
       }
-
-      return CustomerDto.fromMap(data.first as Map<String, dynamic>);
+      final CustomerDto createdCustomer =
+          CustomerDto.fromMap(data.first as Map<String, dynamic>);
+      await _storage.writeSecureData("user_id", createdCustomer.id.toString());
+      return createdCustomer;
     } on DioException catch (e) {
       throw mapDioExceptionToCustomException(e);
     } on CartServiceException {

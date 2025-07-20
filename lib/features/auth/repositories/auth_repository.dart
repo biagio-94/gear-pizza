@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
-import 'package:gearpizza/common/models/refresh_request.dart';
 import 'package:gearpizza/common/services/api_service_exception.dart';
 import 'package:gearpizza/common/utils/exception_handler.dart';
 import 'package:gearpizza/features/auth/services/user_role_service.dart';
@@ -109,50 +108,22 @@ class AuthRepository {
   Future<AuthGeaPizzaUser?> onStart() async {
     try {
       final savedRefresh = await getSavedRefreshToken();
-      if (savedRefresh == null || !await isRefreshValid()) {
+      final refreshValid = await isRefreshValid();
+
+      if (savedRefresh == null || !refreshValid) {
         await clearRefreshData();
         return null;
       }
 
-      final refreshRequest =
-          RefreshRequest((b) => b..refreshToken = savedRefresh);
-      final serializedRequest = standardSerializers.serializeWith(
-        RefreshRequest.serializer,
-        refreshRequest,
-      );
+      // Setto il refresh token attuale
+      _apiService.setRefreshToken(savedRefresh);
 
-      final response = await _apiService.post(
-        AuthEndpoints.refreshToken,
-        data: serializedRequest,
-      );
-
-      if (response.statusCode != 200) return null;
-
-      final raw = response.data;
-      final Map<String, dynamic> json =
-          raw is String ? jsonDecode(raw) : Map<String, dynamic>.from(raw);
-      final dataJson = Map<String, dynamic>.from(json['data'] as Map);
-
-      final Login200ResponseData data = standardSerializers.deserializeWith(
-        Login200ResponseData.serializer,
-        dataJson,
-      )!;
-
-      final newAccess = data.accessToken;
-      final newRefresh = data.refreshToken;
-      final expiresMs = data.expires;
-
-      if (newAccess == null || newRefresh == null || expiresMs == null) {
-        throw AuthServiceException('Refresh token: risposta incompleta');
+      // Provo a rinnovare l'access token se necessario
+      final success = await _apiService.tryRefreshToken();
+      if (!success) {
+        await clearRefreshData();
+        return null;
       }
-
-      setAccessToken(newAccess);
-      setRefreshToken(newRefresh);
-      await saveToken(newAccess);
-      await saveRefreshToken(newRefresh);
-
-      final newExpiry = DateTime.now().add(Duration(milliseconds: expiresMs));
-      await saveRefreshExpiry(newExpiry.toIso8601String());
 
       return await getAuthUser();
     } on DioException catch (e) {
@@ -162,7 +133,6 @@ class AuthRepository {
     } on AuthServiceException {
       rethrow;
     } catch (e) {
-      // generica
       throw GenericAuthException(e.toString());
     }
   }

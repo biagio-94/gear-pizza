@@ -62,7 +62,7 @@ class ApiService {
         final isLoginEndpoint = path.endsWith("/login");
 
         // 1) Se 401, non siamo già sulla rotta di refresh e non abbiamo già fatto retry → provo a rinnovare
-        if (status == 401 && !isRefreshEndpoint) {
+        if ((status == 401 || status == 403) && !isRefreshEndpoint) {
           final retryResponse = await _handleTokenRefresh(e);
           if (retryResponse != null) {
             return handler.resolve(retryResponse);
@@ -146,6 +146,46 @@ class ApiService {
     }
   }
 
+  Future<bool> tryRefreshToken() async {
+    if (_refreshToken == null) return false;
+
+    final req = RefreshRequest((b) => b..refreshToken = _refreshToken);
+    final data =
+        standardSerializers.serializeWith(RefreshRequest.serializer, req);
+
+    try {
+      final response = await _dio.post(AuthEndpoints.refreshToken, data: data);
+
+      if (response.statusCode == 200) {
+        final refreshResp = standardSerializers.deserializeWith(
+          Login200Response.serializer,
+          response.data,
+        );
+
+        final tokens = refreshResp?.data;
+        final accessToken = tokens?.accessToken;
+        final refreshToken = tokens?.refreshToken;
+        final expiresMs = tokens?.expires;
+
+        if (accessToken == null || refreshToken == null || expiresMs == null) {
+          return false;
+        }
+
+        setAccessToken(accessToken);
+        setRefreshToken(refreshToken);
+        await saveAccessToken(accessToken: accessToken);
+        await saveNewRefreshInfo(
+            refreshToken: refreshToken, expiresMs: expiresMs);
+
+        return true;
+      }
+
+      return false;
+    } catch (_) {
+      return false;
+    }
+  }
+
   // Metodi GET, POST, PUT, DELETE, PATCH
   Future<Response> get(String path, {Map<String, dynamic>? queryParameters}) =>
       _dio.get(path, queryParameters: queryParameters);
@@ -210,6 +250,11 @@ class ApiService {
         .writeSecureData('refreshTokenExpiry', expiryDate.toIso8601String());
     await GetIt.instance<SecureStorageService>()
         .writeSecureData('refreshToken', refreshToken);
+  }
+
+  Future<void> saveAccessToken({required String accessToken}) async {
+    await GetIt.instance<SecureStorageService>()
+        .writeSecureData('accessToken', accessToken);
   }
 
   void setTimeouts({Duration? connectTimeout, Duration? receiveTimeout}) {

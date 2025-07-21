@@ -15,6 +15,8 @@ class AdminPageBloc extends Bloc<AdminPageEvent, AdminPageState> {
   AdminPageBloc(this._userService) : super(AdminPageInitial()) {
     on<FetchAdminPageData>(_onFetchAdminPageData);
     on<UpdateRestaurantImage>(_onUpdateRestaurantImage);
+    on<DeletePizzaEvent>(_onDeletePizza);
+    on<UpdateRestaurantname>(_updateRestaurantName);
   }
 
   Future<void> _onFetchAdminPageData(
@@ -51,6 +53,48 @@ class AdminPageBloc extends Bloc<AdminPageEvent, AdminPageState> {
         final adminPageData =
             await _userService.fetchAdminPageDto(event.restaurantId);
         emit(AdminPageLoaded(adminPageData));
+      },
+    );
+  }
+
+  Future<void> _updateRestaurantName(
+    UpdateRestaurantname event,
+    Emitter<AdminPageState> emit,
+  ) async {
+    await ExecutionHelper.run(
+      onError: (msg) => exceptionBloc.throwExceptionState(msg),
+      action: () async {
+        await _userService.updateRestaurantName(
+            restaurantName: event.restaurantName,
+            restaurantId: event.restaurantId);
+
+        // Ricarica i dati aggiornati e emetti il nuovo stato
+        final updatedData = await _userService.fetchAdminPageDto(
+          event.restaurantId,
+        );
+        emit(AdminPageLoaded(updatedData));
+      },
+    );
+  }
+
+  Future<void> _onDeletePizza(
+    DeletePizzaEvent event,
+    Emitter<AdminPageState> emit,
+  ) async {
+    await ExecutionHelper.run(
+      showLoading: () =>
+          loadingBloc.showLoading('Eliminazione pizza in corso...'),
+      hideLoading: () => loadingBloc.hideLoading(),
+      onError: (msg) => exceptionBloc.throwExceptionState(msg),
+      action: () async {
+        // Esegui il delete con loading e gestione errori
+        await _userService.deletePizzaById(event.pizzaId);
+
+        // Ricarica i dati aggiornati e emetti il nuovo stato
+        final updatedData = await _userService.fetchAdminPageDto(
+          event.restaurantId,
+        );
+        emit(AdminPageLoaded(updatedData));
       },
     );
   }

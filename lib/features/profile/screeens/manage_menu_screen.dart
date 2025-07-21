@@ -4,6 +4,8 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gearpizza/common/components/custom_input.dart';
+import 'package:gearpizza/common/utils/image_download_helper.dart';
+import 'package:gearpizza/common/utils/validator.dart';
 import 'package:gearpizza/features/dashboard/models/pizza_dto.dart';
 import 'package:gearpizza/features/profile/bloc/admin_page_bloc.dart';
 import 'package:gearpizza/features/profile/bloc/admin_page_event.dart';
@@ -70,7 +72,10 @@ class _ManageMenuScreenState extends State<ManageMenuScreen> {
 
   void _onNameFocusChange() {
     if (!_nameFocus.hasFocus) {
-      // eventuale evento di update nome
+      context.read<AdminPageBloc>().add(UpdateRestaurantname(
+            restaurantName: _nameController.value.text.trim(),
+            restaurantId: widget.restaurantId,
+          ));
     }
   }
 
@@ -171,21 +176,45 @@ class _ManageMenuScreenState extends State<ManageMenuScreen> {
   }
 
   void _deletePizza(PizzaDto pizza) {
+    final theme = Theme.of(context);
+
     showDialog(
       context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('Conferma eliminazione'),
-        content: Text('Elimina "${pizza.name}"?'),
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: theme.colorScheme.surface, // sfondo dialog
+        title: Text(
+          'Conferma eliminazione',
+          style: TextStyle(
+              color: theme.colorScheme.onSurface, fontWeight: FontWeight.w600),
+        ),
+        content: Text(
+          'Eliminare "${pizza.name}"?',
+          style: TextStyle(color: theme.colorScheme.onSurface),
+        ),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Annulla')),
+            onPressed: () {
+              Navigator.pop(dialogContext); // poppa solo il dialog
+            },
+            child: Text(
+              'Annulla',
+              style: TextStyle(color: theme.colorScheme.primary),
+            ),
+          ),
           TextButton(
-              onPressed: () {
-                // evento bloc DeletePizza
-                Navigator.pop(context);
-              },
-              child: const Text('Elimina')),
+            onPressed: () {
+              // Fire l’evento di delete
+              context.read<AdminPageBloc>().add(DeletePizzaEvent(
+                    restaurantId: widget.restaurantId,
+                    pizzaId: pizza.id,
+                  ));
+              Navigator.pop(dialogContext); // chiude il dialog dopo il delete
+            },
+            child: Text(
+              'Elimina',
+              style: TextStyle(color: theme.colorScheme.error),
+            ),
+          ),
         ],
       ),
     );
@@ -221,7 +250,7 @@ class _ManageMenuScreenState extends State<ManageMenuScreen> {
                   ),
                   centerTitle: true,
                   title: _isCollapsed
-                      ? Text(data.restaurant.name,
+                      ? Text(_nameController.text,
                           style: TextStyle(
                               color: theme.colorScheme.onSurface,
                               fontWeight: FontWeight.w600))
@@ -245,18 +274,11 @@ class _ManageMenuScreenState extends State<ManageMenuScreen> {
                     background: Stack(
                       fit: StackFit.expand,
                       children: [
-                        if (data.restaurant.coverImageUrl != null)
-                          CachedNetworkImage(
-                            imageUrl: data.restaurant.coverImageUrl!,
-                            fit: BoxFit.cover,
-                            placeholder: (context, url) =>
-                                Container(color: Colors.grey[300]),
-                            errorWidget: (context, url, error) =>
-                                Container(color: Colors.grey[300]),
-                          )
-                        else
-                          Container(color: Colors.grey[300]),
-                        Container(color: Colors.black26),
+                        ImageDownloadHelper.loadCachedNetworkImage(
+                          data.restaurant.coverImageUrl!,
+                          fit: BoxFit.cover,
+                          width: double.infinity,
+                        )
                       ],
                     ),
                   ),
@@ -271,7 +293,7 @@ class _ManageMenuScreenState extends State<ManageMenuScreen> {
                       focusNode: _nameFocus,
                       controller: _nameController,
                       enabled: true,
-                      validator: (value) => "",
+                      validator: (value) => validateName(value),
                     ),
                   ),
                 ),

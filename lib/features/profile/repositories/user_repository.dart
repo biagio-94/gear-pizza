@@ -297,4 +297,39 @@ class UserRepository {
       throw UserServiceException('Errore imprevisto: $e');
     }
   }
+
+  /// Aggiorna il nome del ristorante via PATCH su /users/{id}
+  Future<void> updateRestaurantName({
+    required String restaurantName,
+    required int restaurantId,
+  }) async {
+    try {
+      // 1) endpoint dinamico
+      final endpoint =
+          UserEndpoint.patchRestaurantname(restaurantId.toString());
+
+      // 2) payload JSON
+      final data = {
+        'name': restaurantName,
+      };
+
+      // 3) chiamata PATCH
+      final resp = await _apiService.patch(endpoint, data: data);
+
+      // 4) considera 200 o 204 come successo
+      if (resp.statusCode != 200 && resp.statusCode != 204) {
+        throw PatchUserException(
+            'Errore PATCH utente: codice ${resp.statusCode}');
+      }
+    } on DioException catch (e) {
+      // rilancia una eccezione custom basata su DioError
+      throw mapDioExceptionToCustomException(e);
+    } on UserServiceException {
+      // se già era un UserServiceException, rilanciala
+      rethrow;
+    } catch (e) {
+      // qualsiasi altro errore imprevisto
+      throw UnexpectedUserException();
+    }
+  }
 }

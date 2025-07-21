@@ -100,4 +100,32 @@ class UserService {
       throw UnexpectedUserException();
     }
   }
+
+  Future<void> deletePizzaById(int pizzaId) async {
+    try {
+      await _userRepository.deletePizzaById(pizzaId);
+    } on UserServiceException {
+      rethrow;
+    } on DioException {
+      rethrow;
+    } catch (e) {
+      throw UnexpectedUserException();
+    }
+  }
+
+  Future<void> updateRestaurantName(
+      {required String restaurantName, required int restaurantId}) async {
+    try {
+      await _userRepository.updateRestaurantName(
+        restaurantName: restaurantName,
+        restaurantId: restaurantId,
+      );
+    } on UserServiceException {
+      rethrow;
+    } on DioException {
+      rethrow;
+    } catch (e) {
+      throw UnexpectedUserException();
+    }
+  }
 }

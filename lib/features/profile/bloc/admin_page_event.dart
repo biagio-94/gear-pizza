@@ -29,3 +29,24 @@ class UpdateRestaurantImage extends AdminPageEvent {
   @override
   List<Object?> get props => [restaurantId, xfile];
 }
+
+class DeletePizzaEvent extends AdminPageEvent {
+  final int pizzaId;
+  final int restaurantId;
+
+  const DeletePizzaEvent({required this.pizzaId, required this.restaurantId});
+
+  @override
+  List<Object?> get props => [pizzaId, restaurantId];
+}
+
+class UpdateRestaurantname extends AdminPageEvent {
+  final String restaurantName;
+  final int restaurantId;
+
+  const UpdateRestaurantname(
+      {required this.restaurantName, required this.restaurantId});
+
+  @override
+  List<Object?> get props => [restaurantName, restaurantId];
+}

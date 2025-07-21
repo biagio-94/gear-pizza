@@ -22,6 +22,7 @@ class UserAccountBloc extends Bloc<UserAccountEvent, UserAccountState> {
     LoadUserAccountEvent event,
     Emitter<UserAccountState> emit,
   ) async {
+    emit(UserAccountLoading());
     await ExecutionHelper.run(
       showLoading: () => loadingBloc.showLoading('Caricamento dati utente...'),
       hideLoading: () => loadingBloc.hideLoading(),

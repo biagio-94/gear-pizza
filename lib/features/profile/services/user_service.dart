@@ -1,9 +1,10 @@
 import 'package:dio/dio.dart';
-import 'package:gearpizza/features/cart/model/order_dto.dart';
+import 'package:gearpizza/features/profile/models/admin_page_dto.dart';
 import 'package:gearpizza/features/profile/models/order_detail_dto.dart';
 import 'package:gearpizza/features/profile/models/user_profile_data_dto.dart';
 import 'package:gearpizza/features/profile/repositories/user_repository.dart';
 import 'package:gearpizza/features/profile/services/user_service_exception.dart';
+import 'package:image_picker/image_picker.dart';
 
 class UserService {
   final UserRepository _userRepository;
@@ -61,6 +62,36 @@ class UserService {
         orderId: orderId,
         status: newStatus,
       );
+    } on UserServiceException {
+      rethrow;
+    } on DioException {
+      rethrow;
+    } catch (e) {
+      throw UnexpectedUserException();
+    }
+  }
+
+  Future<AdminPageDto> fetchAdminPageDto(int restaurantId) async {
+    try {
+      return await _userRepository.fetchAdminPageDto(
+        restaurantId,
+      );
+    } on UserServiceException {
+      rethrow;
+    } on DioException {
+      rethrow;
+    } catch (e) {
+      throw UnexpectedUserException();
+    }
+  }
+
+  Future<void> updateRestaurantImageById({
+    required int restaurantId,
+    required XFile xfile,
+  }) async {
+    try {
+      await _userRepository.updateRestaurantImageById(
+          restaurantId: restaurantId, xfile: xfile);
     } on UserServiceException {
       rethrow;
     } on DioException {

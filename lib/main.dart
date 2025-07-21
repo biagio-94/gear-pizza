@@ -9,6 +9,7 @@ import 'package:gearpizza/features/cart/services/cart_service.dart';
 import 'package:gearpizza/features/dashboard/bloc/dashboard_bloc.dart';
 import 'package:gearpizza/features/dashboard/bloc/product_card/product_card_bloc.dart';
 import 'package:gearpizza/features/dashboard/services/dashboard_service.dart';
+import 'package:gearpizza/features/profile/bloc/admin_page_bloc.dart';
 import 'package:gearpizza/features/profile/bloc/orders_bloc.dart';
 import 'package:gearpizza/features/profile/bloc/user_account_bloc.dart';
 import 'package:gearpizza/features/profile/services/user_service.dart';
@@ -85,6 +86,9 @@ class MyApp extends StatelessWidget {
         ),
         BlocProvider(
           create: (context) => OrdersBloc(GetIt.I<UserService>()),
+        ),
+        BlocProvider(
+          create: (context) => AdminPageBloc(GetIt.I<UserService>()),
         ),
         BlocProvider(
             create: (context) => DashboardBloc(

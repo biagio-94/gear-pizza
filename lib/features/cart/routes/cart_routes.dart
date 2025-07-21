@@ -1,7 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:gearpizza/features/cart/screens/order_completed.dart';
-import 'package:gearpizza/features/cart/screens/order_screen.dart';
+import 'package:gearpizza/features/cart/screens/create_order_screen.dart';
 import 'package:go_router/go_router.dart';
 
 final List<GoRoute> cartRoutes = [
@@ -10,7 +10,7 @@ final List<GoRoute> cartRoutes = [
     name: 'checkout',
     pageBuilder: (context, state) {
       return CustomTransitionPage(
-        child: OrderScreen(),
+        child: CreateorderScreen(),
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
           const begin = Offset(0.0, 1.0);
           const end = Offset.zero;

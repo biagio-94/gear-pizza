@@ -1,15 +1,25 @@
+import 'dart:io';
+
 import 'package:dio/dio.dart';
 import 'package:gearpizza/common/services/api_service.dart';
+import 'package:gearpizza/common/services/firestore_service.dart';
 import 'package:gearpizza/common/services/secure_storage_service.dart';
 import 'package:gearpizza/common/utils/directus_query_builder.dart';
 import 'package:gearpizza/common/utils/exception_handler.dart';
 import 'package:gearpizza/features/cart/api/cart_endpoints.dart';
 import 'package:gearpizza/features/cart/model/customer_dto.dart';
-import 'package:gearpizza/features/cart/model/order_dto.dart';
+import 'package:gearpizza/features/dashboard/api/dashboard_endpoints.dart';
+import 'package:gearpizza/features/dashboard/models/pizza_dto.dart';
+import 'package:gearpizza/features/dashboard/models/restaurants_dto.dart';
+import 'package:gearpizza/features/dashboard/services/dashboard_service_exception.dart';
 import 'package:gearpizza/features/profile/api/user_endpoint.dart';
+import 'package:gearpizza/features/profile/models/admin_page_dto.dart';
 import 'package:gearpizza/features/profile/models/order_detail_dto.dart';
 import 'package:gearpizza/features/profile/models/user_profile_data_dto.dart';
 import 'package:gearpizza/features/profile/services/user_service_exception.dart';
+import 'package:get_it/get_it.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:path/path.dart' as p;
 
 class UserRepository {
   final ApiService _apiService;
@@ -184,5 +194,99 @@ class UserRepository {
     final name = await _storage.readSecureData('user_full_name') ?? '';
     final email = await _storage.readSecureData('user_email') ?? '';
     return UserProfileDataDto(fullName: name, email: email);
+  }
+
+  Future<AdminPageDto> fetchAdminPageDto(int restaurantId) async {
+    // qui mock dell'unico ristorante ovvero il 3, andrà messo dinamico in rilasci futuri
+    try {
+      final qb = DirectusQueryBuilder()
+        ..fields([
+          'id',
+          'name',
+          'cover_image.filename_disk',
+          'owner.first_name',
+          'owner.last_name',
+          'pizzas.id',
+          'pizzas.name',
+          'pizzas.description',
+          'pizzas.restaurant.id',
+          'pizzas.cover_image.id',
+          'pizzas.allergens.allergens_id.id',
+          'pizzas.allergens.allergens_id.name',
+        ])
+        ..populate([
+          'cover_image',
+          'owner',
+          'pizzas.cover_image',
+          'pizzas.allergens.allergens_id',
+        ])
+        ..filter({
+          'id': {'_eq': restaurantId}
+        });
+
+      final endpoint = DashboardEndpoints.getRestaurants(queryBuilder: qb);
+      final resp = await _apiService.get(endpoint);
+      if (resp.statusCode != 200) throw FetchRestaurantsException();
+
+      final data = resp.data['data'] as List<dynamic>?;
+      if (data == null || data.isEmpty) {
+        throw FetchRestaurantsException(
+            'Ristorante non trovato: $restaurantId');
+      }
+
+      final map = data.first as Map<String, dynamic>;
+
+      // Costruzione DTO
+      final restaurantDto = RestaurantDto.fromMap(map);
+      final pizzasRaw = map['pizzas'] as List<dynamic>? ?? [];
+      final pizzasDto = pizzasRaw.map((e) => PizzaDto.fromMap(e)).toList();
+
+      return AdminPageDto(
+        restaurant: restaurantDto,
+        pizzas: pizzasDto,
+      );
+    } on DioException catch (e) {
+      throw mapDioExceptionToCustomException(e);
+    } on UserServiceException {
+      rethrow;
+    } catch (_) {
+      throw UnexpectedUserException();
+    }
+  }
+
+  /// Elimina la pizza specificata
+  Future<void> deletePizzaById(int pizzaId) async {
+    try {
+      final endpoint = UserEndpoint.deletePizza(pizzaId);
+      final resp = await _apiService.delete(endpoint);
+      if (resp.statusCode != 200 && resp.statusCode != 204) {
+        throw UserServiceException(
+          'Errore eliminazione pizza: ${resp.statusCode}',
+        );
+      }
+    } on DioException catch (e) {
+      throw mapDioExceptionToCustomException(e);
+    } catch (e) {
+      throw UserServiceException('Errore imprevisto: $e');
+    }
+  }
+
+  Future<void> updateRestaurantImageById({
+    required int restaurantId,
+    required XFile xfile,
+  }) async {
+    try {
+      final file = File(xfile.path);
+
+      // 1) Carico l'immagine su Firebase (stessa strategia di createOrder)
+      await GetIt.instance<FirebaseStorageService>().uploadRestaurantImage(
+        file,
+        restaurantId.toString(),
+      );
+    } on DioException catch (e) {
+      throw mapDioExceptionToCustomException(e);
+    } catch (e) {
+      throw UserServiceException('Errore imprevisto: $e');
+    }
   }
 }

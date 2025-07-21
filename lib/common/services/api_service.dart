@@ -198,21 +198,27 @@ class ApiService {
       _dio.delete(path, queryParameters: queryParameters);
   Future<Response> patch(String path, {dynamic data}) =>
       _dio.patch(path, data: data);
-  Future<Response> postMultipart(String path, FormData data) =>
-      _dio.post(path, data: data);
-  // Upload image helpers
+  Future<Response> postMultipart(String path, FormData data) {
+    return _dio.post(path, data: data);
+  }
+
+  // Helper per creare MultipartFile da File
   Future<MultipartFile> uploadImage(File file) async {
     final fileName = p.basename(file.path);
     return MultipartFile.fromFile(file.path, filename: fileName);
   }
 
   Future<String> uploadFileToDirectus(
-      File file, String title, String customeId) async {
-    final fileName = file.path.split('/').last;
-    final mimeType = lookupMimeType(file.path) ?? 'png/jpeg';
+    File file,
+    String title,
+    String customeId,
+  ) async {
+    final fileName = p.basename(file.path);
+    final mimeType = lookupMimeType(file.path) ?? 'image/jpeg';
     final parts = mimeType.split('/');
-
-    final fileStat = await file.stat();
+    if (parts.length != 2) {
+      throw Exception('MIME type non valido: $mimeType');
+    }
 
     final form = FormData.fromMap({
       'file': await MultipartFile.fromFile(
@@ -220,25 +226,20 @@ class ApiService {
         filename: fileName,
         contentType: MediaType(parts[0], parts[1]),
       ),
-      'title': title,
-      'filename_download': fileName,
-      'type': mimeType,
-      'charset': 'binary',
-      "width": 800,
-      "height": 838,
-      'filesize': fileStat.size,
-      'storage': 'local',
-      'uploaded_on': DateTime.now().toUtc().toIso8601String(),
-      'created_on': DateTime.now().toUtc().toIso8601String(),
-      'uploaded_by': customeId,
     });
-    debugPrint("fileStat: ${fileStat.toString()}");
 
     final resp = await postMultipart('/files', form);
 
     if (resp.statusCode == 200 || resp.statusCode == 201) {
-      return resp.data['data']['id'] as String;
+      final data = resp.data['data'];
+      if (data != null && data['id'] != null) {
+        return data['id'] as String;
+      } else {
+        throw Exception('Risposta upload incompleta: manca campo id');
+      }
     } else {
+      // Log completo per debug
+      print('Upload fallito: status=${resp.statusCode}, body=${resp.data}');
       throw Exception('Upload image failed: ${resp.statusCode} ${resp.data}');
     }
   }

@@ -28,4 +28,12 @@ class UserEndpoint {
     final query = queryBuilder?.build() ?? '';
     return '$basePath/orders/$orderId$query';
   }
+
+  static String patchRestaurant(int restaurantId) {
+    return '$basePath/$collection/$restaurantId';
+  }
+
+  static String deletePizza(int pizzaId) {
+    return '$basePath/$collection/$pizzaId';
+  }
 }

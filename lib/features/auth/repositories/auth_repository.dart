@@ -73,6 +73,7 @@ class AuthRepository {
   Future<void> clearRefreshData() async {
     await _secureStorage.deleteSecureData(_refreshTokenKey);
     await _secureStorage.deleteSecureData(_refreshTokenExpiryKey);
+    await _secureStorage.deleteSecureData(_isAdminKey);
   }
 
   // ────────────────────────────────────────────────────────────────
@@ -124,7 +125,6 @@ class AuthRepository {
         await clearRefreshData();
         return null;
       }
-
       return await getAuthUser();
     } on DioException catch (e) {
       throw mapDioExceptionToCustomException(e);
@@ -396,6 +396,7 @@ class AuthRepository {
       // Simulo un accesso come guest con un utente di test
       // Non asegno quindi il Ruolo Admin alla sua utenza ( VEDI getAuthUser )
       // Simulo avvenuta sincronizzazione con Directus leggere metodo signWithEmail e _afterFirebaseLogin per spiegazioni
+
       await _afterFirebaseLogin(
           email: "biagio@gearpizza.it", password: 'Q]T%;mG1)R58');
       return await getAuthUser();

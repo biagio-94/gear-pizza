@@ -23,7 +23,11 @@ final List<GoRoute> profileRoutes = [
         ),
       ]),
   GoRoute(
-    path: 'manage-menu',
-    builder: (context, state) => const ManageMenuScreen(),
+    path: 'manage-menu/:restaurantId',
+    builder: (context, state) {
+      // qui leggi il parametro
+      final id = int.parse(state.pathParameters['restaurantId']!);
+      return ManageMenuScreen(restaurantId: id);
+    },
   ),
 ];

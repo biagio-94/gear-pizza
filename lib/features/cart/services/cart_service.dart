@@ -1,6 +1,5 @@
 import 'package:dio/dio.dart';
 import 'package:gearpizza/common/services/api_service_exception.dart';
-import 'package:gearpizza/common/utils/exception_handler.dart';
 import 'package:gearpizza/features/cart/repositories/cart_repository.dart';
 import 'package:gearpizza/features/cart/model/customer_dto.dart';
 import 'package:gearpizza/features/cart/model/order_dto.dart';

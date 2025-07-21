@@ -32,6 +32,32 @@ class FirebaseStorageService {
     }
   }
 
+  Future<String> uploadRestaurantImage(File file, String restaurantId) async {
+    try {
+      final fileName = file.uri.pathSegments.last;
+      final ref = _storage
+          .ref()
+          .child('restaurants')
+          .child(restaurantId)
+          .child(fileName);
+
+      final uploadTask = ref.putFile(
+        file,
+        SettableMetadata(
+          contentType: _lookupContentType(fileName),
+        ),
+      );
+
+      final snapshot = await uploadTask;
+      return await snapshot.ref.getDownloadURL();
+    } on FirebaseException catch (e) {
+      throw Exception(
+          'Errore durante l’upload su Firebase Storage: ${e.code} - ${e.message}');
+    } catch (e) {
+      throw Exception('Errore imprevisto durante uploadFile: $e');
+    }
+  }
+
   /// Elimina l’immagine precedentemente caricata (se necessario).
   Future<void> deleteOrderImage(String orderId, String fileName) async {
     try {
@@ -48,6 +74,27 @@ class FirebaseStorageService {
   Future<String?> fetchOrderImageUrlFromFirebase(String orderId) async {
     try {
       final folderRef = _storage.ref().child('orders').child(orderId);
+      final listResult = await folderRef.listAll();
+
+      if (listResult.items.isEmpty) {
+        return null;
+      }
+
+      // Prendo il primo file
+      final fileRef = listResult.items.first;
+      return await fileRef.getDownloadURL();
+    } on FirebaseException catch (e) {
+      throw Exception(
+          'Errore durante il fetch da Firebase Storage: ${e.code} - ${e.message}');
+    } catch (e) {
+      throw Exception('Errore imprevisto durante fetchOrderImageUrl: $e');
+    }
+  }
+
+  Future<String?> fetchRestaurantImageUrlFromFirebase(
+      String restaurantId) async {
+    try {
+      final folderRef = _storage.ref().child('restaurants').child(restaurantId);
       final listResult = await folderRef.listAll();
 
       if (listResult.items.isEmpty) {

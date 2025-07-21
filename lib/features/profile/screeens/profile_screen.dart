@@ -75,7 +75,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
           icon: Icons.restaurant_menu,
           title: 'Gestisci Menu',
           onTap: () {
-            context.go('/profile/manage-menu');
+            // forzo id = 3 ma qui l'amn passerà un idDinamico, per ora abbiamo un solo ristorante
+            context.go('/profile/manage-menu/${3}');
           },
         ),
       ActionItem(

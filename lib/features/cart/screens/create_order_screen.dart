@@ -16,14 +16,15 @@ import 'package:go_router/go_router.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:image_picker/image_picker.dart';
 
-class OrderScreen extends StatefulWidget {
-  const OrderScreen({Key? key}) : super(key: key);
+class CreateorderScreen extends StatefulWidget {
+  const CreateorderScreen({Key? key}) : super(key: key);
 
   @override
-  _OrderScreenState createState() => _OrderScreenState();
+  _CreateorderScreenState createState() => _CreateorderScreenState();
 }
 
-class _OrderScreenState extends State<OrderScreen> with WidgetsBindingObserver {
+class _CreateorderScreenState extends State<CreateorderScreen>
+    with WidgetsBindingObserver {
   final _formKey = GlobalKey<FormState>();
   final _addressController = TextEditingController();
   final _emailController = TextEditingController();

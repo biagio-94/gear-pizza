@@ -7,7 +7,7 @@ import 'package:get_it/get_it.dart';
 
 class ImageDownloadHelper {
   static final String _accessToken =
-      GetIt.instance<ApiService>().accessToken ?? "";
+      GetIt.instance<ApiService>().cacheAccessToken ?? "";
   static final baseUrl = BaseUrl.getBaseUrl(kReleaseMode);
 
   /// Carica e cachea l'immagine da rete con autorizzazione.
@@ -20,26 +20,24 @@ class ImageDownloadHelper {
     Widget? placeholder,
     Widget? errorWidget,
   }) {
-    final fullUrl = "${baseUrl}assets/$url";
-    return CachedNetworkImage(
-      imageUrl: fullUrl,
-      httpHeaders: {
-        "Authorization": "Bearer $_accessToken",
-      },
+    final bool isFirestoreUri = url.startsWith("https://firebasestorage");
+    final fullUrl = !isFirestoreUri ? "${baseUrl}assets/$url" : url;
+    return Image.network(
+      fullUrl,
+      // Headers per l'autenticazione se non è un URI Firestore
+      headers: !isFirestoreUri
+          ? {
+              "Authorization": "Bearer $_accessToken",
+            }
+          : null,
+
+      // Dimensioni opzionali
       width: width,
       height: height,
+
+      // Comportamento di ridimensionamento e allineamento
       fit: fit,
       alignment: alignment,
-      placeholder: (_, __) =>
-          placeholder ??
-          const SizedBox(
-            width: 24,
-            height: 24,
-            child: CircularProgressIndicator(strokeWidth: 2),
-          ),
-      errorWidget: (_, __, ___) =>
-          errorWidget ??
-          const Icon(Icons.broken_image, size: 24, color: Colors.redAccent),
     );
   }
 }

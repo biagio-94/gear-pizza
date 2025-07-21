@@ -25,9 +25,7 @@ class AuthRepository {
   final SecureStorageService _secureStorage;
   final ApiService _apiService;
 
-  static const _tokenKey = 'firebase_token';
   static const _refreshTokenKey = 'refreshToken';
-  static const _refreshTokenExpiryKey = 'refreshTokenExpiry';
   static const _isAdminKey = 'isAdmin';
 
   AuthRepository({
@@ -44,35 +42,17 @@ class AuthRepository {
   // 1) STORAGE: Salvataggio e recupero token + scadenza
   // ────────────────────────────────────────────────────────────────
 
-  Future<void> saveToken(String token) async {
-    await _secureStorage.writeSecureData(_tokenKey, token);
-  }
-
-  Future<void> saveRefreshToken(String refreshToken) async {
-    await _secureStorage.writeSecureData(_refreshTokenKey, refreshToken);
-  }
-
-  Future<void> saveRefreshExpiry(String isoExpiryDate) async {
-    await _secureStorage.writeSecureData(_refreshTokenExpiryKey, isoExpiryDate);
-  }
-
   Future<void> saveIsAdmin({required bool isAdmin}) async {
     await _secureStorage.writeSecureData(_isAdminKey, isAdmin.toString());
   }
 
-  Future<String?> getSavedToken() => _secureStorage.readSecureData(_tokenKey);
-
   Future<String?> getSavedRefreshToken() =>
       _secureStorage.readSecureData(_refreshTokenKey);
-
-  Future<String?> getSavedRefreshExpiry() =>
-      _secureStorage.readSecureData(_refreshTokenExpiryKey);
 
   Future<String?> getIsAdmin() => _secureStorage.readSecureData(_isAdminKey);
 
   Future<void> clearRefreshData() async {
-    await _secureStorage.deleteSecureData(_refreshTokenKey);
-    await _secureStorage.deleteSecureData(_refreshTokenExpiryKey);
+    await _apiService.clearAllTokens();
     await _secureStorage.deleteSecureData(_isAdminKey);
   }
 
@@ -88,14 +68,6 @@ class AuthRepository {
     }
   }
 
-  Future<bool> isRefreshValid() async {
-    final isoExpiry = await getSavedRefreshExpiry();
-    if (isoExpiry == null) return false;
-    final expiryDate = DateTime.tryParse(isoExpiry);
-    if (expiryDate == null) return false;
-    return DateTime.now().isBefore(expiryDate);
-  }
-
   // ────────────────────────────────────────────────────────────────
   // 3) INITIALIZATION: onStart all’avvio dell’app
   // ────────────────────────────────────────────────────────────────
@@ -109,22 +81,10 @@ class AuthRepository {
   Future<AuthGeaPizzaUser?> onStart() async {
     try {
       final savedRefresh = await getSavedRefreshToken();
-      final refreshValid = await isRefreshValid();
-
-      if (savedRefresh == null || !refreshValid) {
-        await clearRefreshData();
+      if (savedRefresh == null) {
         return null;
       }
 
-      // Setto il refresh token attuale
-      _apiService.setRefreshToken(savedRefresh);
-
-      // Provo a rinnovare l'access token se necessario
-      final success = await _apiService.tryRefreshToken();
-      if (!success) {
-        await clearRefreshData();
-        return null;
-      }
       return await getAuthUser();
     } on DioException catch (e) {
       throw mapDioExceptionToCustomException(e);
@@ -183,13 +143,9 @@ class AuthRepository {
       // Salvo i token in secure storage
       // e li setto nell'apiService per le chiamate successive.
       // Api service gestirà il refresh automatico
-      await saveToken(accessToken);
-      await saveRefreshToken(refreshToken);
-      setAccessToken(accessToken);
-      setRefreshToken(refreshToken);
 
-      final expiryDate = DateTime.now().add(Duration(milliseconds: expiresMs));
-      await saveRefreshExpiry(expiryDate.toIso8601String());
+      _apiService.setAccessToken(accessToken);
+      _apiService.setRefreshToken(refreshToken);
     } on DioException catch (e) {
       await _firebaseAuth.signOut();
       throw mapDioExceptionToCustomException(e);
@@ -457,7 +413,4 @@ class AuthRepository {
 
     return authUser;
   }
-
-  void setAccessToken(String token) => _apiService.setAccessToken(token);
-  void setRefreshToken(String token) => _apiService.setRefreshToken(token);
 }

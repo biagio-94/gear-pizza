@@ -4,7 +4,6 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gearpizza/common/components/custom_input.dart';
-import 'package:gearpizza/common/utils/image_download_helper.dart';
 import 'package:gearpizza/features/dashboard/models/pizza_dto.dart';
 import 'package:gearpizza/features/profile/bloc/admin_page_bloc.dart';
 import 'package:gearpizza/features/profile/bloc/admin_page_event.dart';
@@ -48,14 +47,7 @@ class _ManageMenuScreenState extends State<ManageMenuScreen> {
     final state = context.read<AdminPageBloc>().state;
     if (state is AdminPageLoaded &&
         state.data.restaurant.coverImageUrl != null &&
-        _pickedImage == null) {
-      precacheImage(
-        CachedNetworkImageProvider(
-          '${ImageDownloadHelper.baseUrl}assets/${state.data.restaurant.coverImageUrl}',
-        ),
-        context,
-      );
-    }
+        _pickedImage == null) {}
   }
 
   @override
@@ -254,14 +246,14 @@ class _ManageMenuScreenState extends State<ManageMenuScreen> {
                     background: Stack(
                       fit: StackFit.expand,
                       children: [
-                        if (_pickedImage != null)
-                          Image.file(File(_pickedImage!.path),
-                              fit: BoxFit.cover)
-                        else if (data.restaurant.coverImageUrl != null)
+                        if (data.restaurant.coverImageUrl != null)
                           CachedNetworkImage(
-                            imageUrl:
-                                '${ImageDownloadHelper.baseUrl}assets/${data.restaurant.coverImageUrl}',
+                            imageUrl: data.restaurant.coverImageUrl!,
                             fit: BoxFit.cover,
+                            placeholder: (context, url) =>
+                                Container(color: Colors.grey[300]),
+                            errorWidget: (context, url, error) =>
+                                Container(color: Colors.grey[300]),
                           )
                         else
                           Container(color: Colors.grey[300]),

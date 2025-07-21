@@ -6,7 +6,7 @@ import 'package:gearpizza/common/api/endpoints.dart';
 class RestaurantDto {
   final int id;
   final String name;
-  final String? coverImageUrl;
+  String? coverImageUrl;
   final String ownerName;
   final List<int> pizzaId;
 

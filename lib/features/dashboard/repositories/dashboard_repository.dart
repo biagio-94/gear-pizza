@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:gearpizza/common/models/items_allergens.dart';
 import 'package:gearpizza/common/models/read_items_allergens200_response.dart';
+import 'package:gearpizza/common/services/firestore_service.dart';
 import 'package:gearpizza/common/services/secure_storage_service.dart';
 import 'package:gearpizza/common/utils/directus_query_builder.dart';
 import 'package:gearpizza/common/utils/exception_handler.dart';
@@ -43,8 +44,8 @@ class DashboardRepository {
   final Map<int, DateTime> _pizzaByIdCachedAt = {};
 
   // TTL durations
-  final Duration _cacheTTL = const Duration(hours: 1);
-  final Duration _byIdTTL = const Duration(minutes: 5);
+  final Duration _cacheTTL = const Duration(seconds: 0);
+  final Duration _byIdTTL = const Duration(seconds: 0);
 
   bool _cacheValid(DateTime? timestamp, Duration ttl) {
     return timestamp != null && DateTime.now().difference(timestamp) < ttl;
@@ -85,9 +86,23 @@ class DashboardRepository {
       if (resp.statusCode != 200) throw FetchRestaurantsException();
 
       final rawData = resp.data['data'] as List<dynamic>? ?? [];
-      final list = rawData
-          .map((e) => RestaurantDto.fromMap(e as Map<String, dynamic>))
-          .toList();
+
+      // Costruzione DTO con override da Firebase
+      final List<RestaurantDto> list = [];
+      for (final item in rawData) {
+        final dto = RestaurantDto.fromMap(item as Map<String, dynamic>);
+
+        // Override immagine se presente su Firebase
+        final firestoreRestaurantImage =
+            await GetIt.instance<FirebaseStorageService>()
+                .fetchRestaurantImageUrlFromFirebase(dto.id.toString());
+        if (firestoreRestaurantImage != null) {
+          dto.coverImageUrl = firestoreRestaurantImage;
+        }
+
+        list.add(dto);
+      }
+
       _restaurantsCache = list;
       _restaurantsCachedAt = DateTime.now();
       return list;
@@ -96,8 +111,7 @@ class DashboardRepository {
     } on DashboardServiceException {
       rethrow;
     } catch (e) {
-      throw DashboardServiceException(
-          'Errore imprevisto fetch ristoranti: \$e');
+      throw DashboardServiceException('Errore imprevisto fetch ristoranti: $e');
     }
   }
 
@@ -167,14 +181,25 @@ class DashboardRepository {
       final resp = await _apiService.get(endpoint);
       if (resp.statusCode != 200) throw FetchRestaurantsException();
       final data = resp.data['data'] as List<dynamic>?;
-      if (data == null || data.isEmpty)
+      if (data == null || data.isEmpty) {
         throw FetchRestaurantsException(
             'Ristorante non trovato: \$restaurantId');
-      final restaurant =
-          RestaurantDto.fromMap(data.first as Map<String, dynamic>);
-      _restaurantByIdCache[restaurantId] = restaurant;
+      }
+      final map = data.first as Map<String, dynamic>;
+
+      // Costruzione DTO
+      RestaurantDto? restaurantDto = RestaurantDto.fromMap(map);
+      // Se presente l'immagine su firestore la carico da li nel DTO
+      final firestoreRestaurantImage =
+          await GetIt.instance<FirebaseStorageService>()
+              .fetchRestaurantImageUrlFromFirebase(restaurantDto.id.toString());
+      if (firestoreRestaurantImage != null) {
+        restaurantDto.coverImageUrl = firestoreRestaurantImage;
+      }
+
+      _restaurantByIdCache[restaurantId] = restaurantDto;
       _restaurantByIdCachedAt[restaurantId] = DateTime.now();
-      return restaurant;
+      return restaurantDto;
     } on DioException catch (e) {
       throw mapDioExceptionToCustomException(e);
     } on DashboardServiceException {

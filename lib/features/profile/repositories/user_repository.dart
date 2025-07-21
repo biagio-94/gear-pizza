@@ -237,7 +237,15 @@ class UserRepository {
       final map = data.first as Map<String, dynamic>;
 
       // Costruzione DTO
-      final restaurantDto = RestaurantDto.fromMap(map);
+      RestaurantDto? restaurantDto = RestaurantDto.fromMap(map);
+      // Se presente l'immagine su firestore la carico da li nel DTO
+      final firestoreRestaurantImage =
+          await GetIt.instance<FirebaseStorageService>()
+              .fetchRestaurantImageUrlFromFirebase(restaurantDto.id.toString());
+      if (firestoreRestaurantImage != null) {
+        restaurantDto.coverImageUrl = firestoreRestaurantImage;
+      }
+
       final pizzasRaw = map['pizzas'] as List<dynamic>? ?? [];
       final pizzasDto = pizzasRaw.map((e) => PizzaDto.fromMap(e)).toList();
 

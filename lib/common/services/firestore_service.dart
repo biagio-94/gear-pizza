@@ -34,7 +34,7 @@ class FirebaseStorageService {
 
   Future<String> uploadRestaurantImage(File file, String restaurantId) async {
     try {
-      final fileName = file.uri.pathSegments.last;
+      const fileName = 'cover.jpg'; // nome fisso per sovrascrivere
       final ref = _storage
           .ref()
           .child('restaurants')
@@ -51,10 +51,9 @@ class FirebaseStorageService {
       final snapshot = await uploadTask;
       return await snapshot.ref.getDownloadURL();
     } on FirebaseException catch (e) {
-      throw Exception(
-          'Errore durante l’upload su Firebase Storage: ${e.code} - ${e.message}');
+      throw Exception('Errore Firebase Storage: ${e.code} - ${e.message}');
     } catch (e) {
-      throw Exception('Errore imprevisto durante uploadFile: $e');
+      throw Exception('Errore generico durante l’upload: $e');
     }
   }
 

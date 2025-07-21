@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:async';
 import 'dart:io';
 import 'package:http_parser/http_parser.dart';
 import 'package:path/path.dart' as p;
@@ -18,19 +19,34 @@ class ApiService {
     _initializeDio();
   }
 
-  late Dio _dio;
-  String? _accessToken;
-  String? _refreshToken;
+  late final Dio _dio;
+  final SecureStorageService _storage = GetIt.instance<SecureStorageService>();
+  static const _accessKey = 'accessToken';
+  static const _refreshKey = 'refreshToken';
 
-  String? get accessToken => _accessToken;
-  String? get refreshToken => _refreshToken;
+  String? _cacheAccessToken;
+  String? get cacheAccessToken => _cacheAccessToken;
 
-  void setAccessToken(String token) => _accessToken = token;
-  void setRefreshToken(String token) => _refreshToken = token;
+  // Async getters
+  Future<String?> get accessToken async =>
+      await _storage.readSecureData(_accessKey);
+  Future<String?> get _refreshToken async =>
+      await _storage.readSecureData(_refreshKey);
+
+  // Internal setters
+  Future<void> setAccessToken(String token) async =>
+      await _storage.writeSecureData(_accessKey, token);
+  Future<void> setRefreshToken(String token) async =>
+      await _storage.writeSecureData(_refreshKey, token);
+
+  /// Clear both access and refresh tokens (e.g. on logout)
+  Future<void> clearAllTokens() async {
+    await _storage.deleteSecureData(_accessKey);
+    await _storage.deleteSecureData(_refreshKey);
+  }
 
   void _initializeDio() {
     final baseUrl = BaseUrl.getBaseUrl(kReleaseMode);
-
     _dio = Dio(BaseOptions(
       baseUrl: baseUrl,
       connectTimeout: const Duration(seconds: 60),
@@ -38,47 +54,37 @@ class ApiService {
     ));
 
     _dio.interceptors.add(InterceptorsWrapper(
-      onRequest: (options, handler) {
-        // Se ho un accessToken lo invio come Bearer
-        if (_accessToken != null) {
-          options.headers['Authorization'] = 'Bearer $_accessToken';
+      onRequest: (options, handler) async {
+        final path = options.uri.path;
+        final isRefresh = path.endsWith('/refresh');
+        final isLogin = path.endsWith('/login');
+
+        final token = await accessToken;
+        if (token?.isNotEmpty == true && !isRefresh && !isLogin) {
+          _cacheAccessToken = token;
+          options.headers['Authorization'] = 'Bearer $token';
         }
         handler.next(options);
       },
       onError: (DioException e, handler) async {
-        if (!kReleaseMode) {
-          debugPrint('*** Dio Error ***');
-          debugPrint('URI: ${e.requestOptions.uri}');
-          debugPrint('Status: ${e.response?.statusCode}');
-          debugPrint('Message: ${e.message}');
-          if (e.response?.data != null) {
-            debugPrint('Payload: ${jsonEncode(e.response!.data)}');
-          }
-        }
-
-        final status = e.response?.statusCode;
         final path = e.requestOptions.uri.path;
-        final isRefreshEndpoint = path.endsWith("/refresh");
-        final isLoginEndpoint = path.endsWith("/login");
-
-        // 1) Se 401, non siamo già sulla rotta di refresh e non abbiamo già fatto retry → provo a rinnovare
-        if ((status == 401 || status == 403) && !isRefreshEndpoint) {
-          final retryResponse = await _handleTokenRefresh(e);
-          if (retryResponse != null) {
-            return handler.resolve(retryResponse);
-          } else {
-            return handler.reject(e);
-          }
-        } else if (status == 401 && isLoginEndpoint) {
+        final status = e.response?.statusCode;
+        final isRefresh = path.endsWith('/refresh');
+        if (isRefresh) {
           return handler.reject(e);
         }
 
-        // 2) Per 400 e 404 voglio semplicemente lasciare passare la response
-        if (e.response != null && (status == 400 || status == 404)) {
+        if ((status == 401 || status == 403) && !isRefresh) {
+          final retry = await _handleRefresh(e);
+          if (retry != null) {
+            return handler.resolve(retry);
+          }
+        }
+
+        if (status == 400 || status == 404) {
           return handler.resolve(e.response!);
         }
 
-        // 3) Altrimenti rilancio l’errore
         return handler.reject(e);
       },
     ));
@@ -95,98 +101,51 @@ class ApiService {
     }
   }
 
-  Future<Response?> _handleTokenRefresh(DioException e) async {
+  Future<Response?> _handleRefresh(DioException err) async {
     try {
-      if (_refreshToken == null) return null;
+      final refresh = await _refreshToken;
+      if (refresh == null) return null;
 
-      // Preparo il body per il refresh
-      final req = RefreshRequest((b) => b..refreshToken = _refreshToken);
+      final req = RefreshRequest((b) => b..refreshToken = refresh);
       final data =
           standardSerializers.serializeWith(RefreshRequest.serializer, req);
+      final resp = await _dio.post(AuthEndpoints.refreshToken, data: data);
 
-      final response = await _dio.post(
-        AuthEndpoints.refreshToken,
-        data: data,
-      );
+      if (resp.statusCode == 200) {
+        final body = standardSerializers.deserializeWith(
+            Login200Response.serializer, resp.data);
+        final tokens = body?.data;
+        final newAccess = tokens?.accessToken;
+        final newRefresh = tokens?.refreshToken;
+        final expires = tokens?.expires;
+        if (newAccess == null || newAccess.isEmpty) return null;
 
-      if (response.statusCode == 200) {
-        final refreshResp = standardSerializers.deserializeWith(
-          Login200Response.serializer,
-          response.data,
+        await setAccessToken(newAccess);
+        if (newRefresh != null && expires != null) {
+          await setRefreshToken(newRefresh);
+          final expiryDate =
+              DateTime.now().add(Duration(milliseconds: expires));
+          await _storage.writeSecureData(
+              'refreshTokenExpiry', expiryDate.toIso8601String());
+        }
+
+        final request = err.requestOptions;
+        final token = newAccess;
+        final opts = Options(
+          method: request.method,
+          headers: {...request.headers, 'Authorization': 'Bearer $token'},
+          responseType: request.responseType,
+          followRedirects: request.followRedirects,
+          validateStatus: request.validateStatus,
+          receiveDataWhenStatusError: request.receiveDataWhenStatusError,
         );
-
-        final tokens = refreshResp?.data;
-        final accessToken = tokens?.accessToken;
-        final refreshToken = tokens?.refreshToken;
-
-        // Se l'access token è assente, non posso proseguire
-        if (accessToken == null || accessToken.isEmpty) {
-          throw Exception(
-              'Access token non presente o vuoto nella risposta di refresh.');
-        }
-
-        // Salvo i token in modo sicuro
-        setAccessToken(accessToken);
-
-        if (refreshToken?.isNotEmpty == true && tokens?.expires != null) {
-          setRefreshToken(refreshToken!);
-          await saveNewRefreshInfo(
-              refreshToken: refreshToken, expiresMs: tokens!.expires!);
-        }
-
-        // Ricrea la richiesta originale con il nuovo token
-        final updatedRequest = e.requestOptions
-          ..headers['Authorization'] = 'Bearer $accessToken';
-
-        return await _dio.fetch(updatedRequest);
+        return _dio.requestUri(request.uri, options: opts, data: request.data);
       }
-      return null;
-    } catch (_) {
-      return null;
-    }
+    } catch (_) {}
+    return null;
   }
 
-  Future<bool> tryRefreshToken() async {
-    if (_refreshToken == null) return false;
-
-    final req = RefreshRequest((b) => b..refreshToken = _refreshToken);
-    final data =
-        standardSerializers.serializeWith(RefreshRequest.serializer, req);
-
-    try {
-      final response = await _dio.post(AuthEndpoints.refreshToken, data: data);
-
-      if (response.statusCode == 200) {
-        final refreshResp = standardSerializers.deserializeWith(
-          Login200Response.serializer,
-          response.data,
-        );
-
-        final tokens = refreshResp?.data;
-        final accessToken = tokens?.accessToken;
-        final refreshToken = tokens?.refreshToken;
-        final expiresMs = tokens?.expires;
-
-        if (accessToken == null || refreshToken == null || expiresMs == null) {
-          return false;
-        }
-
-        setAccessToken(accessToken);
-        setRefreshToken(refreshToken);
-        await saveAccessToken(accessToken: accessToken);
-        await saveNewRefreshInfo(
-            refreshToken: refreshToken, expiresMs: expiresMs);
-
-        return true;
-      }
-
-      return false;
-    } catch (_) {
-      return false;
-    }
-  }
-
-  // Metodi GET, POST, PUT, DELETE, PATCH
+  // REST methods
   Future<Response> get(String path, {Map<String, dynamic>? queryParameters}) =>
       _dio.get(path, queryParameters: queryParameters);
   Future<Response> post(String path, {dynamic data}) =>
@@ -198,67 +157,38 @@ class ApiService {
       _dio.delete(path, queryParameters: queryParameters);
   Future<Response> patch(String path, {dynamic data}) =>
       _dio.patch(path, data: data);
-  Future<Response> postMultipart(String path, FormData data) {
-    return _dio.post(path, data: data);
-  }
+  Future<Response> postMultipart(String path, FormData data) =>
+      _dio.post(path, data: data);
 
-  // Helper per creare MultipartFile da File
   Future<MultipartFile> uploadImage(File file) async {
-    final fileName = p.basename(file.path);
-    return MultipartFile.fromFile(file.path, filename: fileName);
+    final name = p.basename(file.path);
+    return MultipartFile.fromFile(file.path, filename: name);
   }
 
   Future<String> uploadFileToDirectus(
-    File file,
-    String title,
-    String customeId,
-  ) async {
-    final fileName = p.basename(file.path);
-    final mimeType = lookupMimeType(file.path) ?? 'image/jpeg';
-    final parts = mimeType.split('/');
-    if (parts.length != 2) {
-      throw Exception('MIME type non valido: $mimeType');
-    }
-
+      File file, String title, String customId) async {
+    final name = p.basename(file.path);
+    final mime = lookupMimeType(file.path) ?? 'image/jpeg';
+    final parts = mime.split('/');
+    if (parts.length != 2) throw Exception('Invalid MIME: $mime');
     final form = FormData.fromMap({
       'file': await MultipartFile.fromFile(
         file.path,
-        filename: fileName,
+        filename: name,
         contentType: MediaType(parts[0], parts[1]),
       ),
     });
-
     final resp = await postMultipart('/files', form);
-
     if (resp.statusCode == 200 || resp.statusCode == 201) {
-      final data = resp.data['data'];
-      if (data != null && data['id'] != null) {
-        return data['id'] as String;
-      } else {
-        throw Exception('Risposta upload incompleta: manca campo id');
-      }
-    } else {
-      // Log completo per debug
-      print('Upload fallito: status=${resp.statusCode}, body=${resp.data}');
-      throw Exception('Upload image failed: ${resp.statusCode} ${resp.data}');
+      final id = resp.data['data']?['id'];
+      if (id != null) return id as String;
+      throw Exception('Missing file id');
     }
+    throw Exception('Upload failed ${resp.statusCode}');
   }
 
-  Future<void> saveNewRefreshInfo(
-      {required String refreshToken, required int expiresMs}) async {
-    final expiryDate = DateTime.now().add(Duration(milliseconds: expiresMs));
-    await GetIt.instance<SecureStorageService>()
-        .writeSecureData('refreshTokenExpiry', expiryDate.toIso8601String());
-    await GetIt.instance<SecureStorageService>()
-        .writeSecureData('refreshToken', refreshToken);
-  }
-
-  Future<void> saveAccessToken({required String accessToken}) async {
-    await GetIt.instance<SecureStorageService>()
-        .writeSecureData('accessToken', accessToken);
-  }
-
-  void setTimeouts({Duration? connectTimeout, Duration? receiveTimeout}) {
+  Future<void> setTimeouts(
+      {Duration? connectTimeout, Duration? receiveTimeout}) async {
     _dio.options.connectTimeout = connectTimeout ?? _dio.options.connectTimeout;
     _dio.options.receiveTimeout = receiveTimeout ?? _dio.options.receiveTimeout;
   }

@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:gearpizza/features/dashboard/models/pizza_dto.dart';
 import 'package:image_picker/image_picker.dart';
 
 abstract class AdminPageEvent extends Equatable {
@@ -49,4 +50,22 @@ class UpdateRestaurantname extends AdminPageEvent {
 
   @override
   List<Object?> get props => [restaurantName, restaurantId];
+}
+
+class SelectedProductToEdit extends AdminPageEvent {
+  final PizzaDto pizza;
+  const SelectedProductToEdit(this.pizza);
+}
+
+class SaveProductEvent extends AdminPageEvent {
+  final PizzaDto pizza;
+  final XFile? xfile;
+
+  SaveProductEvent({
+    required this.pizza,
+    this.xfile,
+  });
+
+  @override
+  List<Object?> get props => [pizza, xfile?.path];
 }

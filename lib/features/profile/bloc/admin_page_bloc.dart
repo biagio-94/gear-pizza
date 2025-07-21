@@ -17,6 +17,8 @@ class AdminPageBloc extends Bloc<AdminPageEvent, AdminPageState> {
     on<UpdateRestaurantImage>(_onUpdateRestaurantImage);
     on<DeletePizzaEvent>(_onDeletePizza);
     on<UpdateRestaurantname>(_updateRestaurantName);
+    on<SelectedProductToEdit>(_onSelectProductToEdit);
+    on<SaveProductEvent>(_onSaveProduct);
   }
 
   Future<void> _onFetchAdminPageData(
@@ -94,6 +96,31 @@ class AdminPageBloc extends Bloc<AdminPageEvent, AdminPageState> {
         final updatedData = await _userService.fetchAdminPageDto(
           event.restaurantId,
         );
+        emit(AdminPageLoaded(updatedData));
+      },
+    );
+  }
+
+  Future<void> _onSelectProductToEdit(
+    SelectedProductToEdit event,
+    Emitter<AdminPageState> emit,
+  ) async {
+    emit(AdminPagePizzaDetail(event.pizza));
+  }
+
+  Future<void> _onSaveProduct(
+    SaveProductEvent event,
+    Emitter<AdminPageState> emit,
+  ) async {
+    await ExecutionHelper.run(
+      showLoading: () => loadingBloc.showLoading('Salvataggio pizza...'),
+      hideLoading: () => loadingBloc.hideLoading(),
+      onError: (msg) => exceptionBloc.throwExceptionState(msg),
+      action: () async {
+        //await _userService.savePizza(event.pizza, event.xfile);
+
+        final updatedData =
+            await _userService.fetchAdminPageDto(event.pizza.restaurantId);
         emit(AdminPageLoaded(updatedData));
       },
     );

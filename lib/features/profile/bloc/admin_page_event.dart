@@ -52,11 +52,6 @@ class UpdateRestaurantname extends AdminPageEvent {
   List<Object?> get props => [restaurantName, restaurantId];
 }
 
-class SelectedProductToEdit extends AdminPageEvent {
-  final PizzaDto pizza;
-  const SelectedProductToEdit(this.pizza);
-}
-
 class SaveProductEvent extends AdminPageEvent {
   final PizzaDto pizza;
   final XFile? xfile;

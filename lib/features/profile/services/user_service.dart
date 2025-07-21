@@ -1,4 +1,6 @@
 import 'package:dio/dio.dart';
+import 'package:gearpizza/features/dashboard/models/alergen_dto.dart';
+import 'package:gearpizza/features/dashboard/models/pizza_dto.dart';
 import 'package:gearpizza/features/profile/models/admin_page_dto.dart';
 import 'package:gearpizza/features/profile/models/order_detail_dto.dart';
 import 'package:gearpizza/features/profile/models/user_profile_data_dto.dart';
@@ -120,6 +122,33 @@ class UserService {
         restaurantName: restaurantName,
         restaurantId: restaurantId,
       );
+    } on UserServiceException {
+      rethrow;
+    } on DioException {
+      rethrow;
+    } catch (e) {
+      throw UnexpectedUserException();
+    }
+  }
+
+  Future<void> saveOrUpdatePizza({
+    required PizzaDto pizza,
+    required XFile? file,
+  }) async {
+    try {
+      await _userRepository.saveOrUpdatePizza(pizza: pizza, file: file);
+    } on UserServiceException {
+      rethrow;
+    } on DioException {
+      rethrow;
+    } catch (e) {
+      throw UnexpectedUserException();
+    }
+  }
+
+  Future<List<AllergenDto>> fetchAllAllergens() async {
+    try {
+      return await _userRepository.fetchAllAllergens();
     } on UserServiceException {
       rethrow;
     } on DioException {

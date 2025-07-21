@@ -57,6 +57,28 @@ class FirebaseStorageService {
     }
   }
 
+  Future<String> uploadPizzaImage(File file, String pizzaId) async {
+    try {
+      final fileName = 'piiza_${pizzaId}.jpg';
+      final ref =
+          _storage.ref().child('restaurants').child(pizzaId).child(fileName);
+
+      final uploadTask = ref.putFile(
+        file,
+        SettableMetadata(
+          contentType: _lookupContentType(fileName),
+        ),
+      );
+
+      final snapshot = await uploadTask;
+      return await snapshot.ref.getDownloadURL();
+    } on FirebaseException catch (e) {
+      throw Exception('Errore Firebase Storage: ${e.code} - ${e.message}');
+    } catch (e) {
+      throw Exception('Errore generico durante l’upload: $e');
+    }
+  }
+
   /// Elimina l’immagine precedentemente caricata (se necessario).
   Future<void> deleteOrderImage(String orderId, String fileName) async {
     try {

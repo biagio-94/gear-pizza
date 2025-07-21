@@ -7,6 +7,7 @@ import 'package:gearpizza/features/profile/bloc/admin_page_state.dart';
 import 'package:gearpizza/features/profile/components/adomin_product_list.dart';
 import 'package:gearpizza/features/profile/components/restaurant_image_picker.dart';
 import 'package:gearpizza/features/profile/components/restaurant_input_name.dart';
+import 'package:gearpizza/features/profile/routes/profile_routes.dart';
 import 'package:go_router/go_router.dart';
 
 class ManageMenuScreen extends StatefulWidget {
@@ -85,28 +86,32 @@ class _ManageMenuScreenState extends State<ManageMenuScreen> {
                     },
                   ),
                 ),
-                // HEADER
                 PizzaListHeader(
                   onAdd: () {
                     context.pushNamed(
                       'edit-pizza',
                       pathParameters: {
-                        'restaurantId': widget.restaurantId.toString()
+                        'restaurantId': widget.restaurantId.toString(),
                       },
-                      extra: null, // nessuna pizza, quindi è una creazione
+                      extra: PizzaScreenArgs(
+                        pizza: null,
+                        allAllergens: state.allergens,
+                      ),
                     );
                   },
                 ),
-                // LIST
                 PizzaListSliver(
                   pizzas: state.data.pizzas,
                   onEdit: (pizza) {
                     context.pushNamed(
                       'edit-pizza',
                       pathParameters: {
-                        'restaurantId': widget.restaurantId.toString()
+                        'restaurantId': widget.restaurantId.toString(),
                       },
-                      extra: pizza, // passo la pizza da modificare
+                      extra: PizzaScreenArgs(
+                        pizza: pizza,
+                        allAllergens: state.allergens,
+                      ),
                     );
                   },
                   onDelete: (pizza) {

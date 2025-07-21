@@ -1,14 +1,18 @@
 import 'dart:io';
 
 import 'package:dio/dio.dart';
+import 'package:gearpizza/common/models/items_allergens.dart';
+import 'package:gearpizza/common/models/read_items_allergens200_response.dart';
 import 'package:gearpizza/common/services/api_service.dart';
 import 'package:gearpizza/common/services/firestore_service.dart';
 import 'package:gearpizza/common/services/secure_storage_service.dart';
 import 'package:gearpizza/common/utils/directus_query_builder.dart';
 import 'package:gearpizza/common/utils/exception_handler.dart';
+import 'package:gearpizza/common/utils/serializers.dart';
 import 'package:gearpizza/features/cart/api/cart_endpoints.dart';
 import 'package:gearpizza/features/cart/model/customer_dto.dart';
 import 'package:gearpizza/features/dashboard/api/dashboard_endpoints.dart';
+import 'package:gearpizza/features/dashboard/models/alergen_dto.dart';
 import 'package:gearpizza/features/dashboard/models/pizza_dto.dart';
 import 'package:gearpizza/features/dashboard/models/restaurants_dto.dart';
 import 'package:gearpizza/features/dashboard/services/dashboard_service_exception.dart';
@@ -24,6 +28,8 @@ import 'package:path/path.dart' as p;
 class UserRepository {
   final ApiService _apiService;
   final SecureStorageService _storage;
+  final FirebaseStorageService _firestore =
+      GetIt.instance<FirebaseStorageService>();
 
   UserRepository(this._apiService, this._storage);
 
@@ -239,9 +245,8 @@ class UserRepository {
       // Costruzione DTO
       RestaurantDto? restaurantDto = RestaurantDto.fromMap(map);
       // Se presente l'immagine su firestore la carico da li nel DTO
-      final firestoreRestaurantImage =
-          await GetIt.instance<FirebaseStorageService>()
-              .fetchRestaurantImageUrlFromFirebase(restaurantDto.id.toString());
+      final firestoreRestaurantImage = await _firestore
+          .fetchRestaurantImageUrlFromFirebase(restaurantDto.id.toString());
       if (firestoreRestaurantImage != null) {
         restaurantDto.coverImageUrl = firestoreRestaurantImage;
       }
@@ -298,6 +303,30 @@ class UserRepository {
     }
   }
 
+  Future<List<AllergenDto>> fetchAllAllergens() async {
+    try {
+      final endpoint = DashboardEndpoints.getAllergens();
+      final resp = await _apiService.get(endpoint);
+      if (resp.statusCode != 200) throw FetchAllergensException();
+      final parsed = standardSerializers.deserializeWith(
+          ReadItemsAllergens200Response.serializer, resp.data);
+      final built = parsed?.data?.toList() ?? [];
+      final list = built.map((item) {
+        final raw = standardSerializers.serializeWith(
+            ItemsAllergens.serializer, item) as Map<String, dynamic>;
+        return AllergenDto.fromMap(raw);
+      }).toList();
+
+      return list;
+    } on DioException catch (e) {
+      throw mapDioExceptionToCustomException(e);
+    } on DashboardServiceException {
+      rethrow;
+    } catch (e) {
+      throw DashboardServiceException('Errore imprevisto fetch allergeni: \$e');
+    }
+  }
+
   /// Aggiorna il nome del ristorante via PATCH su /users/{id}
   Future<void> updateRestaurantName({
     required String restaurantName,
@@ -320,6 +349,62 @@ class UserRepository {
       if (resp.statusCode != 200 && resp.statusCode != 204) {
         throw PatchUserException(
             'Errore PATCH utente: codice ${resp.statusCode}');
+      }
+    } on DioException catch (e) {
+      // rilancia una eccezione custom basata su DioError
+      throw mapDioExceptionToCustomException(e);
+    } on UserServiceException {
+      // se già era un UserServiceException, rilanciala
+      rethrow;
+    } catch (e) {
+      // qualsiasi altro errore imprevisto
+      throw UnexpectedUserException();
+    }
+  }
+
+  Future<void> saveOrUpdatePizza({
+    required PizzaDto pizza,
+    required XFile? file,
+  }) async {
+    try {
+      late Response response;
+      // 1) Create or update via Directus API
+
+      final requestPayload = <String, dynamic>{
+        'name': pizza.name,
+        'description': pizza.description,
+        // Relazione con il ristorante (campo “restaurant” in Directus)
+        'restaurant': pizza.restaurantId,
+        // Relazione many-to-many con gli allergeni: Directus si aspetta lista di mappe
+        'allergens':
+            pizza.allergens.map((a) => {'allergens_id': a.id}).toList(),
+      };
+      if (pizza.id == 0) {
+        // create new pizza
+        final endpoint = UserEndpoint.createPizza();
+        response = await _apiService.post(endpoint, data: requestPayload);
+      } else {
+        // update existing pizza
+        final endpoint = UserEndpoint.updatePizza(pizza.id);
+        response = await _apiService.patch(endpoint, data: requestPayload);
+      }
+      if (response.statusCode != 200 && response.statusCode != 201) {
+        throw UserServiceException(
+            'Errore salvataggio pizza: ${response.statusCode}');
+      }
+
+      // 2) Extract pizzaId from response
+      final data = response.data['data'] as Map<String, dynamic>?;
+      final int pizzaId = (data?['id'] as num?)?.toInt() ?? pizza.id;
+
+      // 3) If file present, upload to Firebase and update pizza cover_image
+      if (file != null) {
+        final File localFile = File(file.path);
+        // upload image under folder 'pizzas/{pizzaId}'
+        await _firestore.uploadPizzaImage(
+          localFile,
+          pizzaId.toString(),
+        );
       }
     } on DioException catch (e) {
       // rilancia una eccezione custom basata su DioError

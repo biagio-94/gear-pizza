@@ -17,7 +17,6 @@ class AdminPageBloc extends Bloc<AdminPageEvent, AdminPageState> {
     on<UpdateRestaurantImage>(_onUpdateRestaurantImage);
     on<DeletePizzaEvent>(_onDeletePizza);
     on<UpdateRestaurantname>(_updateRestaurantName);
-    on<SelectedProductToEdit>(_onSelectProductToEdit);
     on<SaveProductEvent>(_onSaveProduct);
   }
 
@@ -32,7 +31,9 @@ class AdminPageBloc extends Bloc<AdminPageEvent, AdminPageState> {
       action: () async {
         final adminPageData =
             await _userService.fetchAdminPageDto(event.restaurantId);
-        emit(AdminPageLoaded(adminPageData));
+        final allergens = await _userService.fetchAllAllergens();
+
+        emit(AdminPageLoaded(data: adminPageData, allergens: allergens));
       },
     );
   }
@@ -54,7 +55,10 @@ class AdminPageBloc extends Bloc<AdminPageEvent, AdminPageState> {
         // Dopo update, ricarico i dati aggiornati
         final adminPageData =
             await _userService.fetchAdminPageDto(event.restaurantId);
-        emit(AdminPageLoaded(adminPageData));
+        final currentState = state;
+        if (currentState is AdminPageLoaded) {
+          emit(currentState.copyWith(data: adminPageData));
+        }
       },
     );
   }
@@ -67,14 +71,17 @@ class AdminPageBloc extends Bloc<AdminPageEvent, AdminPageState> {
       onError: (msg) => exceptionBloc.throwExceptionState(msg),
       action: () async {
         await _userService.updateRestaurantName(
-            restaurantName: event.restaurantName,
-            restaurantId: event.restaurantId);
-
-        // Ricarica i dati aggiornati e emetti il nuovo stato
-        final updatedData = await _userService.fetchAdminPageDto(
-          event.restaurantId,
+          restaurantName: event.restaurantName,
+          restaurantId: event.restaurantId,
         );
-        emit(AdminPageLoaded(updatedData));
+
+        final updatedData =
+            await _userService.fetchAdminPageDto(event.restaurantId);
+
+        final currentState = state;
+        if (currentState is AdminPageLoaded) {
+          emit(currentState.copyWith(data: updatedData));
+        }
       },
     );
   }
@@ -96,16 +103,12 @@ class AdminPageBloc extends Bloc<AdminPageEvent, AdminPageState> {
         final updatedData = await _userService.fetchAdminPageDto(
           event.restaurantId,
         );
-        emit(AdminPageLoaded(updatedData));
+        final currentState = state;
+        if (currentState is AdminPageLoaded) {
+          emit(currentState.copyWith(data: updatedData));
+        }
       },
     );
-  }
-
-  Future<void> _onSelectProductToEdit(
-    SelectedProductToEdit event,
-    Emitter<AdminPageState> emit,
-  ) async {
-    emit(AdminPagePizzaDetail(event.pizza));
   }
 
   Future<void> _onSaveProduct(
@@ -117,11 +120,15 @@ class AdminPageBloc extends Bloc<AdminPageEvent, AdminPageState> {
       hideLoading: () => loadingBloc.hideLoading(),
       onError: (msg) => exceptionBloc.throwExceptionState(msg),
       action: () async {
-        //await _userService.savePizza(event.pizza, event.xfile);
+        await _userService.saveOrUpdatePizza(
+            pizza: event.pizza, file: event.xfile);
 
         final updatedData =
             await _userService.fetchAdminPageDto(event.pizza.restaurantId);
-        emit(AdminPageLoaded(updatedData));
+        final currentState = state;
+        if (currentState is AdminPageLoaded) {
+          emit(currentState.copyWith(data: updatedData));
+        }
       },
     );
   }

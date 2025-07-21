@@ -43,4 +43,15 @@ class UserEndpoint {
   static String deletePizza(int pizzaId) {
     return '$basePath/$pizzaCollection/$pizzaId';
   }
+
+  static String createPizza({DirectusQueryBuilder? queryBuilder}) {
+    final query = queryBuilder?.build() ?? '';
+    return '$basePath/$pizzaCollection$query';
+  }
+
+  /// PATCH /items/pizzas/{pizzaId}
+  static String updatePizza(int pizzaId, {DirectusQueryBuilder? queryBuilder}) {
+    final query = queryBuilder?.build() ?? '';
+    return '$basePath/$pizzaCollection/$pizzaId$query';
+  }
 }

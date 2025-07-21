@@ -1,3 +1,4 @@
+import 'package:gearpizza/features/dashboard/models/alergen_dto.dart';
 import 'package:gearpizza/features/profile/models/create_or_update_product.dart';
 import 'package:gearpizza/features/profile/screeens/account_screen.dart';
 import 'package:gearpizza/features/profile/screeens/manage_menu_screen.dart';
@@ -33,20 +34,28 @@ final List<GoRoute> profileRoutes = [
     },
     routes: [
       GoRoute(
-        path: 'edit-pizza',
         name: 'edit-pizza',
+        path: 'pizza', // ⬅️ NON ridichiarare ":restaurantId"
         builder: (context, state) {
-          final id = int.parse(state.pathParameters['restaurantId']!);
-
-          // se serve passare una pizza già esistente in modifica, puoi usare extra:
-          final pizza = state.extra as PizzaDto?;
-
+          final restaurantId = int.parse(state.pathParameters['restaurantId']!);
+          final args = state.extra as PizzaScreenArgs;
           return CreateUpdatePizzaScreen(
-            initial: pizza,
-            restaurantId: id,
+            initial: args.pizza,
+            restaurantId: restaurantId,
+            allAllergens: args.allAllergens,
           );
         },
       ),
     ],
   ),
 ];
+
+class PizzaScreenArgs {
+  final PizzaDto? pizza;
+  final List<AllergenDto> allAllergens;
+
+  PizzaScreenArgs({
+    this.pizza,
+    required this.allAllergens,
+  });
+}

@@ -2,6 +2,9 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:gearpizza/common/components/custom_input.dart';
+import 'package:gearpizza/common/components/custom_text_area.dart';
+import 'package:gearpizza/common/utils/image_download_helper.dart';
 import 'package:gearpizza/features/dashboard/models/pizza_dto.dart';
 import 'package:gearpizza/features/dashboard/models/alergen_dto.dart';
 import 'package:gearpizza/features/profile/bloc/admin_page_bloc.dart';
@@ -14,11 +17,13 @@ import 'package:go_router/go_router.dart';
 class CreateUpdatePizzaScreen extends StatefulWidget {
   final PizzaDto? initial;
   final int restaurantId;
+  final List<AllergenDto> allAllergens; // Lista totale allergeni, obbligatoria
 
   const CreateUpdatePizzaScreen({
     Key? key,
     this.initial,
     required this.restaurantId,
+    required this.allAllergens,
   }) : super(key: key);
 
   @override
@@ -36,11 +41,14 @@ class _CreateUpdatePizzaScreenState extends State<CreateUpdatePizzaScreen> {
   @override
   void initState() {
     super.initState();
-    _nameCtrl = TextEditingController(text: widget.initial?.name ?? '');
-    _descCtrl = TextEditingController(text: widget.initial?.description ?? '');
-    if (widget.initial?.allergens != null) {
+
+    // Se modifica, inizializza allergeni selezionati da pizza iniziale
+    if (widget.initial != null) {
       _selectedAllergens.addAll(widget.initial!.allergens);
     }
+
+    _nameCtrl = TextEditingController(text: widget.initial?.name ?? '');
+    _descCtrl = TextEditingController(text: widget.initial?.description ?? '');
   }
 
   @override
@@ -106,17 +114,35 @@ class _CreateUpdatePizzaScreenState extends State<CreateUpdatePizzaScreen> {
     context
         .read<AdminPageBloc>()
         .add(SaveProductEvent(pizza: dto, xfile: _pickedImage));
-    context.pop(); // Chiude lo screen dopo l'invio
+    context.pop();
+  }
+
+  static const Map<String, IconData> _allergenIcons = {
+    'Gluten': Icons.grain,
+    'Lactose': Icons.local_cafe,
+    'Peanuts': Icons.spa,
+    'Soy': Icons.spa,
+    'Egg': Icons.egg,
+    'Fish': Icons.set_meal,
+    'Shellfish': Icons.shield,
+    'Tomato': Icons.local_florist,
+    'Milk': Icons.local_drink,
+    'Wheat': Icons.emoji_food_beverage,
+    'Yeast': Icons.grass,
+    'All': Icons.select_all,
+  };
+
+  IconData _iconForAllergen(AllergenDto allergen, bool isSelected) {
+    return _allergenIcons[allergen.name] ?? Icons.label;
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final keyboardOpen = MediaQuery.of(context).viewInsets.bottom > 0;
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.initial == null ? 'Nuova Pizza' : 'Modifica Pizza'),
+        title: Text(widget.initial?.name ?? "Inserisci una pizza"),
         centerTitle: true,
       ),
       body: GestureDetector(
@@ -128,44 +154,169 @@ class _CreateUpdatePizzaScreenState extends State<CreateUpdatePizzaScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Nome Pizza
-                TextFormField(
-                  controller: _nameCtrl,
-                  decoration: const InputDecoration(labelText: 'Nome Pizza'),
-                  validator: (v) =>
-                      v == null || v.trim().isEmpty ? 'Obbligatorio' : null,
+                const SizedBox(height: 8),
+                Text(
+                  widget.initial?.name != null
+                      ? 'Modifica la tua pizza'
+                      : "Crea la tua ",
+                  style: theme.textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Inserisci un nome, descrizione, inserisci eventuali allergeni ed un\'immagine del prodotto.',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: Colors.grey[700],
+                  ),
                 ),
                 const SizedBox(height: 16),
 
-                // Descrizione
-                TextFormField(
-                  controller: _descCtrl,
-                  decoration: const InputDecoration(labelText: 'Descrizione'),
-                  maxLines: 3,
+                CustomTextInput(
+                  labelText: 'Nome Pizza',
+                  controller: _nameCtrl,
+                  validator: (v) =>
+                      v == null || v.trim().isEmpty ? 'Obbligatorio' : null,
+                  keyboardType: TextInputType.text,
                 ),
+                const SizedBox(height: 16),
+                CustomTextArea(
+                  labelText: "Descrizione",
+                  controller: _descCtrl,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return "Inserisci una descrizione";
+                    }
+                    return null;
+                  },
+                  minLines: 4,
+                  maxLines: 8,
+                ),
+
                 const SizedBox(height: 16),
 
                 // Allergeni
                 Text('Allergeni', style: theme.textTheme.titleMedium),
                 const SizedBox(height: 8),
-                Wrap(
-                  spacing: 8,
-                  children: (widget.initial?.allergens ?? const [])
-                      .map(
-                        (al) => ChoiceChip(
-                          label: Text(al.name),
-                          selected: _selectedAllergens.contains(al),
-                          onSelected: (_) {
-                            setState(() {
-                              _selectedAllergens.contains(al)
-                                  ? _selectedAllergens.remove(al)
-                                  : _selectedAllergens.add(al);
-                            });
-                          },
-                        ),
-                      )
-                      .toList(),
+
+                SizedBox(
+                  width: double.infinity,
+                  child: Wrap(
+                    spacing: 8, // spazio orizzontale tra i bottoni
+                    runSpacing: 8, // spazio verticale tra le righe
+                    children: [
+                      // Pulsante "Tutti"
+                      Builder(builder: (context) {
+                        final allSelected = _selectedAllergens.length ==
+                            widget.allAllergens.length;
+                        final theme = Theme.of(context);
+                        return Material(
+                          color: allSelected
+                              ? theme.colorScheme.primary
+                              : theme.colorScheme.surface,
+                          borderRadius: BorderRadius.circular(32),
+                          elevation: allSelected ? 4 : 1,
+                          shadowColor: Colors.black38,
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(32),
+                            onTap: () {
+                              setState(() {
+                                if (allSelected) {
+                                  _selectedAllergens.clear();
+                                } else {
+                                  _selectedAllergens.clear();
+                                  _selectedAllergens
+                                      .addAll(widget.allAllergens);
+                                }
+                              });
+                            },
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 14, vertical: 8),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.check_box,
+                                    size: 20,
+                                    color: allSelected
+                                        ? theme.colorScheme.onPrimary
+                                        : theme.colorScheme.primary,
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    'Tutti',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w600,
+                                      color: allSelected
+                                          ? theme.colorScheme.onPrimary
+                                          : theme.colorScheme.onSurface,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        );
+                      }),
+
+                      // Pulsanti allergeni
+                      ...widget.allAllergens.map((allergen) {
+                        final isSelected =
+                            _selectedAllergens.contains(allergen);
+                        final theme = Theme.of(context);
+                        return Material(
+                          color: isSelected
+                              ? theme.colorScheme.primary
+                              : theme.colorScheme.surface,
+                          borderRadius: BorderRadius.circular(32),
+                          elevation: isSelected ? 4 : 1,
+                          shadowColor: Colors.black38,
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(32),
+                            onTap: () {
+                              setState(() {
+                                if (!_selectedAllergens.remove(allergen)) {
+                                  _selectedAllergens.add(allergen);
+                                }
+                              });
+                            },
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 14, vertical: 8),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    _iconForAllergen(allergen, isSelected),
+                                    size: 20,
+                                    color: isSelected
+                                        ? theme.colorScheme.onPrimary
+                                        : theme.colorScheme.primary,
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    allergen.name,
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w600,
+                                      color: isSelected
+                                          ? theme.colorScheme.onPrimary
+                                          : theme.colorScheme.onSurface,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    ],
+                  ),
                 ),
+
                 const SizedBox(height: 16),
 
                 // Immagine
@@ -179,22 +330,37 @@ class _CreateUpdatePizzaScreenState extends State<CreateUpdatePizzaScreen> {
                       height: 150,
                       fit: BoxFit.cover,
                     ),
+                  )
+                else if (widget.initial?.coverImageUrl != null)
+                  ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: ImageDownloadHelper.loadCachedNetworkImage(
+                        widget.initial!.coverImageUrl!,
+                        height: 150,
+                        fit: BoxFit.cover,
+                      ))
+                else
+                  Container(
+                    height: 150,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(8),
+                      color: theme.colorScheme.surfaceVariant,
+                    ),
+                    child: const Center(child: Text('Nessuna immagine')),
                   ),
-                OutlinedButton.icon(
-                  icon: const Icon(Icons.image),
-                  label: Text(
-                      widget.initial == null ? 'Carica Foto' : 'Cambia Foto'),
+                TextButton.icon(
                   onPressed: _showImagePicker,
+                  icon: const Icon(Icons.image_outlined),
+                  label: const Text('Seleziona immagine'),
                 ),
 
                 const SizedBox(height: 24),
 
-                // Pulsante invio
-                if (!keyboardOpen)
-                  ElevatedButton(
-                    onPressed: _onSubmit,
-                    child: Text(widget.initial == null ? 'Crea' : 'Aggiorna'),
-                  ),
+                ElevatedButton(
+                  onPressed: _onSubmit,
+                  child: const Text('Salva'),
+                ),
+                const SizedBox(height: 16),
               ],
             ),
           ),

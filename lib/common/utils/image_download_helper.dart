@@ -34,6 +34,27 @@ class ImageDownloadHelper {
       // Dimensioni opzionali
       width: width,
       height: height,
+      loadingBuilder:
+          (BuildContext context, Widget child, ImageChunkEvent? progress) {
+        if (progress == null) {
+          // immagine già pronta
+          return child;
+        }
+        // ancora in caricamento: mostra il CircularProgressIndicator
+        final double? value = progress.expectedTotalBytes != null
+            ? progress.cumulativeBytesLoaded / progress.expectedTotalBytes!
+            : null;
+        return Center(
+          child: SizedBox(
+            width: 40,
+            height: 40,
+            child: CircularProgressIndicator(value: value),
+          ),
+        );
+      },
+
+      // opzionale: widget da mostrare in caso di errore
+      errorBuilder: (_, __, ___) => errorWidget ?? const Icon(Icons.error),
 
       // Comportamento di ridimensionamento e allineamento
       fit: fit,

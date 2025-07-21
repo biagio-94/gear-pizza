@@ -75,6 +75,7 @@ class _ManageMenuScreenState extends State<ManageMenuScreen> {
   }
 
   Future<void> _pickImage(ImageSource src) async {
+    // controlli permessi come prima...
     final sdk = Platform.isAndroid
         ? (await DeviceInfoPlugin().androidInfo).version.sdkInt
         : 0;
@@ -89,20 +90,18 @@ class _ManageMenuScreenState extends State<ManageMenuScreen> {
     }
 
     try {
+      // ➤ UNA SOLA chiamata a pickImage
       final file = await ImagePicker().pickImage(source: src, maxWidth: 800);
-      if (file != null) {
-        final file = await ImagePicker().pickImage(source: src, maxWidth: 800);
-        if (file != null) {
-          setState(() => _pickedImage = file);
+      if (file == null) return; // utente ha annullato
 
-          context.read<AdminPageBloc>().add(
-                UpdateRestaurantImage(
-                  restaurantId: widget.restaurantId,
-                  xfile: file,
-                ),
-              );
-        }
-      }
+      setState(() => _pickedImage = file);
+
+      context.read<AdminPageBloc>().add(
+            UpdateRestaurantImage(
+              restaurantId: widget.restaurantId,
+              xfile: file,
+            ),
+          );
     } catch (_) {
       _showCameraErrorDialog();
     }

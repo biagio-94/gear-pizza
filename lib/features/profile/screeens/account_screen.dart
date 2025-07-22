@@ -90,67 +90,73 @@ class _AccountScreenState extends State<AccountScreen> {
             }
           }
         },
-        buildWhen: (previous, current) => current is UserAccountLoaded,
         builder: (context, state) {
-          if (state is UserAccountLoaded) {
-            // Se i dati sono vuoti, mostra messaggio e bottone per ordinare
-            final hasUserData = _nameController.text.trim().isNotEmpty ||
-                _emailController.text.trim().isNotEmpty;
-
-            if (!hasUserData) {
-              return _buildEmptyState(context, theme);
-            }
-
-            return Padding(
-              padding: const EdgeInsets.all(16),
-              child: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const SizedBox(height: 16),
-                    Text(
-                      'Modifica il tuo profilo',
-                      style: theme.textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Aggiorna nome ed email per ricevere le novità e gestire i tuoi ordini in modo semplice.',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: Colors.grey[700],
-                      ),
-                    ),
-                    const SizedBox(height: 32),
-                    TextField(
-                      controller: _nameController,
-                      focusNode: _nameFocus,
-                      decoration: const InputDecoration(
-                        labelText: 'Nome completo',
-                        hintText: 'Inserisci il tuo nome completo',
-                      ),
-                      keyboardType: TextInputType.name,
-                      textInputAction: TextInputAction.next,
-                    ),
-                    const SizedBox(height: 16),
-                    TextField(
-                      controller: _emailController,
-                      focusNode: _emailFocus,
-                      decoration: const InputDecoration(
-                        labelText: 'Email',
-                        hintText: 'Inserisci la tua email',
-                      ),
-                      keyboardType: TextInputType.emailAddress,
-                      textInputAction: TextInputAction.done,
-                    ),
-                  ],
-                ),
-              ),
-            );
+          if (state is UserAccountLoading) {
+            return const Center(child: CircularProgressIndicator());
           }
-          // Stato di caricamento
-          return const Center(child: CircularProgressIndicator());
+
+          if (state is UserAccountFailure) {
+            // Puoi mostrare un messaggio di errore
+            return Center(child: Text('Errore caricamento: ${state.message}'));
+          }
+
+          // Tratto UserAccountInitial o Loaded
+          final name = (state is UserAccountLoaded) ? state.name.trim() : '';
+          final email = (state is UserAccountLoaded) ? state.email.trim() : '';
+          final hasUserData = name.isNotEmpty || email.isNotEmpty;
+
+          if (!hasUserData) {
+            return _buildEmptyState(context, theme);
+          }
+
+          // Stato Loaded con dati validi
+          return Padding(
+            padding: const EdgeInsets.all(16),
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 16),
+                  Text(
+                    'Modifica il tuo profilo',
+                    style: theme.textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Aggiorna nome ed email per ricevere le novità e gestire i tuoi ordini in modo semplice.',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: Colors.grey[700],
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+                  TextField(
+                    controller: _nameController,
+                    focusNode: _nameFocus,
+                    decoration: const InputDecoration(
+                      labelText: 'Nome completo',
+                      hintText: 'Inserisci il tuo nome completo',
+                    ),
+                    keyboardType: TextInputType.name,
+                    textInputAction: TextInputAction.next,
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: _emailController,
+                    focusNode: _emailFocus,
+                    decoration: const InputDecoration(
+                      labelText: 'Email',
+                      hintText: 'Inserisci la tua email',
+                    ),
+                    keyboardType: TextInputType.emailAddress,
+                    textInputAction: TextInputAction.done,
+                  ),
+                ],
+              ),
+            ),
+          );
         },
       ),
     );

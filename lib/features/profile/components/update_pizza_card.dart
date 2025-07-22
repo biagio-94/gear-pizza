@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:gearpizza/common/services/firestore_service.dart';
 import 'package:gearpizza/common/utils/image_download_helper.dart';
 import 'package:gearpizza/features/dashboard/models/pizza_dto.dart';
+import 'package:get_it/get_it.dart';
 
-class UpdatePizzaCard extends StatelessWidget {
+class UpdatePizzaCard extends StatefulWidget {
   final PizzaDto pizza;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
@@ -15,19 +17,34 @@ class UpdatePizzaCard extends StatelessWidget {
   }) : super(key: key);
 
   @override
+  _UpdatePizzaCardState createState() => _UpdatePizzaCardState();
+}
+
+class _UpdatePizzaCardState extends State<UpdatePizzaCard> {
+  late final Future<String> _imageFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _imageFuture = _fetchImage(
+      widget.pizza.id.toString(),
+      widget.pizza.coverImageUrl ?? '',
+    );
+  }
+
+  Future<String> _fetchImage(String pizzaId, String fallbackUrl) async {
+    try {
+      final firebase = GetIt.instance<FirebaseStorageService>();
+      final url = await firebase.fetchPizzaImageUrlFromFirebase(pizzaId);
+      return url?.isNotEmpty == true ? url! : fallbackUrl;
+    } catch (_) {
+      return fallbackUrl;
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-
-    Widget avatarChild = pizza.coverImageUrl != null
-        ? ClipOval(
-            child: ImageDownloadHelper.loadCachedNetworkImage(
-              pizza.coverImageUrl!,
-              width: 40,
-              height: 40,
-              fit: BoxFit.cover,
-            ),
-          )
-        : Icon(Icons.local_pizza, color: colorScheme.secondary, size: 24);
 
     return Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -36,22 +53,44 @@ class UpdatePizzaCard extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
         child: Row(
           children: [
-            // Image
-            CircleAvatar(
-              radius: 20,
-              backgroundColor: colorScheme.secondaryContainer,
-              child: avatarChild,
+            // IMAGE CIRCLE
+            FutureBuilder<String>(
+              future: _imageFuture,
+              builder: (context, snap) {
+                Widget child;
+                if (snap.connectionState == ConnectionState.waiting) {
+                  child = const CircularProgressIndicator(strokeWidth: 2);
+                } else if (snap.hasData && snap.data!.isNotEmpty) {
+                  child = ClipOval(
+                    child: ImageDownloadHelper.loadCachedNetworkImage(
+                      snap.data!,
+                      width: 40,
+                      height: 40,
+                      fit: BoxFit.cover,
+                    ),
+                  );
+                } else {
+                  child = Icon(Icons.local_pizza,
+                      color: colorScheme.secondary, size: 24);
+                }
+                return CircleAvatar(
+                  radius: 20,
+                  backgroundColor: colorScheme.secondaryContainer,
+                  child: child,
+                );
+              },
             ),
+
             const SizedBox(width: 12),
 
-            // Details
+            // DETAILS
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    pizza.name,
+                    widget.pizza.name,
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 14,
@@ -60,7 +99,7 @@ class UpdatePizzaCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    '€${pizza.price.toStringAsFixed(2)}',
+                    '€${widget.pizza.price.toStringAsFixed(2)}',
                     style: TextStyle(
                       color: colorScheme.primary,
                       fontWeight: FontWeight.w600,
@@ -68,9 +107,9 @@ class UpdatePizzaCard extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 4),
-                  if (pizza.allergens.isNotEmpty)
+                  if (widget.pizza.allergens.isNotEmpty)
                     Text(
-                      'Allergeni: ${pizza.allergens.map((a) => a.name).join(', ')}',
+                      'Allergeni: ${widget.pizza.allergens.map((a) => a.name).join(', ')}',
                       style: TextStyle(
                         color: colorScheme.onSurface.withOpacity(0.7),
                         fontSize: 12,
@@ -82,18 +121,25 @@ class UpdatePizzaCard extends StatelessWidget {
               ),
             ),
 
-            // Actions vertical
+            // ACTIONS
             Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 IconButton(
+                  iconSize: 20,
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
                   icon: Icon(Icons.edit, size: 20, color: colorScheme.primary),
-                  onPressed: onEdit,
+                  onPressed: widget.onEdit,
                   splashRadius: 20,
                 ),
+                const SizedBox(height: 4),
                 IconButton(
+                  iconSize: 20,
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
                   icon: Icon(Icons.delete, size: 20, color: colorScheme.error),
-                  onPressed: onDelete,
+                  onPressed: widget.onDelete,
                   splashRadius: 20,
                 ),
               ],

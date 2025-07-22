@@ -85,69 +85,87 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   Widget _buildContent(order, String? imageToUse) {
     return Padding(
       padding: const EdgeInsets.all(16),
-      child: ListView(
-        children: [
-          OrderStatusStepper(status: _status!, onStatusTap: _onStatusTap),
-          const SizedBox(height: 24),
-          InfoCard(
-            title: 'Indirizzo',
-            content: order.address,
-            icon: Icons.location_on_outlined,
-          ),
-          const SizedBox(height: 16),
-          InfoCard(
-            title: 'Cliente',
-            content: '${order.customer.name}\n${order.customer.emailAddress}',
-            icon: Icons.person_outline,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'Pizze ordinate',
-            style: Theme.of(context)
-                .textTheme
-                .bodySmall
-                ?.copyWith(fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 8),
-          ...order.pizzas.map((p) => Card(
+      child: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            OrderStatusStepper(status: _status!, onStatusTap: _onStatusTap),
+            const SizedBox(height: 24),
+
+            InfoCard(
+              title: 'Indirizzo',
+              content: order.address,
+              icon: Icons.location_on_outlined,
+            ),
+            const SizedBox(height: 16),
+            InfoCard(
+              title: 'Cliente',
+              content: '${order.customer.name}\n${order.customer.emailAddress}',
+              icon: Icons.person_outline,
+            ),
+            const SizedBox(height: 16),
+
+            Text(
+              'Pizze ordinate',
+              style: Theme.of(context)
+                  .textTheme
+                  .bodySmall
+                  ?.copyWith(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+
+            // MAPPA LE PIZZE IN CARD
+            ...order.pizzas.map((p) {
+              return Card(
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                   side: BorderSide(color: Colors.grey.shade200),
                 ),
                 elevation: 0,
                 child: ListTile(
-                  leading: ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: ImageDownloadHelper.loadCachedNetworkImage(
-                      p.pizza.coverImage,
-                      width: 50,
-                      height: 50,
-                      fit: BoxFit.cover,
+                  minLeadingWidth: 0,
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  leading: SizedBox(
+                    width: 50,
+                    height: 50,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: ImageDownloadHelper.loadCachedNetworkImage(
+                        p.pizza.coverImage,
+                        width: 50,
+                        height: 50,
+                        fit: BoxFit.cover,
+                      ),
                     ),
                   ),
                   title: Text(p.pizza.name),
                 ),
-              )),
-          const SizedBox(height: 8),
-          if (imageToUse != null)
-            Text(
-              'Dettagli aggiuntivi',
-              style: Theme.of(context)
-                  .textTheme
-                  .bodySmall
-                  ?.copyWith(fontWeight: FontWeight.bold),
-            ),
-          if (imageToUse != null) ...[
+              );
+            }).toList(),
+
             const SizedBox(height: 16),
-            ClipRRect(
+            if (imageToUse != null) ...[
+              Text(
+                'Dettagli aggiuntivi',
+                style: Theme.of(context)
+                    .textTheme
+                    .bodySmall
+                    ?.copyWith(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 16),
+              ClipRRect(
                 borderRadius: BorderRadius.circular(12),
                 child: Image.network(
                   imageToUse,
                   height: 180,
+                  width: double.infinity,
                   fit: BoxFit.cover,
-                )),
+                ),
+              ),
+            ],
           ],
-        ],
+        ),
       ),
     );
   }

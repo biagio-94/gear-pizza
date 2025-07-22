@@ -1,5 +1,4 @@
 import 'dart:io';
-
 import 'package:firebase_storage/firebase_storage.dart';
 
 class FirebaseStorageService {
@@ -11,7 +10,8 @@ class FirebaseStorageService {
   // Carica o sovrascrive l'immagine dell'ordine
   Future<String> uploadOrderImage(File file, String orderId) async {
     try {
-      final fileName = file.uri.pathSegments.last;
+      // Usa l'orderId come nome del file (per evitare duplicati)
+      final fileName = '$orderId.jpg';
       final folderRef = _storage
           .ref()
           .child('orders')
@@ -37,7 +37,8 @@ class FirebaseStorageService {
   // Carica o sovrascrive l'immagine del ristorante
   Future<String> uploadRestaurantImage(File file, String restaurantId) async {
     try {
-      final fileName = file.uri.pathSegments.last;
+      // Usa il restaurantId come nome del file (per evitare duplicati)
+      final fileName = '$restaurantId.jpg';
       final folderRef = _storage
           .ref()
           .child('restaurants')
@@ -61,7 +62,8 @@ class FirebaseStorageService {
   // Carica o sovrascrive l'immagine della pizza
   Future<String> uploadPizzaImage(File file, String pizzaId) async {
     try {
-      final fileName = file.uri.pathSegments.last;
+      // Usa il pizzaId come nome del file (per evitare duplicati)
+      final fileName = '$pizzaId.jpg';
       final folderRef = _storage
           .ref()
           .child('pizzas')
@@ -83,8 +85,9 @@ class FirebaseStorageService {
   }
 
   // Elimina l'immagine precedentemente caricata (se necessario)
-  Future<void> deleteOrderImage(String orderId, String fileName) async {
+  Future<void> deleteOrderImage(String orderId) async {
     try {
+      final fileName = '$orderId.jpg'; // Nome fisso basato sull'ID
       final ref = _storage.ref().child('orders').child(orderId).child(fileName);
       await ref.delete();
     } on FirebaseException catch (e) {
@@ -96,6 +99,7 @@ class FirebaseStorageService {
   // Fetch dell'immagine dell'ordine
   Future<String?> fetchOrderImageUrlFromFirebase(String orderId) async {
     try {
+      final fileName = '$orderId.jpg'; // Nome fisso basato sull'ID
       final folderRef = _storage.ref().child('orders').child(orderId);
       final listResult = await folderRef.listAll();
 
@@ -104,7 +108,8 @@ class FirebaseStorageService {
       }
 
       // Restituisci la URL dell'unico file presente
-      final fileRef = listResult.items.first;
+      final fileRef =
+          listResult.items.firstWhere((file) => file.name == fileName);
       return await fileRef.getDownloadURL();
     } on FirebaseException catch (e) {
       throw Exception(
@@ -118,6 +123,7 @@ class FirebaseStorageService {
   Future<String?> fetchRestaurantImageUrlFromFirebase(
       String restaurantId) async {
     try {
+      final fileName = '$restaurantId.jpg'; // Nome fisso basato sull'ID
       final folderRef = _storage.ref().child('restaurants').child(restaurantId);
       final listResult = await folderRef.listAll();
 
@@ -126,7 +132,8 @@ class FirebaseStorageService {
       }
 
       // Restituisci la URL dell'unico file presente
-      final fileRef = listResult.items.first;
+      final fileRef =
+          listResult.items.firstWhere((file) => file.name == fileName);
       return await fileRef.getDownloadURL();
     } on FirebaseException catch (e) {
       throw Exception(
@@ -139,6 +146,7 @@ class FirebaseStorageService {
   // Fetch dell'immagine della pizza
   Future<String?> fetchPizzaImageUrlFromFirebase(String pizzaId) async {
     try {
+      final fileName = '$pizzaId.jpg'; // Nome fisso basato sull'ID
       final folderRef = _storage.ref().child('pizzas').child(pizzaId);
       final listResult = await folderRef.listAll();
 
@@ -147,7 +155,8 @@ class FirebaseStorageService {
       }
 
       // Restituisci la URL dell'unico file presente
-      final fileRef = listResult.items.first;
+      final fileRef =
+          listResult.items.firstWhere((file) => file.name == fileName);
       return await fileRef.getDownloadURL();
     } on FirebaseException catch (e) {
       throw Exception(

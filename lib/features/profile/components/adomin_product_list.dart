@@ -14,35 +14,26 @@ class PizzaListHeader extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Text(
               'Lista pizze',
-              style: theme.textTheme.headlineSmall?.copyWith(
+              style: theme.textTheme.headlineMedium?.copyWith(
                 fontWeight: FontWeight.bold,
-                letterSpacing: 0.5,
               ),
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                shape: StadiumBorder(),
-                backgroundColor: theme.colorScheme.secondary,
+                shape: CircleBorder(),
+                backgroundColor: theme.colorScheme.primary,
+                padding: const EdgeInsets.all(6),
                 elevation: 2,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
               ),
               onPressed: onAdd,
-              child: Row(
-                children: [
-                  const Icon(Icons.add, size: 20),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Aggiungi',
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: theme.colorScheme.onSecondary,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
+              child: Icon(
+                Icons.add,
+                size: 30,
+                color: theme.colorScheme.onSecondary,
               ),
             ),
           ],

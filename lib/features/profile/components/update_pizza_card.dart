@@ -97,15 +97,6 @@ class _UpdatePizzaCardState extends State<UpdatePizzaCard> {
                       color: colorScheme.onSurface,
                     ),
                   ),
-                  const SizedBox(height: 2),
-                  Text(
-                    '€${widget.pizza.price.toStringAsFixed(2)}',
-                    style: TextStyle(
-                      color: colorScheme.primary,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 12,
-                    ),
-                  ),
                   const SizedBox(height: 4),
                   if (widget.pizza.allergens.isNotEmpty)
                     Text(
@@ -117,6 +108,15 @@ class _UpdatePizzaCardState extends State<UpdatePizzaCard> {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
+                  const SizedBox(height: 4),
+                  Text(
+                    '€${widget.pizza.price.toStringAsFixed(2)}',
+                    style: TextStyle(
+                      color: colorScheme.onPrimary,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 12,
+                    ),
+                  ),
                 ],
               ),
             ),

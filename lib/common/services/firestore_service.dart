@@ -96,6 +96,21 @@ class FirebaseStorageService {
     }
   }
 
+  // Elimina l'immagine della pizza
+  Future<void> deletePizzaImage(String pizzaId) async {
+    try {
+      final fileName = '$pizzaId.jpg'; // Nome fisso basato sull'ID della pizza
+      final ref = _storage.ref().child('pizzas').child(pizzaId).child(fileName);
+      await ref.delete();
+    } on FirebaseException catch (e) {
+      throw Exception(
+          'Errore durante la cancellazione su Firebase Storage per la pizza: ${e.code}');
+    } catch (e) {
+      throw Exception(
+          'Errore imprevisto durante la cancellazione immagine pizza: $e');
+    }
+  }
+
   // Fetch dell'immagine dell'ordine
   Future<String?> fetchOrderImageUrlFromFirebase(String orderId) async {
     try {

@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gearpizza/common/styles/text_styles.dart';
 import 'package:gearpizza/common/utils/image_download_helper.dart';
-import 'package:gearpizza/features/dashboard/bloc/product_card/product_card_bloc.dart';
-import 'package:gearpizza/features/dashboard/bloc/product_card/product_card_event.dart';
 import 'package:gearpizza/features/dashboard/models/restaurants_dto.dart';
 import 'package:go_router/go_router.dart';
 

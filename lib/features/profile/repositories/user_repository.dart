@@ -267,11 +267,17 @@ class UserRepository {
     }
   }
 
-  /// Elimina la pizza specificata
+  /// Elimina la pizza specificata (incluso l'immagine)
   Future<void> deletePizzaById(int pizzaId) async {
     try {
+      // Elimina prima l'immagine associata alla pizza
+      await GetIt.instance<FirebaseStorageService>()
+          .deletePizzaImage(pizzaId.toString());
+
+      // Elimina la pizza dal database (API)
       final endpoint = UserEndpoint.deletePizza(pizzaId);
       final resp = await _apiService.delete(endpoint);
+
       if (resp.statusCode != 200 && resp.statusCode != 204) {
         throw UserServiceException(
           'Errore eliminazione pizza: ${resp.statusCode}',
@@ -280,7 +286,8 @@ class UserRepository {
     } on DioException catch (e) {
       throw mapDioExceptionToCustomException(e);
     } catch (e) {
-      throw UserServiceException('Errore imprevisto: $e');
+      throw UserServiceException(
+          'Errore imprevisto durante l\'eliminazione della pizza: $e');
     }
   }
 

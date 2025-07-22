@@ -102,46 +102,69 @@ class ApiService {
   }
 
   Future<Response?> _handleRefresh(DioException err) async {
-    try {
-      final refresh = await _refreshToken;
-      if (refresh == null) return null;
+    const int maxRetries = 3;
+    int retryCount = 0;
+    int delaySeconds = 1;
 
-      final req = RefreshRequest((b) => b..refreshToken = refresh);
-      final data =
-          standardSerializers.serializeWith(RefreshRequest.serializer, req);
-      final resp = await _dio.post(AuthEndpoints.refreshToken, data: data);
+    while (retryCount < maxRetries) {
+      try {
+        final refresh = await _refreshToken;
+        if (refresh == null) return null;
 
-      if (resp.statusCode == 200) {
-        final body = standardSerializers.deserializeWith(
-            Login200Response.serializer, resp.data);
-        final tokens = body?.data;
-        final newAccess = tokens?.accessToken;
-        final newRefresh = tokens?.refreshToken;
-        final expires = tokens?.expires;
-        if (newAccess == null || newAccess.isEmpty) return null;
+        final req = RefreshRequest((b) => b..refreshToken = refresh);
+        final data =
+            standardSerializers.serializeWith(RefreshRequest.serializer, req);
+        final resp = await _dio.post(AuthEndpoints.refreshToken, data: data);
 
-        await setAccessToken(newAccess);
-        if (newRefresh != null && expires != null) {
-          await setRefreshToken(newRefresh);
-          final expiryDate =
-              DateTime.now().add(Duration(milliseconds: expires));
-          await _storage.writeSecureData(
-              'refreshTokenExpiry', expiryDate.toIso8601String());
+        if (resp.statusCode == 200) {
+          final body = standardSerializers.deserializeWith(
+              Login200Response.serializer, resp.data);
+          final tokens = body?.data;
+          final newAccess = tokens?.accessToken;
+          final newRefresh = tokens?.refreshToken;
+          final expires = tokens?.expires;
+          if (newAccess == null || newAccess.isEmpty) return null;
+
+          await setAccessToken(newAccess);
+          if (newRefresh != null && expires != null) {
+            await setRefreshToken(newRefresh);
+            final expiryDate =
+                DateTime.now().add(Duration(milliseconds: expires));
+            await _storage.writeSecureData(
+                'refreshTokenExpiry', expiryDate.toIso8601String());
+          }
+
+          final request = err.requestOptions;
+          final token = newAccess;
+          final opts = Options(
+            method: request.method,
+            headers: {...request.headers, 'Authorization': 'Bearer $token'},
+            responseType: request.responseType,
+            followRedirects: request.followRedirects,
+            validateStatus: request.validateStatus,
+            receiveDataWhenStatusError: request.receiveDataWhenStatusError,
+          );
+          return _dio.requestUri(request.uri,
+              options: opts, data: request.data);
         }
-
-        final request = err.requestOptions;
-        final token = newAccess;
-        final opts = Options(
-          method: request.method,
-          headers: {...request.headers, 'Authorization': 'Bearer $token'},
-          responseType: request.responseType,
-          followRedirects: request.followRedirects,
-          validateStatus: request.validateStatus,
-          receiveDataWhenStatusError: request.receiveDataWhenStatusError,
-        );
-        return _dio.requestUri(request.uri, options: opts, data: request.data);
+      } catch (_) {
+        // Ignora eccezioni qui e prova di nuovo
       }
-    } catch (_) {}
+
+      retryCount++;
+      if (retryCount < maxRetries) {
+        await Future.delayed(Duration(seconds: delaySeconds));
+        delaySeconds *= 2; // Exponential backoff
+      }
+    }
+
+    // Dopo maxRetries falliti, pulisci i token e manda evento signOut
+    await setAccessToken('');
+    await setRefreshToken('');
+    await _storage.deleteSecureData(_refreshKey);
+    await _storage.deleteSecureData(_accessKey);
+    await _storage.deleteSecureData('refreshTokenExpiry');
+
     return null;
   }
 

@@ -1,17 +1,8 @@
 flutter_native_splash:
-  # Abilita le piattaforme
   android: true
   ios: true
-  web: false
-
-  # Colore di sfondo per tutte le piattaforme (in esadecimale ARGB o RGB)
-  color: "#000000"        # → sostituisci con il colore che preferisci
-
-  # Logo centrale
+  color: "#000000"
   image: "assets/icon/gearPizzaIcon.png"
-
-  # Configurazione specifica per Android 12+ (Material You)
   android_12:
-    # Colore dinamico di sfondo per Android 12+
-    color: "#000000"      # → il tuo blu personalizzato
+    color: "#000000"
     image: "assets/icon/gearPizzaIcon.png"

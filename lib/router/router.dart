@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:gearpizza/common/services/api_service_exception.dart';
 import 'package:gearpizza/features/cart/routes/cart_routes.dart';
 import 'package:gearpizza/features/cart/screens/cart_screen.dart';
 import 'package:gearpizza/features/profile/routes/profile_routes.dart';
@@ -215,7 +216,9 @@ class _MainScaffoldState extends State<MainScaffold>
         BlocListener<ExceptionBloc, ExceptionState>(
           listener: (context, state) {
             if (state.message.isNotEmpty) {
-              debugPrint("Sto stampando da mainscaffold: ${state.message}");
+              if (state.message.trim() == UnauthorizedException().message) {
+                context.read<AuthBloc>().add(const AuthLoggedOut());
+              }
               showErrorDialog(context, state.message);
             }
           },

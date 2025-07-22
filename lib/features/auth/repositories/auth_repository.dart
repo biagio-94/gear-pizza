@@ -417,8 +417,7 @@ class AuthRepository {
       GetIt.I.unregister<AuthGeaPizzaUser>();
     }
     GetIt.I.registerSingleton<AuthGeaPizzaUser>(authUser);
-    _apiService.setAccessToken("token");
-    _apiService.setRefreshToken("token");
+
     return authUser;
   }
 }

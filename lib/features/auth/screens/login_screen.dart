@@ -134,9 +134,9 @@ class _LoginScreenState extends State<LoginScreen>
                       opacity: _logoAnimation,
                       child: Center(
                         child: Image.asset(
-                          'assets/icon/gearPizzaIcon.png',
-                          width: 120,
-                          height: 120,
+                          'assets/icon/gearPizzaBranding.png',
+                          width: 150,
+                          height: 150,
                         ),
                       ),
                     ),

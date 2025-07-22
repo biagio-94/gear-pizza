@@ -1,6 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 import 'package:gearpizza/common/services/firestore_service.dart';
 import 'package:gearpizza/features/cart/repositories/cart_repository.dart';
 import 'package:gearpizza/features/cart/services/cart_service.dart';
@@ -12,7 +11,6 @@ import 'package:local_auth/local_auth.dart';
 import 'package:gearpizza/common/bloc/exception_bloc.dart';
 import 'package:gearpizza/common/bloc/loading_bloc.dart';
 import 'package:gearpizza/common/services/api_service.dart';
-import 'package:gearpizza/common/services/biometric_auth_service.dart';
 import 'package:gearpizza/common/services/secure_storage_service.dart';
 import 'package:gearpizza/features/auth/repositories/auth_repository.dart';
 import 'package:gearpizza/features/auth/services/auth_service.dart';
@@ -46,9 +44,6 @@ Future<void> setupServiceLocator() async {
   getIt.registerLazySingleton<LoadingBloc>(() => LoadingBloc());
   getIt.registerLazySingleton<ExceptionBloc>(() => ExceptionBloc());
 
-  getIt.registerFactory<BiometricAuthService>(
-      () => BiometricAuthService(LocalAuthentication()));
-
   // Auth Repository
   getIt.registerFactory<AuthRepository>(
     () => AuthRepository(
@@ -61,7 +56,6 @@ Future<void> setupServiceLocator() async {
   // Auth Service
   getIt.registerFactory<AuthService>(() => AuthService(
         repository: getIt<AuthRepository>(),
-        biometricService: getIt<BiometricAuthService>(),
       ));
 
   getIt.registerFactory<UserRoleService>(() => UserRoleService());

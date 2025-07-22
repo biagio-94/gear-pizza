@@ -4,7 +4,6 @@ import 'package:dio/dio.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:gearpizza/common/services/api_service_exception.dart';
-import 'package:gearpizza/common/services/biometric_auth_service.dart';
 import 'package:gearpizza/features/auth/models/auth_gear_pizza_user.dart';
 import 'package:gearpizza/features/auth/repositories/auth_repository.dart';
 import 'package:gearpizza/features/auth/services/auth_service_exception.dart';
@@ -18,7 +17,6 @@ class AuthService {
 
   AuthService({
     required AuthRepository repository,
-    required BiometricAuthService biometricService,
   }) : _repository = repository;
 
   /// All’avvio dell’app: delego tutta la logica al repository

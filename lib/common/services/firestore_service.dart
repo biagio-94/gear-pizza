@@ -13,17 +13,22 @@ class FirebaseStorageService {
   Future<String> uploadOrderImage(File file, String orderId) async {
     try {
       final fileName = file.uri.pathSegments.last;
-      final ref = _storage.ref().child('orders').child(orderId).child(fileName);
+      final folderRef = _storage.ref().child('orders').child(orderId);
 
-      final uploadTask = ref.putFile(
+      // Elimina eventuali file esistenti nella cartella dell'ordine
+      final existingFiles = await folderRef.listAll();
+      for (final item in existingFiles.items) {
+        await item.delete();
+      }
+
+      // Carica il nuovo file
+      final newFileRef = folderRef.child(fileName);
+      await newFileRef.putFile(
         file,
-        SettableMetadata(
-          contentType: _lookupContentType(fileName),
-        ),
+        SettableMetadata(contentType: _lookupContentType(fileName)),
       );
 
-      final snapshot = await uploadTask;
-      return await snapshot.ref.getDownloadURL();
+      return await newFileRef.getDownloadURL();
     } on FirebaseException catch (e) {
       throw Exception(
           'Errore durante l’upload su Firebase Storage: ${e.code} - ${e.message}');
@@ -34,22 +39,21 @@ class FirebaseStorageService {
 
   Future<String> uploadRestaurantImage(File file, String restaurantId) async {
     try {
-      const fileName = 'cover.jpg'; // nome fisso per sovrascrivere
-      final ref = _storage
-          .ref()
-          .child('restaurants')
-          .child(restaurantId)
-          .child(fileName);
+      final fileName = file.uri.pathSegments.last;
+      final folderRef = _storage.ref().child('restaurants').child(restaurantId);
 
-      final uploadTask = ref.putFile(
+      final existingFiles = await folderRef.listAll();
+      for (final item in existingFiles.items) {
+        await item.delete();
+      }
+
+      final newFileRef = folderRef.child(fileName);
+      await newFileRef.putFile(
         file,
-        SettableMetadata(
-          contentType: _lookupContentType(fileName),
-        ),
+        SettableMetadata(contentType: _lookupContentType(fileName)),
       );
 
-      final snapshot = await uploadTask;
-      return await snapshot.ref.getDownloadURL();
+      return await newFileRef.getDownloadURL();
     } on FirebaseException catch (e) {
       throw Exception('Errore Firebase Storage: ${e.code} - ${e.message}');
     } catch (e) {
@@ -59,19 +63,21 @@ class FirebaseStorageService {
 
   Future<String> uploadPizzaImage(File file, String pizzaId) async {
     try {
-      final fileName = 'piiza_${pizzaId}.jpg';
-      final ref =
-          _storage.ref().child('restaurants').child(pizzaId).child(fileName);
+      final fileName = file.uri.pathSegments.last;
+      final folderRef = _storage.ref().child('pizzas').child(pizzaId);
 
-      final uploadTask = ref.putFile(
+      final existingFiles = await folderRef.listAll();
+      for (final item in existingFiles.items) {
+        await item.delete();
+      }
+
+      final newFileRef = folderRef.child(fileName);
+      await newFileRef.putFile(
         file,
-        SettableMetadata(
-          contentType: _lookupContentType(fileName),
-        ),
+        SettableMetadata(contentType: _lookupContentType(fileName)),
       );
 
-      final snapshot = await uploadTask;
-      return await snapshot.ref.getDownloadURL();
+      return await newFileRef.getDownloadURL();
     } on FirebaseException catch (e) {
       throw Exception('Errore Firebase Storage: ${e.code} - ${e.message}');
     } catch (e) {

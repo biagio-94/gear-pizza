@@ -31,6 +31,7 @@ class RestaurantProductsList extends StatelessWidget {
                 (context, index) {
                   final pizza = pizzas[index];
                   return PizzaCard(
+                    key: ValueKey(pizza.id),
                     pizza: pizza,
                     onTap: onPizzaTap != null ? () => onPizzaTap!(pizza) : null,
                   );

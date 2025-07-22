@@ -34,8 +34,11 @@ class ApiService {
       await _storage.readSecureData(_refreshKey);
 
   // Internal setters
-  Future<void> setAccessToken(String token) async =>
-      await _storage.writeSecureData(_accessKey, token);
+  Future<void> setAccessToken(String token) async {
+    _cacheAccessToken = token; // <-- aggiorna cache
+    await _storage.writeSecureData(_accessKey, token);
+  }
+
   Future<void> setRefreshToken(String token) async =>
       await _storage.writeSecureData(_refreshKey, token);
 

@@ -85,6 +85,10 @@ class AuthRepository {
       if (savedRefresh == null) {
         return null;
       }
+      final token = await _apiService.accessToken;
+      if (token != null && token.isNotEmpty) {
+        await _apiService.setAccessToken(token);
+      }
 
       return await getAuthUser();
     } on DioException catch (e) {

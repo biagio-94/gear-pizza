@@ -1,112 +1,142 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:gearpizza/common/services/firestore_service.dart';
 import 'package:gearpizza/common/styles/text_styles.dart';
 import 'package:gearpizza/common/utils/image_download_helper.dart';
 import 'package:gearpizza/features/dashboard/models/pizza_dto.dart';
 import 'package:gearpizza/features/dashboard/bloc/product_card/product_card_bloc.dart';
 import 'package:gearpizza/features/dashboard/bloc/product_card/product_card_event.dart';
 import 'package:gearpizza/features/dashboard/bloc/product_card/product_card_state.dart';
+import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
 
-class PizzaCard extends StatelessWidget {
+/// Card ottimizzata che carica una sola volta l'immagine di copertina
+class PizzaCard extends StatefulWidget {
   final PizzaDto pizza;
   final VoidCallback? onTap;
 
-  const PizzaCard({
-    Key? key,
-    required this.pizza,
-    this.onTap,
-  }) : super(key: key);
+  const PizzaCard({Key? key, required this.pizza, this.onTap})
+      : super(key: key);
+
+  @override
+  _PizzaCardState createState() => _PizzaCardState();
+}
+
+class _PizzaCardState extends State<PizzaCard> {
+  late final Future<String> _imageUrlFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _imageUrlFuture = _fetchHelpImage(
+      widget.pizza.id.toString(),
+      widget.pizza.coverImageUrl ?? '',
+    );
+  }
+
+  Future<String> _fetchHelpImage(String pizzaId, String fallbackUrl) async {
+    try {
+      final firebase = GetIt.instance<FirebaseStorageService>();
+      final url = await firebase.fetchPizzaImageUrlFromFirebase(pizzaId);
+      return url ?? fallbackUrl;
+    } catch (_) {
+      return fallbackUrl;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+
     return BlocBuilder<ProductCardBloc, ProductCardState>(
       builder: (context, state) {
         int quantity = 0;
         if (state is ProductSelectedState) {
-          quantity = state.productsQuantity[pizza.id] ?? 0;
+          quantity = state.productsQuantity[widget.pizza.id] ?? 0;
         }
-        final subtotal = pizza.price * quantity;
+        final subtotal = widget.pizza.price * quantity;
 
         return Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             const Divider(height: 1, thickness: 0.5),
             GestureDetector(
-              onTap: onTap,
+              onTap: widget.onTap,
               child: Padding(
                 padding:
-                    const EdgeInsets.only(top: 8.0, bottom: 8.0, right: 16.0),
+                    const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Image
                     ClipRRect(
                       borderRadius: BorderRadius.circular(8),
                       child: Container(
                         width: 100,
                         height: 100,
                         color: Colors.grey[200],
-                        child: pizza.coverImageUrl != null
-                            ? ImageDownloadHelper.loadCachedNetworkImage(
-                                pizza.coverImageUrl!,
+                        child: FutureBuilder<String>(
+                          future: _imageUrlFuture,
+                          builder: (context, snapshot) {
+                            if (snapshot.connectionState ==
+                                ConnectionState.waiting) {
+                              return const Center(
+                                  child: CircularProgressIndicator());
+                            }
+                            final imageUrl = snapshot.data;
+                            if (imageUrl != null && imageUrl.isNotEmpty) {
+                              return ImageDownloadHelper.loadCachedNetworkImage(
+                                imageUrl,
                                 fit: BoxFit.cover,
                                 width: 100,
                                 height: 100,
-                              )
-                            : const Icon(
-                                Icons.store,
-                                size: 48,
-                                color: Colors.grey,
-                              ),
+                              );
+                            }
+                            return const Icon(
+                              Icons.store,
+                              size: 48,
+                              color: Colors.grey,
+                            );
+                          },
+                        ),
                       ),
                     ),
                     const SizedBox(width: 12),
-                    // Info and controls
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Title and unit price
                           Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Expanded(
                                 child: Text(
-                                  pizza.name,
+                                  widget.pizza.name,
                                   style: theme.textTheme.bodyLarge
                                       ?.copyWith(fontWeight: FontWeight.bold),
-                                  maxLines: null, // Fa andare a capo il testo
                                 ),
                               ),
                               const SizedBox(width: 8),
                               Text(
-                                '€${pizza.price.toStringAsFixed(2)}',
+                                '€${widget.pizza.price.toStringAsFixed(2)}',
                                 style: AppTextStyles.bodyLarge(context),
                               ),
                             ],
                           ),
-
                           const SizedBox(height: 4),
-                          // Description
-                          if (pizza.description != null &&
-                              pizza.description!.isNotEmpty)
+                          if (widget.pizza.description?.isNotEmpty ?? false)
                             Text(
-                              pizza.description!,
+                              widget.pizza.description!,
                               style: AppTextStyles.bodySmall(context),
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
                             ),
                           const SizedBox(height: 6),
-                          // Allergeni
-                          if (pizza.allergens.isNotEmpty)
+                          if (widget.pizza.allergens.isNotEmpty)
                             Text(
-                              'Allergeni: ${pizza.allergens.map((a) => a.name).join(', ')}',
+                              'Allergeni: ${widget.pizza.allergens.map((a) => a.name).join(', ')}',
                               style: AppTextStyles.caption(context),
                             ),
                           const SizedBox(height: 8),
-                          // Quantity controls and subtotal
                           Align(
                             alignment: Alignment.centerRight,
                             child: Column(
@@ -120,8 +150,9 @@ class PizzaCard extends StatelessWidget {
                                       onPressed: () {
                                         context.read<ProductCardBloc>().add(
                                               RemoveProductEvent(
-                                                productId: pizza.id,
-                                                productPrice: pizza.price,
+                                                productId: widget.pizza.id,
+                                                productPrice:
+                                                    widget.pizza.price,
                                               ),
                                             );
                                       },
@@ -138,18 +169,20 @@ class PizzaCard extends StatelessWidget {
                                         if (quantity > 0) {
                                           context.read<ProductCardBloc>().add(
                                                 AddProductEvent(
-                                                  productId: pizza.id,
-                                                  productPrice: pizza.price,
+                                                  productId: widget.pizza.id,
+                                                  productPrice:
+                                                      widget.pizza.price,
                                                 ),
                                               );
                                         } else {
                                           context.pushNamed(
                                             'pizzaDetail',
                                             pathParameters: {
-                                              'restaurantId':
-                                                  pizza.restaurantId.toString(),
-                                              'pizzaId': pizza.id.toString(),
+                                              'restaurantId': widget
+                                                  .pizza.restaurantId
+                                                  .toString(),
                                             },
+                                            extra: widget.pizza,
                                           );
                                         }
                                       },

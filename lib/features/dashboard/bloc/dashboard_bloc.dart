@@ -49,8 +49,6 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
     Emitter<DashboardState> emit,
   ) async {
     await ExecutionHelper.run(
-      showLoading: () => loadingBloc.showLoading('Caricamento allergeni...'),
-      hideLoading: () => loadingBloc.hideLoading(),
       onError: (msg) => exceptionBloc.throwExceptionState(msg),
       action: () async {
         final allergens = await _dashboardService.fetchAllAllergens();
@@ -83,6 +81,8 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
       hideLoading: () => loadingBloc.hideLoading(),
       onError: (msg) => exceptionBloc.throwExceptionState(msg),
       action: () async {
+        emit(PizzasLoading());
+
         final pizzas = await _dashboardService.fetchPizzaByrestaurantId(
           restaurantId: event.restaurantId,
         );

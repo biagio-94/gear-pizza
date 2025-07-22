@@ -7,7 +7,7 @@ class PizzaDto {
   final String name;
   final String? description;
   final double price;
-  final String? coverImageUrl;
+  String? coverImageUrl;
   final List<AllergenDto> allergens;
   final int restaurantId;
   PizzaDto({

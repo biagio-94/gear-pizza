@@ -1,11 +1,16 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:gearpizza/common/services/firestore_service.dart';
 import 'package:gearpizza/common/styles/colors_schemes.dart';
 import 'package:gearpizza/features/cart/bloc/cart_bloc.dart';
 import 'package:gearpizza/features/cart/bloc/cart_event.dart';
 import 'package:gearpizza/features/dashboard/bloc/product_card/product_card_bloc.dart';
 import 'package:gearpizza/features/dashboard/bloc/product_card/product_card_state.dart';
+import 'package:gearpizza/features/dashboard/models/pizza_dto.dart';
+import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
 import 'package:gearpizza/common/styles/text_styles.dart';
 import 'package:gearpizza/features/dashboard/bloc/dashboard_bloc.dart';
@@ -109,13 +114,19 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
 
             // 4) Lista pizze: griglia con loading e empty state
             RestaurantProductsList(
-              onPizzaTap: (pizza) {
+              onPizzaTap: (pizza) async {
+                final PizzaDto editedPizza = pizza;
+                final imageUri = await GetIt.instance<FirebaseStorageService>()
+                    .fetchPizzaImageUrlFromFirebase(pizza.id.toString());
+                if (imageUri != null) {
+                  editedPizza.coverImageUrl = imageUri;
+                }
                 context.pushNamed(
                   'pizzaDetail',
                   pathParameters: {
-                    'restaurantId': pizza.restaurantId.toString(),
-                    'pizzaId': pizza.id.toString(),
+                    'restaurantId': widget.restaurantId.toString(),
                   },
+                  extra: editedPizza,
                 );
               },
             ),

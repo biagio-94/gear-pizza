@@ -11,6 +11,8 @@ abstract class DashboardState {
 
 class DashboardInitial extends DashboardState {}
 
+class PizzasLoading extends DashboardState {}
+
 class PizzaDetailPageState extends DashboardState {
   final PizzaDto pizza;
   PizzaDetailPageState({required this.pizza});

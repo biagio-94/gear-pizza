@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:gearpizza/features/dashboard/models/pizza_dto.dart';
 import 'package:gearpizza/features/dashboard/screens/pizza_detail_page.dart';
 import 'package:gearpizza/features/dashboard/screens/restaurant_page_detail.dart';
 import 'package:go_router/go_router.dart';
@@ -11,19 +12,21 @@ final List<GoRoute> dashboardRoutes = [
     name: 'restaurantDetail',
     builder: (context, state) {
       final id = state.pathParameters['restaurantId']!;
-      return RestaurantDetailPage(restaurantId: int.tryParse(id) ?? 3);
+      return RestaurantDetailPage(restaurantId: int.parse(id));
     },
     routes: [
       GoRoute(
-        path: 'pizza/:pizzaId',
+        path: 'pizza', // ← niente più :pizzaId
         name: 'pizzaDetail',
         pageBuilder: (context, state) {
+          // prendi restaurantId dalla rotta padre
           final rId = state.pathParameters['restaurantId']!;
-          final pId = state.pathParameters['pizzaId']!;
+          // e tutta la PizzaDto da extra
+          final pizzaDto = state.extra as PizzaDto;
           return CustomTransitionPage(
             child: PizzaDetailPage(
               restaurantId: rId,
-              pizzaId: pId,
+              pizza: pizzaDto,
             ),
             transitionsBuilder:
                 (context, animation, secondaryAnimation, child) {

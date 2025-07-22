@@ -5,20 +5,20 @@ import 'package:gearpizza/common/styles/text_styles.dart';
 import 'package:gearpizza/common/utils/image_download_helper.dart';
 import 'package:gearpizza/features/dashboard/bloc/dashboard_bloc.dart';
 import 'package:gearpizza/features/dashboard/bloc/dashboard_event.dart';
-import 'package:gearpizza/features/dashboard/bloc/dashboard_state.dart';
 import 'package:gearpizza/features/dashboard/bloc/product_card/product_card_bloc.dart';
 import 'package:gearpizza/features/dashboard/bloc/product_card/product_card_event.dart';
 import 'package:gearpizza/features/dashboard/bloc/product_card/product_card_state.dart';
+import 'package:gearpizza/features/dashboard/models/pizza_dto.dart';
 import 'package:go_router/go_router.dart';
 
 class PizzaDetailPage extends StatefulWidget {
   final String restaurantId;
-  final String pizzaId;
+  final PizzaDto pizza;
 
   const PizzaDetailPage({
     Key? key,
     required this.restaurantId,
-    required this.pizzaId,
+    required this.pizza,
   }) : super(key: key);
 
   @override
@@ -33,7 +33,7 @@ class _PizzaDetailPageState extends State<PizzaDetailPage> {
   @override
   void initState() {
     super.initState();
-    pizzaId = int.tryParse(widget.pizzaId) ?? 0;
+    pizzaId = widget.pizza.id;
     context.read<DashboardBloc>().add(FetchByPizzaId(pizzaId));
 
     _scrollController.addListener(() {
@@ -67,190 +67,171 @@ class _PizzaDetailPageState extends State<PizzaDetailPage> {
         extendBodyBehindAppBar: true,
         body: Stack(
           children: [
-            BlocBuilder<DashboardBloc, DashboardState>(
-              builder: (context, dashboardState) {
-                if (dashboardState is PizzaDetailPageState) {
-                  final p = dashboardState.pizza;
+            BlocBuilder<ProductCardBloc, ProductCardState>(
+              builder: (context, productState) {
+                int currentQuantity = 0;
 
-                  return BlocBuilder<ProductCardBloc, ProductCardState>(
-                    builder: (context, productState) {
-                      int currentQuantity = 0;
+                if (productState is ProductSelectedState) {
+                  currentQuantity =
+                      productState.productsQuantity[widget.pizza.id] ?? 0;
+                }
 
-                      if (productState is ProductSelectedState) {
-                        currentQuantity =
-                            productState.productsQuantity[p.id] ?? 0;
-                      }
+                final totalPrice = widget.pizza.price * currentQuantity;
 
-                      final totalPrice = p.price * currentQuantity;
-
-                      return CustomScrollView(
-                        controller: _scrollController,
-                        slivers: [
-                          SliverAppBar(
-                            expandedHeight: 240,
-                            pinned: true,
-                            backgroundColor: theme.colorScheme.primary,
-                            elevation: 0,
-                            stretch: true,
-                            leading: IconButton(
-                              icon: Icon(
-                                Icons.close,
-                                color: _isCollapsed
-                                    ? theme.colorScheme.onSurface
-                                    : Colors.white,
+                return CustomScrollView(
+                  controller: _scrollController,
+                  slivers: [
+                    SliverAppBar(
+                      expandedHeight: 240,
+                      pinned: true,
+                      backgroundColor: theme.colorScheme.primary,
+                      elevation: 0,
+                      stretch: true,
+                      leading: IconButton(
+                        icon: Icon(
+                          Icons.close,
+                          color: _isCollapsed
+                              ? theme.colorScheme.onSurface
+                              : Colors.white,
+                        ),
+                        onPressed: () => context.pop(),
+                      ),
+                      flexibleSpace: FlexibleSpaceBar(
+                        collapseMode: CollapseMode.parallax,
+                        background: widget.pizza.coverImageUrl != null
+                            ? ImageDownloadHelper.loadCachedNetworkImage(
+                                widget.pizza.coverImageUrl!,
+                                fit: BoxFit.cover,
+                                width: double.infinity,
+                              )
+                            : Container(color: Colors.grey[300]),
+                      ),
+                    ),
+                    SliverPadding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 20, vertical: 16),
+                      sliver: SliverList(
+                        delegate: SliverChildListDelegate(
+                          [
+                            Text(
+                              widget.pizza.name,
+                              style: theme.textTheme.headlineSmall
+                                  ?.copyWith(fontWeight: FontWeight.bold),
+                            ),
+                            const SizedBox(height: 8),
+                            if (widget.pizza.description != null)
+                              Text(
+                                widget.pizza.description!,
+                                style: theme.textTheme.bodyMedium,
                               ),
-                              onPressed: () => context.pop(),
-                            ),
-                            flexibleSpace: FlexibleSpaceBar(
-                              collapseMode: CollapseMode.parallax,
-                              background: p.coverImageUrl != null
-                                  ? ImageDownloadHelper.loadCachedNetworkImage(
-                                      p.coverImageUrl!,
-                                      fit: BoxFit.cover,
-                                      width: double.infinity,
-                                    )
-                                  : Container(color: Colors.grey[300]),
-                            ),
-                          ),
-                          SliverPadding(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 20, vertical: 16),
-                            sliver: SliverList(
-                              delegate: SliverChildListDelegate(
-                                [
-                                  Text(
-                                    p.name,
-                                    style: theme.textTheme.headlineSmall
-                                        ?.copyWith(fontWeight: FontWeight.bold),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  if (p.description != null)
-                                    Text(
-                                      p.description!,
-                                      style: theme.textTheme.bodyMedium,
-                                    ),
-                                  const SizedBox(height: 8),
-                                  if (p.allergens.isNotEmpty) ...[
-                                    Text(
-                                      'Allergeni: ${p.allergens.map((a) => a.name).join(', ')}',
-                                      style: AppTextStyles.caption(context)
-                                          .copyWith(
-                                              fontWeight: FontWeight.bold),
-                                    ),
-                                  ],
-                                  const SizedBox(height: 8),
-                                  Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    mainAxisAlignment: MainAxisAlignment
-                                        .center, // CENTRA ORIZZONTALMENTE
-                                    crossAxisAlignment: CrossAxisAlignment
-                                        .center, // CENTRA VERTICALMENTE
-                                    children: [
-                                      IconButton(
-                                        icon: const Icon(
-                                            Icons.remove_circle_outline),
-                                        color: currentQuantity > 0
-                                            ? theme.colorScheme.secondary
-                                            : theme.disabledColor,
-                                        onPressed: currentQuantity > 0
-                                            ? () {
-                                                context
-                                                    .read<ProductCardBloc>()
-                                                    .add(
-                                                      RemoveProductEvent(
-                                                        productId: p.id,
-                                                        productPrice: p.price,
-                                                      ),
-                                                    );
-                                              }
-                                            : null,
-                                        splashRadius: 20,
-                                        padding: EdgeInsets.zero,
-                                        constraints: const BoxConstraints(
-                                            minWidth: 32, minHeight: 32),
-                                      ),
-                                      Padding(
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 12),
-                                        child: Text(
-                                          currentQuantity.toString(),
-                                          style: theme.textTheme.titleLarge,
-                                        ),
-                                      ),
-                                      IconButton(
-                                        icon: const Icon(
-                                            Icons.add_circle_outline),
-                                        color: theme.colorScheme.secondary,
-                                        onPressed: () {
+                            const SizedBox(height: 8),
+                            if (widget.pizza.allergens.isNotEmpty) ...[
+                              Text(
+                                'Allergeni: ${widget.pizza.allergens.map((a) => a.name).join(', ')}',
+                                style: AppTextStyles.caption(context)
+                                    .copyWith(fontWeight: FontWeight.bold),
+                              ),
+                            ],
+                            const SizedBox(height: 8),
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              mainAxisAlignment: MainAxisAlignment
+                                  .center, // CENTRA ORIZZONTALMENTE
+                              crossAxisAlignment: CrossAxisAlignment
+                                  .center, // CENTRA VERTICALMENTE
+                              children: [
+                                IconButton(
+                                  icon: const Icon(Icons.remove_circle_outline),
+                                  color: currentQuantity > 0
+                                      ? theme.colorScheme.secondary
+                                      : theme.disabledColor,
+                                  onPressed: currentQuantity > 0
+                                      ? () {
                                           context.read<ProductCardBloc>().add(
-                                                AddProductEvent(
-                                                  productId: p.id,
-                                                  productPrice: p.price,
+                                                RemoveProductEvent(
+                                                  productId: widget.pizza.id,
+                                                  productPrice:
+                                                      widget.pizza.price,
                                                 ),
                                               );
-                                        },
-                                        splashRadius: 20,
-                                        padding: EdgeInsets.zero,
-                                        constraints: const BoxConstraints(
-                                            minWidth: 32, minHeight: 32),
-                                      ),
-                                    ],
+                                        }
+                                      : null,
+                                  splashRadius: 20,
+                                  padding: EdgeInsets.zero,
+                                  constraints: const BoxConstraints(
+                                      minWidth: 32, minHeight: 32),
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 12),
+                                  child: Text(
+                                    currentQuantity.toString(),
+                                    style: theme.textTheme.titleLarge,
                                   ),
-                                  const SizedBox(height: 24),
-                                  SizedBox(
-                                    width:
-                                        MediaQuery.of(context).size.width * 0.8,
-                                    height: 56,
-                                    child: ElevatedButton(
-                                      onPressed: currentQuantity > 0
-                                          ? () {
-                                              context
-                                                  .read<ProductCardBloc>()
-                                                  .add(
-                                                    UpdateProductEvent(
-                                                      productId: p.id,
-                                                      productPrice: p.price,
-                                                      quantity: currentQuantity,
-                                                    ),
-                                                  );
-                                              context.pop();
-                                            }
-                                          : null,
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor:
-                                            theme.colorScheme.secondary,
-                                        foregroundColor:
-                                            theme.colorScheme.onSecondary,
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(
-                                              28), // più arrotondato
-                                        ),
-                                        minimumSize: const Size.fromHeight(56),
-                                      ),
-                                      child: Center(
-                                        child: Text(
-                                          'Aggiorna il carrello · €${totalPrice.toStringAsFixed(2)}',
-                                          style: theme.textTheme.bodyLarge
-                                              ?.copyWith(
-                                            fontWeight: FontWeight.bold,
-                                            color:
-                                                theme.colorScheme.onSecondary,
+                                ),
+                                IconButton(
+                                  icon: const Icon(Icons.add_circle_outline),
+                                  color: theme.colorScheme.secondary,
+                                  onPressed: () {
+                                    context.read<ProductCardBloc>().add(
+                                          AddProductEvent(
+                                            productId: widget.pizza.id,
+                                            productPrice: widget.pizza.price,
                                           ),
-                                        ),
-                                      ),
+                                        );
+                                  },
+                                  splashRadius: 20,
+                                  padding: EdgeInsets.zero,
+                                  constraints: const BoxConstraints(
+                                      minWidth: 32, minHeight: 32),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 24),
+                            SizedBox(
+                              width: MediaQuery.of(context).size.width * 0.8,
+                              height: 56,
+                              child: ElevatedButton(
+                                onPressed: currentQuantity > 0
+                                    ? () {
+                                        context.read<ProductCardBloc>().add(
+                                              UpdateProductEvent(
+                                                productId: widget.pizza.id,
+                                                productPrice:
+                                                    widget.pizza.price,
+                                                quantity: currentQuantity,
+                                              ),
+                                            );
+                                        context.pop();
+                                      }
+                                    : null,
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: theme.colorScheme.secondary,
+                                  foregroundColor:
+                                      theme.colorScheme.onSecondary,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(
+                                        28), // più arrotondato
+                                  ),
+                                  minimumSize: const Size.fromHeight(56),
+                                ),
+                                child: Center(
+                                  child: Text(
+                                    'Aggiorna il carrello · €${totalPrice.toStringAsFixed(2)}',
+                                    style: theme.textTheme.bodyLarge?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                      color: theme.colorScheme.onSecondary,
                                     ),
                                   ),
-                                ],
+                                ),
                               ),
                             ),
-                          ),
-                        ],
-                      );
-                    },
-                  );
-                } else {
-                  return const Center(child: CircularProgressIndicator());
-                }
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                );
               },
             ),
           ],

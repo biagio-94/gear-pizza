@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:dio/dio.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 import 'package:gearpizza/common/services/api_service_exception.dart';
 import 'package:gearpizza/common/utils/exception_handler.dart';
@@ -316,8 +317,14 @@ class AuthRepository {
       if (result.status != LoginStatus.success) {
         throw LoginException('Login Facebook annullato o fallito');
       }
-      final cred = await _firebaseAuth.signInWithCredential(
-        FacebookAuthProvider.credential(result.accessToken!.tokenString),
+      // Facebook in debug senza publicare l'app da problemi se non si registrano i developer ecc..
+      // quindi mock accesso firebase con credenziali mock
+      // final cred = await _firebaseAuth.signInWithCredential(
+      //   FacebookAuthProvider.credential(result.accessToken!.tokenString),
+      // );
+      final cred = await _firebaseAuth.signInWithEmailAndPassword(
+        email: "ferro.biagio@gmail.com",
+        password: "Testspc1",
       );
       // Simulo avvenuta sincronizzazione con Directus leggere metodo signWithEmail e _afterFirebaseLogin per spiegazioni
       await _afterFirebaseLogin(

@@ -39,16 +39,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final _storage = GetIt.instance<SecureStorageService>();
   final userRole = GetIt.instance<AuthGeaPizzaUser>().role;
 
-  File? _imageFile;
-  String? _userName;
-
   late final List<ActionItem> _actions;
 
   @override
   void initState() {
     super.initState();
     _initActions();
-    _loadProfile();
   }
 
   void _initActions() {
@@ -90,14 +86,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
     ];
   }
 
-  Future<void> _loadProfile() async {
+  // Funzione che restituisce un Future per caricare nome e immagine
+  Future<Map<String, dynamic>> _loadProfile() async {
     final path = await _storage.readSecureData(_storageKey);
     final name = await _storage.readSecureData('user_name');
-    if (!mounted) return;
-    setState(() {
-      _userName = name;
-      if (path != null) _imageFile = File(path);
-    });
+    return {
+      'userName': name ?? 'Ciao',
+      'imagePath': path,
+    };
   }
 
   Future<void> _pickImage() async {
@@ -105,7 +101,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (picked == null) return;
     await _storage.writeSecureData(_storageKey, picked.path);
     if (!mounted) return;
-    setState(() => _imageFile = File(picked.path));
+    setState(() {});
   }
 
   @override
@@ -125,13 +121,50 @@ class _ProfileScreenState extends State<ProfileScreen> {
         backgroundColor: cs.primary,
         body: Column(
           children: [
-            _Header(
-              height: height * 0.25 + topPad,
-              topPadding: topPad,
-              color: cs.primary,
-              imageFile: _imageFile,
-              userName: _userName,
-              onTapImage: _pickImage,
+            FutureBuilder<Map<String, dynamic>>(
+              future: _loadProfile(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return _Header(
+                    height: height * 0.25 + topPad,
+                    topPadding: topPad,
+                    color: cs.primary,
+                    imageFile: null,
+                    userName: 'Caricamento...',
+                    onTapImage: _pickImage,
+                  );
+                } else if (snapshot.hasError) {
+                  return _Header(
+                    height: height * 0.25 + topPad,
+                    topPadding: topPad,
+                    color: cs.primary,
+                    imageFile: null,
+                    userName: 'Errore nel caricamento',
+                    onTapImage: _pickImage,
+                  );
+                } else if (snapshot.hasData) {
+                  final userName = snapshot.data?['userName'];
+                  final imagePath = snapshot.data?['imagePath'];
+                  File? imageFile = imagePath != null ? File(imagePath) : null;
+                  return _Header(
+                    height: height * 0.25 + topPad,
+                    topPadding: topPad,
+                    color: cs.primary,
+                    imageFile: imageFile,
+                    userName: userName,
+                    onTapImage: _pickImage,
+                  );
+                } else {
+                  return _Header(
+                    height: height * 0.25 + topPad,
+                    topPadding: topPad,
+                    color: cs.primary,
+                    imageFile: null,
+                    userName: 'Ciao',
+                    onTapImage: _pickImage,
+                  );
+                }
+              },
             ),
             Expanded(
               child: Container(
@@ -196,7 +229,7 @@ class _Header extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final name = (userName?.isNotEmpty == true ? userName : 'Ciao')!;
+    final name = userName ?? 'Ciao';
     final subtitle = userName != null
         ? 'Bentornato su GearPizza!'
         : 'Benvenuto su GearPizza!';

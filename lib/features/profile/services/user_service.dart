@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:gearpizza/common/services/secure_storage_service.dart';
 import 'package:gearpizza/features/dashboard/models/alergen_dto.dart';
 import 'package:gearpizza/features/dashboard/models/pizza_dto.dart';
 import 'package:gearpizza/features/profile/models/admin_page_dto.dart';
@@ -6,6 +7,7 @@ import 'package:gearpizza/features/profile/models/order_detail_dto.dart';
 import 'package:gearpizza/features/profile/models/user_profile_data_dto.dart';
 import 'package:gearpizza/features/profile/repositories/user_repository.dart';
 import 'package:gearpizza/features/profile/services/user_service_exception.dart';
+import 'package:get_it/get_it.dart';
 import 'package:image_picker/image_picker.dart';
 
 class UserService {
@@ -18,6 +20,8 @@ class UserService {
     required String email,
   }) async {
     try {
+      await GetIt.instance<SecureStorageService>()
+          .writeSecureData('user_name', fullName);
       await _userRepository.patchUser(email: email, fullName: fullName);
     } on UserServiceException {
       rethrow;

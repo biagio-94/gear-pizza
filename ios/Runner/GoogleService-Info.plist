@@ -6,6 +6,8 @@
 	<string>554571923629-u2bmqao75hk7j32tn08oh3t6lhjpjccc.apps.googleusercontent.com</string>
 	<key>REVERSED_CLIENT_ID</key>
 	<string>com.googleusercontent.apps.554571923629-u2bmqao75hk7j32tn08oh3t6lhjpjccc</string>
+	<key>ANDROID_CLIENT_ID</key>
+	<string>554571923629-99847sh5fpuphpr7341ibojbfbrad2s4.apps.googleusercontent.com</string>
 	<key>API_KEY</key>
 	<string>AIzaSyBw_DTROXNMkryspKrcnCAI218xQsdSfG0</string>
 	<key>GCM_SENDER_ID</key>
@@ -22,8 +24,6 @@
 	<false></false>
 	<key>IS_ANALYTICS_ENABLED</key>
 	<false></false>
-	<key>FirebaseAppDelegateProxyEnabled</key>
-	<true/>
 	<key>IS_APPINVITE_ENABLED</key>
 	<true></true>
 	<key>IS_GCM_ENABLED</key>

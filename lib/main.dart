@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 import 'package:gearpizza/features/cart/bloc/cart_bloc.dart';
 import 'package:gearpizza/features/cart/services/cart_service.dart';
 import 'package:gearpizza/features/dashboard/bloc/dashboard_bloc.dart';
@@ -30,6 +31,12 @@ import 'package:gearpizza/router/router.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+  await FacebookAuth.i.webAndDesktopInitialize(
+    appId: '765880149213520',
+    cookie: true,
+    xfbml: true,
+    version: 'v11.0',
+  );
   await setupServiceLocator();
 
   final bool isPhysical = await isPhysicalDevice();

@@ -5,8 +5,6 @@
 // ignore_for_file: unused_element
 import 'package:built_collection/built_collection.dart';
 import 'package:gearpizza/common/models/users.dart';
-import 'package:gearpizza/common/models/users_avatar.dart';
-import 'package:gearpizza/common/models/users_role.dart';
 import 'dart:core';
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
@@ -63,10 +61,7 @@ class _$RolesUsersInnerSerializer
   final String wireName = r'RolesUsersInner';
 
   Iterable<Object?> _serializeProperties(
-    Serializers serializers,
-    RolesUsersInner object, {
-    FullType specifiedType = FullType.unspecified,
-  }) sync* {}
+      Serializers serializers, RolesUsersInner object) sync* {}
 
   @override
   Object serialize(

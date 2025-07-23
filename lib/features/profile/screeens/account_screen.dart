@@ -95,12 +95,6 @@ class _AccountScreenState extends State<AccountScreen> {
             return const Center(child: CircularProgressIndicator());
           }
 
-          if (state is UserAccountFailure) {
-            // Puoi mostrare un messaggio di errore
-            return Center(child: Text('Errore caricamento: ${state.message}'));
-          }
-
-          // Tratto UserAccountInitial o Loaded
           final name = (state is UserAccountLoaded) ? state.name.trim() : '';
           final email = (state is UserAccountLoaded) ? state.email.trim() : '';
           final hasUserData = name.isNotEmpty || email.isNotEmpty;

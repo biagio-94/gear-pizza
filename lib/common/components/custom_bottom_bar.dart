@@ -16,7 +16,7 @@ class CustomBottomBar extends StatelessWidget {
 
     return Container(
       decoration: BoxDecoration(
-        color: colorScheme.background,
+        color: colorScheme.surface,
         border: const Border(
           top: BorderSide(color: Colors.grey, width: 0.3),
         ),

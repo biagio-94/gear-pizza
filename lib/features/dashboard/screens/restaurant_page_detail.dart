@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -149,7 +147,6 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
               height: 56,
               child: FloatingActionButton.extended(
                 onPressed: () {
-                  // Lancia l'evento nel CartBloc
                   context.read<CartBloc>().add(
                         LoadCartDetailsEvent(
                           restaurantId: widget.restaurantId,
@@ -157,7 +154,6 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
                         ),
                       );
 
-                  // Poi naviga alla pagina carrello
                   context.go("/cart");
                 },
                 backgroundColor: colors.secondary,

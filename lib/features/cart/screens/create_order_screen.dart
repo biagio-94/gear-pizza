@@ -167,8 +167,6 @@ class _CreateorderScreenState extends State<CreateorderScreen>
         setState(() {
           _pickedImage = picked;
         });
-        // Se vuoi aggiungere la foto come requisito, aggiorna lo stato qui:
-        //_updateConfirmButtonState();
       }
     } catch (e) {
       debugPrint('Errore nel picking immagine: $e');

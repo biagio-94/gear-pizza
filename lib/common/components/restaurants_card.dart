@@ -16,7 +16,6 @@ class RestaurantCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: () {
-        // Navigate to restaurant detail using GoRouter (updated)
         context.go('/dashboard/${restaurant.id}');
       },
       child: Column(

@@ -1,7 +1,5 @@
 import 'package:gearpizza/features/auth/services/user_role_service.dart';
 
-/// Modello che rappresenta l'utente da Directus.
-/// Dovrai definirlo in base allo schema del tuo Directus.
 class DirectusUser {
   final String id;
   final String? firebaseUid;

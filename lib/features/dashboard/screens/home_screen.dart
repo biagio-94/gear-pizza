@@ -5,7 +5,6 @@ import 'package:gearpizza/features/dashboard/bloc/dashboard_bloc.dart';
 import 'package:gearpizza/features/dashboard/bloc/dashboard_event.dart';
 import 'package:gearpizza/features/dashboard/bloc/dashboard_state.dart';
 import 'package:gearpizza/features/dashboard/components/home_filters_bar.dart';
-import 'package:gearpizza/features/dashboard/models/restaurants_dto.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -30,11 +29,11 @@ class _HomePageState extends State<HomePage> {
 
     return SafeArea(
       child: Scaffold(
-        backgroundColor: theme.colorScheme.background,
+        backgroundColor: theme.colorScheme.surface,
         appBar: PreferredSize(
           preferredSize: const Size.fromHeight(60),
           child: AppBar(
-            backgroundColor: theme.colorScheme.background,
+            backgroundColor: theme.colorScheme.surface,
             elevation: 0,
             titleSpacing: 0,
             title: Padding(

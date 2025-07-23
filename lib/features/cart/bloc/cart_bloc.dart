@@ -86,14 +86,12 @@ class CartBloc extends Bloc<CartEvent, CartState> {
 
         // Costruisco l'OrderDto usando l'id restituito dal customer appena ottenuto
         final OrderDto order = OrderDto(
-          status: event.orderInfo.status, // Imposto lo stato dell'ordine
-          restaurantId:
-              event.orderInfo.restaurantId, // Associazione al ristorante
-          customerId: customer.id!, // Uso l'id del customer
-          address: event.orderInfo.address, // Indirizzo di consegna
-          helpingImage:
-              event.orderInfo.helpingImage, // Eventuale immagine di supporto
-          pizzaIds: event.orderInfo.pizzaIds, // Lista di ID pizze selezionate
+          status: event.orderInfo.status,
+          restaurantId: event.orderInfo.restaurantId,
+          customerId: customer.id!,
+          address: event.orderInfo.address,
+          helpingImage: event.orderInfo.helpingImage,
+          pizzaIds: event.orderInfo.pizzaIds,
         );
 
         // Invio la richiesta per creare l'ordine sul server

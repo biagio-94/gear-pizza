@@ -3,9 +3,7 @@
 //
 
 // ignore_for_file: unused_element
-import 'package:built_collection/built_collection.dart';
 import 'package:gearpizza/common/models/fields.dart';
-import 'package:built_value/json_object.dart';
 import 'dart:core';
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
@@ -59,10 +57,7 @@ class _$FieldsGroupSerializer implements PrimitiveSerializer<FieldsGroup> {
   final String wireName = r'FieldsGroup';
 
   Iterable<Object?> _serializeProperties(
-    Serializers serializers,
-    FieldsGroup object, {
-    FullType specifiedType = FullType.unspecified,
-  }) sync* {}
+      Serializers serializers, FieldsGroup object) sync* {}
 
   @override
   Object serialize(

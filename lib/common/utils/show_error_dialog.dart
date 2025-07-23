@@ -6,7 +6,7 @@ import 'package:gearpizza/common/utils/services_setup.dart';
 void showErrorDialog(BuildContext context, String message) {
   showDialog(
     context: context,
-    useRootNavigator: false, // rimane nel Navigator interno
+    useRootNavigator: false,
     builder: (ctx) => Dialog(
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16.0),

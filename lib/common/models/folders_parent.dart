@@ -44,10 +44,7 @@ class _$FoldersParentSerializer implements PrimitiveSerializer<FoldersParent> {
   final String wireName = r'FoldersParent';
 
   Iterable<Object?> _serializeProperties(
-    Serializers serializers,
-    FoldersParent object, {
-    FullType specifiedType = FullType.unspecified,
-  }) sync* {}
+      Serializers serializers, FoldersParent object) sync* {}
 
   @override
   Object serialize(

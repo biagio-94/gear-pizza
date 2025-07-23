@@ -71,8 +71,9 @@ class __FilterPillsState extends State<_FilterPills> {
           return Padding(
             padding: const EdgeInsets.only(right: 8.0, bottom: 10),
             child: Material(
-              color:
-                  isSelected ? colorScheme.primary : colorScheme.surfaceVariant,
+              color: isSelected
+                  ? colorScheme.primary
+                  : colorScheme.surfaceContainerHighest,
               borderRadius: BorderRadius.circular(32),
               elevation: isSelected ? 4 : 2,
               shadowColor: Colors.black38,

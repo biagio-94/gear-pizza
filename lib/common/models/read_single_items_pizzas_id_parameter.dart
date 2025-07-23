@@ -45,10 +45,7 @@ class _$ReadSingleItemsPizzasIdParameterSerializer
   final String wireName = r'ReadSingleItemsPizzasIdParameter';
 
   Iterable<Object?> _serializeProperties(
-    Serializers serializers,
-    ReadSingleItemsPizzasIdParameter object, {
-    FullType specifiedType = FullType.unspecified,
-  }) sync* {}
+      Serializers serializers, ReadSingleItemsPizzasIdParameter object) sync* {}
 
   @override
   Object serialize(

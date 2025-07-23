@@ -1,5 +1,3 @@
-// user_exceptions.dart
-
 class UserServiceException implements Exception {
   final String message;
   UserServiceException(this.message);

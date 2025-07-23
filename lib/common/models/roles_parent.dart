@@ -3,10 +3,7 @@
 //
 
 // ignore_for_file: unused_element
-import 'package:built_collection/built_collection.dart';
-import 'package:gearpizza/common/models/roles_children_inner.dart';
 import 'package:gearpizza/common/models/roles.dart';
-import 'package:gearpizza/common/models/roles_users_inner.dart';
 import 'dart:core';
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
@@ -49,10 +46,7 @@ class _$RolesParentSerializer implements PrimitiveSerializer<RolesParent> {
   final String wireName = r'RolesParent';
 
   Iterable<Object?> _serializeProperties(
-    Serializers serializers,
-    RolesParent object, {
-    FullType specifiedType = FullType.unspecified,
-  }) sync* {}
+      Serializers serializers, RolesParent object) sync* {}
 
   @override
   Object serialize(

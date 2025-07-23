@@ -35,7 +35,7 @@ class ApiService {
 
   // Internal setters
   Future<void> setAccessToken(String token) async {
-    _cacheAccessToken = token; // <-- aggiorna cache
+    _cacheAccessToken = token;
     await _storage.writeSecureData(_accessKey, token);
   }
 
@@ -150,9 +150,7 @@ class ApiService {
           return _dio.requestUri(request.uri,
               options: opts, data: request.data);
         }
-      } catch (_) {
-        // Ignora eccezioni qui e prova di nuovo
-      }
+      } catch (_) {}
 
       retryCount++;
       if (retryCount < maxRetries) {
@@ -161,7 +159,6 @@ class ApiService {
       }
     }
 
-    // Dopo maxRetries falliti, pulisci i token e manda evento signOut
     await setAccessToken('');
     await setRefreshToken('');
     await _storage.deleteSecureData(_refreshKey);

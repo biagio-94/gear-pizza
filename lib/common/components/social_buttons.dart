@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:gearpizza/common/styles/text_styles.dart';
 
-/// SocialButton personalizzato per tema chiaro e scuro
 class SocialButton extends StatelessWidget {
   final Widget icon;
   final String label;

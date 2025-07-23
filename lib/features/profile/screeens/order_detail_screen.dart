@@ -71,7 +71,6 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
 
             _status ??= OrderStatus.fromString(order.status);
 
-            // Applica l'immagine solo se è stata fetchata e l'ordine non la contiene già
             final imageToUse = order.helpingImage ?? helpImagePath;
 
             return _buildContent(order, imageToUse);

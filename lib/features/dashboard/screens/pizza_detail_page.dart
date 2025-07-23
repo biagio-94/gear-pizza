@@ -56,7 +56,7 @@ class _PizzaDetailPageState extends State<PizzaDetailPage> {
       ),
       child: Scaffold(
         extendBodyBehindAppBar: true,
-        backgroundColor: theme.colorScheme.background,
+        backgroundColor: theme.colorScheme.surface,
         body: CustomScrollView(
           controller: _scrollController,
           slivers: [

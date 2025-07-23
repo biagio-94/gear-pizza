@@ -1,5 +1,3 @@
-// lib/common/components/restaurant_detail_app_bar.dart
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gearpizza/common/utils/image_download_helper.dart';

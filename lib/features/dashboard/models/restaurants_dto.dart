@@ -1,8 +1,5 @@
 import 'dart:convert';
 
-import 'package:flutter/foundation.dart';
-import 'package:gearpizza/common/api/endpoints.dart';
-
 class RestaurantDto {
   final int id;
   final String name;

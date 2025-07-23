@@ -240,15 +240,6 @@ class AuthService {
     }
   }
 
-  Future<bool> isRoleChosen(String uid) async {
-    // Qui potremmo controllare se l'utente ha scelto un ruolo specifico
-    // ad esempio verificando un campo nel database o in secure storage.
-    // Per ora ritorno true come placeholder.
-    // In un'app reale, questa logica dovrebbe essere implementata in modo
-    // da verificare se l'utente ha completato la scelta del ruolo.
-    return true;
-  }
-
   /// Returns the current authenticated user, or null.
   User? get currentUser => _repository.currentUser;
 

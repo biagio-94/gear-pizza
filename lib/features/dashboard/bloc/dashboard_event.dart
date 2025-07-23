@@ -1,4 +1,3 @@
-// dashboard_event.dart
 import 'package:flutter/foundation.dart';
 
 @immutable

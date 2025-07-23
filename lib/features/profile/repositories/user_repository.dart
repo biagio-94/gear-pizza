@@ -23,7 +23,6 @@ import 'package:gearpizza/features/profile/models/user_profile_data_dto.dart';
 import 'package:gearpizza/features/profile/services/user_service_exception.dart';
 import 'package:get_it/get_it.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:path/path.dart' as p;
 
 class UserRepository {
   final ApiService _apiService;
@@ -119,10 +118,10 @@ class UserRepository {
           'customer': {'_eq': userId}
         })
         ..fields([
-          '*', // tutti i campi dell'ordine
-          'pizzas.*', // pivot table
-          'pizzas.pizzas_id.*', // dati completi della pizza
-          'pizzas.pizzas_id.allergens.*', // 👈 dati completi degli allergeni
+          '*',
+          'pizzas.*',
+          'pizzas.pizzas_id.*',
+          'pizzas.pizzas_id.allergens.*',
           'restaurant.*',
           'customer.*',
         ])
@@ -131,7 +130,7 @@ class UserRepository {
           'restaurant',
           'customer',
           'pizzas.pizzas_id',
-          'pizzas.pizzas_id.allergens', // 👈 relazione allergeni popolata
+          'pizzas.pizzas_id.allergens',
         ]);
 
       final endpoint = UserEndpoint.getOrdersByUserId(userId, qb);

@@ -55,7 +55,6 @@ class _CartItemCardState extends State<CartItemCard> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Usando FutureBuilder per caricare l'immagine asincrona
           FutureBuilder<String?>(
             future: _imageFuture,
             builder: (context, snapshot) {
@@ -63,7 +62,7 @@ class _CartItemCardState extends State<CartItemCard> {
                   pizza.coverImageUrl ?? ""; // Immagine di fallback
               if (snapshot.connectionState == ConnectionState.done) {
                 if (snapshot.hasData && snapshot.data!.isNotEmpty) {
-                  imageUrl = snapshot.data!; // Usa l'immagine se trovata
+                  imageUrl = snapshot.data!;
                 }
               }
 

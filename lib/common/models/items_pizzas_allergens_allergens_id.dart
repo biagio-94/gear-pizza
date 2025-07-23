@@ -50,10 +50,7 @@ class _$ItemsPizzasAllergensAllergensIdSerializer
   final String wireName = r'ItemsPizzasAllergensAllergensId';
 
   Iterable<Object?> _serializeProperties(
-    Serializers serializers,
-    ItemsPizzasAllergensAllergensId object, {
-    FullType specifiedType = FullType.unspecified,
-  }) sync* {}
+      Serializers serializers, ItemsPizzasAllergensAllergensId object) sync* {}
 
   @override
   Object serialize(

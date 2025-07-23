@@ -29,8 +29,6 @@ final ColorScheme lightColorScheme = ColorScheme(
   onSecondary: Colors.white,
   error: AppColors.errorRed,
   onError: Colors.white,
-  background: AppColors.lightBackground,
-  onBackground: AppColors.lightOnSurface,
   surface: AppColors.lightSurface, // bianco, container primari bianchi
   onSurface: AppColors.lightOnSurface, // testo nero su surface bianco
   tertiary: AppColors.lightBlue,
@@ -45,8 +43,6 @@ final ColorScheme darkColorScheme = ColorScheme(
   onSecondary: Colors.white,
   error: AppColors.errorRed,
   onError: Colors.white,
-  background: AppColors.lightOnSurface,
-  onBackground: AppColors.lightSurface,
   surface: AppColors.lightOnSurface, // bianco, container primari bianchi
   onSurface: AppColors.lightSurface, // testo nero su surface bianco
   tertiary: AppColors.lightBlue,

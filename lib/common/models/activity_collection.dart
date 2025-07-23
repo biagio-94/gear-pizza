@@ -3,9 +3,7 @@
 //
 
 // ignore_for_file: unused_element
-import 'package:gearpizza/common/models/collections_group.dart';
 import 'package:gearpizza/common/models/collections.dart';
-import 'package:built_value/json_object.dart';
 import 'dart:core';
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
@@ -64,10 +62,7 @@ class _$ActivityCollectionSerializer
   final String wireName = r'ActivityCollection';
 
   Iterable<Object?> _serializeProperties(
-    Serializers serializers,
-    ActivityCollection object, {
-    FullType specifiedType = FullType.unspecified,
-  }) sync* {}
+      Serializers serializers, ActivityCollection object) sync* {}
 
   @override
   Object serialize(

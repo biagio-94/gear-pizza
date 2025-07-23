@@ -4,7 +4,6 @@
 
 // ignore_for_file: unused_element
 import 'package:gearpizza/common/models/folders.dart';
-import 'package:gearpizza/common/models/folders_parent.dart';
 import 'dart:core';
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
@@ -42,10 +41,7 @@ class _$FilesFolderSerializer implements PrimitiveSerializer<FilesFolder> {
   final String wireName = r'FilesFolder';
 
   Iterable<Object?> _serializeProperties(
-    Serializers serializers,
-    FilesFolder object, {
-    FullType specifiedType = FullType.unspecified,
-  }) sync* {}
+      Serializers serializers, FilesFolder object) sync* {}
 
   @override
   Object serialize(

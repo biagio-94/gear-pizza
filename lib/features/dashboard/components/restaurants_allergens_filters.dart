@@ -107,7 +107,7 @@ class _RestaurantsAllergensFiltersState
                             child: Material(
                               color: isSelected
                                   ? colorScheme.primary
-                                  : colorScheme.surfaceVariant,
+                                  : colorScheme.surfaceContainerHighest,
                               borderRadius: BorderRadius.circular(32),
                               elevation: isSelected ? 4 : 2,
                               shadowColor: Colors.black38,

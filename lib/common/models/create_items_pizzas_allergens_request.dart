@@ -3,8 +3,6 @@
 //
 
 // ignore_for_file: unused_element
-import 'package:gearpizza/common/models/items_pizzas_allergens_pizzas_id.dart';
-import 'package:gearpizza/common/models/items_pizzas_allergens_allergens_id.dart';
 import 'package:built_collection/built_collection.dart';
 import 'package:gearpizza/common/models/items_pizzas_allergens.dart';
 import 'package:built_value/built_value.dart';
@@ -52,11 +50,8 @@ class _$CreateItemsPizzasAllergensRequestSerializer
   @override
   final String wireName = r'CreateItemsPizzasAllergensRequest';
 
-  Iterable<Object?> _serializeProperties(
-    Serializers serializers,
-    CreateItemsPizzasAllergensRequest object, {
-    FullType specifiedType = FullType.unspecified,
-  }) sync* {}
+  Iterable<Object?> _serializeProperties(Serializers serializers,
+      CreateItemsPizzasAllergensRequest object) sync* {}
 
   @override
   Object serialize(

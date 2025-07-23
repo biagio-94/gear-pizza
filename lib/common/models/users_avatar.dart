@@ -3,12 +3,7 @@
 //
 
 // ignore_for_file: unused_element
-import 'package:gearpizza/common/models/files_folder.dart';
-import 'package:built_collection/built_collection.dart';
 import 'package:gearpizza/common/models/files.dart';
-import 'package:gearpizza/common/models/files_modified_by.dart';
-import 'package:gearpizza/common/models/files_uploaded_by.dart';
-import 'package:built_value/json_object.dart';
 import 'dart:core';
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
@@ -69,10 +64,7 @@ class _$UsersAvatarSerializer implements PrimitiveSerializer<UsersAvatar> {
   final String wireName = r'UsersAvatar';
 
   Iterable<Object?> _serializeProperties(
-    Serializers serializers,
-    UsersAvatar object, {
-    FullType specifiedType = FullType.unspecified,
-  }) sync* {}
+      Serializers serializers, UsersAvatar object) sync* {}
 
   @override
   Object serialize(

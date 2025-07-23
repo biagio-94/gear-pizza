@@ -10,7 +10,6 @@ import 'package:gearpizza/features/dashboard/bloc/product_card/product_card_stat
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
 
-/// Card ottimizzata che carica una sola volta l'immagine di copertina
 class PizzaCard extends StatefulWidget {
   final PizzaDto pizza;
   final VoidCallback? onTap;

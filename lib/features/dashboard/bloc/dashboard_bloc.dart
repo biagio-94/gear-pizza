@@ -1,4 +1,3 @@
-// dashboard_bloc.dart
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 import 'package:gearpizza/common/bloc/loading_bloc.dart';
@@ -109,7 +108,6 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
         final restaurant = await _dashboardService.fetchRestaurantById(
             restaurantId: event.restaurantId);
 
-        // Emetti lo stato aggiornato
         emit(PizzasLoaded(
           restaurant: restaurant,
           pizzas: pizzas,

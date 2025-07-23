@@ -1,5 +1,5 @@
 import 'package:gearpizza/features/dashboard/models/alergen_dto.dart';
-import 'package:gearpizza/features/profile/models/create_or_update_product.dart';
+import 'package:gearpizza/features/profile/screeens/create_or_update_product.dart';
 import 'package:gearpizza/features/profile/screeens/account_screen.dart';
 import 'package:gearpizza/features/profile/screeens/manage_menu_screen.dart';
 import 'package:gearpizza/features/profile/screeens/order_detail_screen.dart';
@@ -35,7 +35,7 @@ final List<GoRoute> profileRoutes = [
     routes: [
       GoRoute(
         name: 'edit-pizza',
-        path: 'pizza', // ⬅️ NON ridichiarare ":restaurantId"
+        path: 'pizza',
         builder: (context, state) {
           final restaurantId = int.parse(state.pathParameters['restaurantId']!);
           final args = state.extra as PizzaScreenArgs;

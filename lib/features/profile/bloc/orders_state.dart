@@ -1,5 +1,4 @@
 import 'package:equatable/equatable.dart';
-import 'package:gearpizza/features/cart/model/order_dto.dart';
 import 'package:gearpizza/features/profile/models/order_detail_dto.dart';
 
 abstract class OrdersState extends Equatable {

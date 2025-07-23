@@ -39,7 +39,7 @@ class OrderCard extends StatelessWidget {
                 errorWidget: Container(
                   width: 72,
                   height: 72,
-                  color: colorScheme.surfaceVariant,
+                  color: colorScheme.surfaceContainerHighest,
                   child: Icon(Icons.store,
                       size: 36, color: colorScheme.onSurfaceVariant),
                 ),

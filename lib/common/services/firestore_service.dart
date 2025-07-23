@@ -64,11 +64,8 @@ class FirebaseStorageService {
     try {
       // Usa il pizzaId come nome del file (per evitare duplicati)
       final fileName = '$pizzaId.jpg';
-      final folderRef = _storage
-          .ref()
-          .child('pizzas')
-          .child(pizzaId)
-          .child(fileName); // Sovrascrivi il file con lo stesso nome
+      final folderRef =
+          _storage.ref().child('pizzas').child(pizzaId).child(fileName);
 
       // Carica il nuovo file
       await folderRef.putFile(

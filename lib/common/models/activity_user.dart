@@ -5,8 +5,6 @@
 // ignore_for_file: unused_element
 import 'package:built_collection/built_collection.dart';
 import 'package:gearpizza/common/models/users.dart';
-import 'package:gearpizza/common/models/users_avatar.dart';
-import 'package:gearpizza/common/models/users_role.dart';
 import 'dart:core';
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
@@ -60,10 +58,7 @@ class _$ActivityUserSerializer implements PrimitiveSerializer<ActivityUser> {
   final String wireName = r'ActivityUser';
 
   Iterable<Object?> _serializeProperties(
-    Serializers serializers,
-    ActivityUser object, {
-    FullType specifiedType = FullType.unspecified,
-  }) sync* {}
+      Serializers serializers, ActivityUser object) sync* {}
 
   @override
   Object serialize(

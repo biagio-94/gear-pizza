@@ -1,5 +1,3 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:gearpizza/features/dashboard/models/pizza_dto.dart';
 import 'package:gearpizza/features/dashboard/screens/pizza_detail_page.dart';
@@ -16,12 +14,10 @@ final List<GoRoute> dashboardRoutes = [
     },
     routes: [
       GoRoute(
-        path: 'pizza', // ← niente più :pizzaId
+        path: 'pizza',
         name: 'pizzaDetail',
         pageBuilder: (context, state) {
-          // prendi restaurantId dalla rotta padre
           final rId = state.pathParameters['restaurantId']!;
-          // e tutta la PizzaDto da extra
           final pizzaDto = state.extra as PizzaDto;
           return CustomTransitionPage(
             child: PizzaDetailPage(
